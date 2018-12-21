@@ -1,1 +1,4 @@
 .idea
+ITMO_FS.egg-info
+dist
+build
