@@ -66,8 +66,9 @@ class SequentialForwardSelection:
 
             current_accuracy = self.get_current_accuracy(X, current_features, test_x, test_y)
 
-            if accuracy > current_accuracy:
+            if current_accuracy > accuracy :
                 self.features_ = current_features
+                accuracy = current_accuracy
             else:
                 current_features = old_features
 
