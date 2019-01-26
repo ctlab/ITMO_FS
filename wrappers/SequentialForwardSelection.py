@@ -30,7 +30,7 @@ class SequentialForwardSelection:
         """
 
     def __init__(self, estimator, n_features, seed=1):
-        self.estimator_ = estimator
+        self._estimator_ = estimator
         self.n_features_ = n_features
         self.features_ = []
         rnd.seed(seed)
@@ -45,7 +45,10 @@ class SequentialForwardSelection:
                 The training input samples.
             y : array-like, shape (n_features,n_samples)
                 the target values.
-            percentage : float, number of training cases that has to be checked for prediction
+            test_x : array-like, shape (n_features, n_samples)
+                Testing Set
+            test_y : array-like , shape(n_samples)
+                Labels
             Returns
             ------
             None
@@ -62,7 +65,7 @@ class SequentialForwardSelection:
         for feature in X[0:1,:]:
             old_features = current_features
             current_features = np.append(current_features, feature)
-            self.estimator_.fit([X[i] for i in current_features], y)
+            self._estimator_.fit([X[i] for i in current_features], y)
 
             current_accuracy = self.get_current_accuracy(X, current_features, test_x, test_y)
 
@@ -73,18 +76,31 @@ class SequentialForwardSelection:
                 current_features = old_features
 
     def get_current_accuracy(self, X, current_features, test_x, test_y):
+        '''
+        Checks the Accuracy of the Current Features
+            Parameters
+            ----------
+            X : array-like, shape (n_features,n_samples)
+                The training input samples.
+            current_features : array-like, shape (n_features,n_samples)
+                Current Set of Features
+            test_x : array-like, shape (n_features, n_samples)
+                Testing Set
+            test_y : array-like , shape(n_samples)
+                Labels
+            Returns
+            ------
+            float, Accuracy of the Current Features
+
+        '''
+
         correct = 0
         for i in range(test_x.length):
-            predict = self.estimator_.predict([X[j] for j in current_features])
+            predict = self._estimator_.predict([X[j] for j in current_features])
             if predict == test_y[i]:
                 correct += 1
         current_accuracy = correct / test_x.length
         return current_accuracy
 
     def predict(self, X):
-        self.estimator_.predict([X[i] for i in self.features_])
-
-
-fil = SequentialForwardSelection(LinearRegression(), 8)
-print(fil.fit(np.ones((5, 10)), np.ones(10)))
-print(fil.predict(np.ones((5, 5))))
+        self._estimator_.predict([X[i] for i in self.features_])
