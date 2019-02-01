@@ -1,5 +1,6 @@
 import random as rnd
 
+
 class RandomFilter:
     """
         Creates random feature selector
@@ -53,4 +54,3 @@ class RandomFilter:
             result.append(rest_features[ind])
             del rest_features[ind]
         return result
-
