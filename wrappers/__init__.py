@@ -1,1 +1,2 @@
 from .RandowWrapper import RandomWrapper
+from .SequentialForwardSelection import SequentialForwardSelection

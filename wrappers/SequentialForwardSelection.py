@@ -3,15 +3,12 @@
 import random as rnd
 
 import numpy as np
-from sklearn.linear_model import LinearRegression
-from filters import RandomFilter
-
 
 
 class SequentialForwardSelection:
     """
         Sequentially Adds Features that Maximises the Classifying function when combined with the features already used
-
+        TODO add theory about this method
         Parameters
         ----------
         estimator: object
@@ -62,14 +59,14 @@ class SequentialForwardSelection:
         accuracy = 0
         current_features = np.array([])
 
-        for feature in X[0:1,:]:
+        for feature in X[0:1, :]:
             old_features = current_features
             current_features = np.append(current_features, feature)
             self.__estimator__.fit([X[i] for i in current_features], y)
 
             current_accuracy = self.get_current_accuracy(X, current_features, test_x, test_y)
 
-            if current_accuracy > accuracy :
+            if current_accuracy > accuracy:
                 self.__features__ = current_features
                 accuracy = current_accuracy
                 if len(self.__features__) == self.__n_features__:
@@ -77,10 +74,8 @@ class SequentialForwardSelection:
             else:
                 current_features = old_features
 
-
-
     def get_current_accuracy(self, X, current_features, test_x, test_y):
-        '''
+        """
         Checks the Accuracy of the Current Features
             Parameters
             ----------
@@ -96,7 +91,7 @@ class SequentialForwardSelection:
             ------
             float, Accuracy of the Current Features
 
-        '''
+        """
 
         correct = 0
         for i in range(test_x.length):
