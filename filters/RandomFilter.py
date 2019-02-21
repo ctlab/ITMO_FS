@@ -18,8 +18,8 @@ class RandomFilter:
 
         Examples
         --------
-        >>> filter = RandomFilter(2,8)
-        >>> filter.run(np.ones((5, 10))))
+        #>>> filter = RandomFilter(2,8)
+        #>>> filter.run(np.ones((5, 10))))
         [3, 6]
         """
 

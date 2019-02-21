@@ -10,3 +10,5 @@ Current available algorithms:
 -Random filter
 
 -Random wrapper
+
+-Sequential forward selection
