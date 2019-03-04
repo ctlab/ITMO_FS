@@ -9,10 +9,13 @@ def check_data(data):
     raise TypeError("input isn't a list ar numpy array")
 
 
-def check_features(features):
+def check_features(features, size):
     if all(isinstance(x, str) for x in features):
+        if len(features) != size:
+            raise IndexError("Shapes mismatch {} and {}".format(len(features), size))
         return
-    raise TypeError("Features should be strings")
+    else:
+        raise TypeError("Features should be strings")
 
 
 def check_shapes(X, y):
@@ -39,4 +42,4 @@ def check_scorer(scorer):
 
 
 def check_cutting_rule(cutting_rule):
-    pass # todo check cutting rule
+    pass  # todo check cutting rule
