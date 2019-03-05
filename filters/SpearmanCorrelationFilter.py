@@ -1,15 +1,19 @@
 import numpy as np
 
 
-# from utils.data_check import *
-
-
 def spearmen_corr(x, y):
-    n = x.shape[0]
-    c = 6 / (n * (n - 1) * (n + 1))
+    # n = x.shape[0]
+    # c = 6 / (n * (n - 1) * (n + 1))
+    #
+    # dif = x - np.vstack(tuple([y] * x.shape[1])).T
+    # return 1 - c * np.sum(dif * dif, axis=0)
 
-    dif = x - np.vstack(tuple([y] * x.shape[1])).T
-    return 1 - c * np.sum(dif * dif, axis=0)
+    x_dev = x - np.mean(x, axis=0)
+    y_dev = y - np.mean(y)
+    sum_dev = y_dev.dot(x_dev)
+    sq_dev_x = x_dev * x_dev
+    sq_dev_y = y_dev * y_dev
+    return sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))
 
 
 class SpearmanCorrelationFilter:
