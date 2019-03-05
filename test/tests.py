@@ -24,6 +24,7 @@ def electricity_preprocess():
     return data, target
 
 
+
 electricity_X, electricity_y = electricity_preprocess()
 filter_tests = [
     (SpearmanCorrelationFilter(0.3), electricity_X, electricity_y,
