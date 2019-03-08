@@ -30,7 +30,7 @@ class FitCriterion:
             ----------
             x: array-like, shape (n_features, n_samples)
                 Input samples' parameters.
-            y: array-like, shape (1, n_samples)
+            y: array-like, shape (n_samples)
                 Input samples' class labels. Class labels must be sequential integers.
 
             Returns
