@@ -1,6 +1,5 @@
 import numpy as np
 
-
 ##TODO: Examples
 ##TODO: Special cases(see below)
 ##TODO: Delete debug section at the bottom
@@ -22,7 +21,6 @@ class FitCriterion:
         --------
 
     """
-
     def __init__(self, mean=np.mean):
         self.mean = mean
 
@@ -32,7 +30,7 @@ class FitCriterion:
             ----------
             x: array-like, shape (n_features, n_samples)
                 Input samples' parameters.
-            y: array-like, shape (n_samples)
+            y: array-like, shape (1, n_samples)
                 Input samples' class labels. Class labels must be sequential integers.
 
             Returns
@@ -53,10 +51,10 @@ class FitCriterion:
         centers = np.empty(tokensN)  # Array with centers of sets of feature values for each class token
         variances = np.empty(tokensN)  # Array with variances of sets of feature values for each class token
         # Each of arrays above will be separately calculated for each feature
-        distances = np.empty(tokensN)  # Array with distances between sample's value and each class's center
+        distances = np.empty(tokensN) # Array with distances between sample's value and each class's center
         # This array will be separately calculated for each feature and each sample
 
-        for feature_index, feature in enumerate(x.T.values):  # For each feature
+        for feature_index, feature in enumerate(x.T):  # For each feature
             # Initializing utility structures
             class_values = [[] for _ in range(tokensN)]  # Array with lists of feature values for each class token
             for index, value in enumerate(y):  # Filling array
@@ -88,3 +86,4 @@ class FitCriterion:
 #
 # fcc = FitCriterion()
 # fcc.run(x, y)
+

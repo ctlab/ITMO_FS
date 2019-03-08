@@ -2,49 +2,61 @@ import numpy as np
 from tqdm import tqdm
 
 ##TODO some optimization
+##TODO: ?? Normalization by dividing on 2
 class VDM:
-    def __init__(self):
-        pass
+    """
+        Creates Value Difference Metric builder
+        http://aura.abdn.ac.uk/bitstream/handle/2164/10951/payne_ecai_98.pdf?sequence=1
+        https://www.jair.org/index.php/jair/article/view/10182
 
-    def run(self, x, y, weighted=True):
+        Parameters
+        ----------
+        weighted: bool
+            If weighted = False, modified version of metric which omits the weights is used
+
+        See Also
+        --------
+
+        Examples
+        --------
+        >>> x = np.array([[-2, 1, 1],
+        ...               [3, 1, 2],
+        ...               [3, 1, 1]])
+        >>>
+        >>> y = np.array([[7],
+        ...               [3],
+        ...               [3]])
+        >>> vdm = VDM()
+        >>> vdm.run(x, y)
+        array([[0.        , 2.70710678, 2.35355339],
+               [3.        , 0.        , 1.35355339],
+               [2.5       , 1.20710678, 0.        ]])
+    """
+    def __init__(self, weighted=True):
+        self.weighted = weighted
+
+    def run(self, x, y):
         """
-                Value Difference Metric
-                http://aura.abdn.ac.uk/bitstream/handle/2164/10951/payne_ecai_98.pdf?sequence=1
-                https://www.jair.org/index.php/jair/article/view/10182
+            Generates metric for the data
 
-                Parameters
-                ----------
-                x: array-like, shape (n_features, n_samples)
-                    Input samples' parameters.
-                y: array-like, shape (1, n_samples)
-                    Input samples' class labels.
-                weighted: bool
-                    If weighted = False, modified version of metric used which omits the weights
+            Parameters
+            ----------
+            x: array-like, shape (n_features, n_samples)
+                Input samples' parameters.
+            y: array-like, shape (1, n_samples)
+                Input samples' class labels.
 
-                Returns
-                -------
-                result:
-                    numpy.ndarray, shape (n_samples, n_samples) with selected version of metrics
-                See Also
-                --------
-                Examples
-                >>> x = np.array([[-2, 1, 1],
-                ...               [3, 1, 2],
-                ...               [3, 1, 1]])
-                >>>
-                >>> y = np.array([[7],
-                ...               [3],
-                ...               [3]])
-                >>> VDM(x, y)
-                array([[0.        , 2.70710678, 2.35355339],
-                       [3.        , 0.        , 1.35355339],
-                       [2.5       , 1.20710678, 0.        ]])
-                --------
-            """
+            Returns
+            -------
+            result:
+                numpy.ndarray, shape (n_samples, n_samples) with selected version of metrics
+            See Also
+            --------
+        """
         vdm = np.zeros((x.shape[0], x.shape[0]))  # Initializing output matrix
 
         for column in tqdm(x.T):  # For each attribute separately:
-            # Initialising secondary structures:
+            # Initialising utility structures:
             count_x_c = {}  # dict of dicts, for each attribute value contains distribution of class labels for samples
             count_x = {}  # dict, for each attribute value contains amount of samples with it
             for index, i in tqdm(enumerate(column)):  # For each sample
@@ -72,7 +84,7 @@ class VDM:
                     deltas[(i, j)] = delta
 
             # Calculating weights if needed:
-            if weighted:
+            if self.weighted:
                 weights = {}  # dict, For each attribute value i contains weight(i)
                 for i, i_count_c in count_x_c.items():  # For each attribute value i with its distribution i_count_c
                     weight = 0
@@ -83,7 +95,7 @@ class VDM:
                     weights[i] = weight
 
             # Calculating VDM:
-            if not weighted:
+            if not self.weighted:
                 for index_i, i in enumerate(column):
                     for index_j, j in enumerate(column):
                         vdm[index_i][index_j] += deltas[(i, j)]
