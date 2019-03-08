@@ -1,8 +1,10 @@
 import numpy as np
 from tqdm import tqdm
 
-##TODO some optimization
-##TODO: ?? Normalization by dividing on 2
+##TODO some more optimization
+##TODO: ?? Normalization with division by 2
+##TODO: ?? write converter
+##TODO: ?? add types selection
 class VDM:
     """
         Creates Value Difference Metric builder
@@ -19,18 +21,18 @@ class VDM:
 
         Examples
         --------
-        >>> x = np.array([[-2, 1, 1],
-        ...               [3, 1, 2],
-        ...               [3, 1, 1]])
+        >>> x = np.array([[0, 0, 0, 0],
+        ...               [1, 0, 1, 1],
+        ...               [1, 0, 0, 2]])
         >>>
-        >>> y = np.array([[7],
-        ...               [3],
-        ...               [3]])
+        >>> y = np.array([0,
+        ...               1,
+        ...               1])
         >>> vdm = VDM()
         >>> vdm.run(x, y)
-        array([[0.        , 2.70710678, 2.35355339],
-               [3.        , 0.        , 1.35355339],
-               [2.5       , 1.20710678, 0.        ]])
+        array([[0.         4.35355339 4.        ]
+               [4.5        0.         0.5       ]
+               [4.         0.35355339 0.        ]])
     """
     def __init__(self, weighted=True):
         self.weighted = weighted
@@ -42,9 +44,9 @@ class VDM:
             Parameters
             ----------
             x: array-like, shape (n_features, n_samples)
-                Input samples' parameters.
-            y: array-like, shape (1, n_samples)
-                Input samples' class labels.
+                Input samples' parameters. Parameters among every class must be sequential integers.
+            y: array-like, shape (n_samples)
+                Input samples' class labels. Class labels must be sequential integers.
 
             Returns
             -------
@@ -56,51 +58,43 @@ class VDM:
         vdm = np.zeros((x.shape[0], x.shape[0]))  # Initializing output matrix
 
         for column in tqdm(x.T):  # For each attribute separately:
-            # Initialising utility structures:
-            count_x_c = {}  # dict of dicts, for each attribute value contains distribution of class labels for samples
-            count_x = {}  # dict, for each attribute value contains amount of samples with it
-            for index, i in tqdm(enumerate(column)):  # For each sample
-                count_x.setdefault(i, 0)
-                count_x[i] += 1  # Increasing number of samples with attribute value == i
+            # Initializing utility structures:
+            valuesN = np.max(column) + 1
+            count_x = np.zeros(valuesN, dtype=np.int32)  # Array with amounts of samples for each attribute value
+            count_x_c = np.array([{} for _ in range(valuesN)])
 
-                c = y[index]  # Class label c of the corresponding sample
-                count_x_c.setdefault(i, {})
-                count_x_c[i].setdefault(c, 0)
-                count_x_c[i][c] += 1  # Increasing number of samples with attribute value == i && class label == c
+            for index, value in tqdm(enumerate(column)):  # For each sample
+                count_x[value] += 1  # Increasing number of samples with attribute value == i
+                count_x_c[value].setdefault(y[index], 0)
+                count_x_c[value][y[index]] += 1  # Increasing number of samples with attribute value == i && class label == y[index]
 
             # Calculating deltas:
-            deltas = {}  # dict, For each pair of attribute values (i, j) contains delta(i, j)
-            for i, i_count_c in tqdm(count_x_c.items()):  # For each attribute value i with its distribution i_count_c
-                for j, j_count_c in tqdm(count_x_c.items()):  # For each attribute value j with its distribution j_count_c
+            deltas = np.empty((valuesN, valuesN))  # For each pair of attribute values (i, j) contains delta(i, j)
+            for i in range(valuesN):  # For each value i
+                for j in range(i, valuesN):  # For each value j
                     delta = 0
                     count_i = count_x[i]  # Amount of samples with attribute value == i
                     count_j = count_x[j]  # Amount of samples with attribute value == j
-                    for c, count_c in i_count_c.items():
-                        delta += (count_c / count_i - j_count_c.get(c, 0) / count_j) ** 2
-
-                    for c, count_c in j_count_c.items():
-                        if c not in i_count_c:
+                    for c, count_c in count_x_c[i].items():  # Iterating over class tokens of i
+                        delta += (count_c / count_i - count_x_c[j].get(c, 0) / count_j) ** 2
+                    for c, count_c in count_x_c[j].items():  # Iterating over class tokens of j
+                        if c not in count_x_c[i]:  # Skipping tokens which have already been calculated
                             delta += (count_c / count_x[j]) ** 2
-                    deltas[(i, j)] = delta
-
-            # Calculating weights if needed:
-            if self.weighted:
-                weights = {}  # dict, For each attribute value i contains weight(i)
-                for i, i_count_c in count_x_c.items():  # For each attribute value i with its distribution i_count_c
-                    weight = 0
-                    for _, count_c in i_count_c.items():  # For each class label in the distribution of i
-                        weight += count_c ** 2
-                    weight = np.sqrt(weight)
-                    weight /= count_x[i]
-                    weights[i] = weight
+                    deltas[i][j] = delta
+                    if i != j:
+                        deltas[j][i] = delta
 
             # Calculating VDM:
             if not self.weighted:
                 for index_i, i in enumerate(column):
                     for index_j, j in enumerate(column):
-                        vdm[index_i][index_j] += deltas[(i, j)]
-            else:
+                        vdm[index_i][index_j] += deltas[i][j]
+            else:  # if weighted metric was selected
+                weights = np.empty(valuesN)  # For each attribute value i contains weight(i)
+                for i in range(valuesN):  # For each attribute value i with its distribution i_count_c
+                    weights[i] = np.sqrt(np.sum(np.array(list(count_x_c[i].values())) ** 2)) / count_x[i]
                 for index_i, i in enumerate(column):
                     for index_j, j in enumerate(column):
-                        vdm[index_i][index_j] += deltas[(i, j)] * weights[i]
+                        vdm[index_i][index_j] += deltas[i][j] * weights[i]
         return vdm
+
