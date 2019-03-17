@@ -72,7 +72,7 @@ class FitCriterion:
                 fc[feature_index] += np.argmin(distances) == y[sample_index]
 
         fc /= y.shape[0]  # Normalization
-        print(fc)
+        return fc
 
 # x = np.array([[4, 1, 3, 2, 5],
 #               [5, 4, 3, 1, 4],
