@@ -1,12 +1,12 @@
 from numpy import array
-from numpy.random import shuffle
 
 
 def train_test_split(X, y, test_size):
-    shuffle(X)
-    shuffle(y)
-    return X[:X.shape[0] * test_size], y[:X.shape[0] * test_size], X[X.shape[0] * test_size:], y[
-                                                                                               X.shape[0] * test_size:]
+    test_size = 1 - test_size
+    return X[:int(X.shape[0] * test_size)], y[:int(X.shape[0] * test_size)], X[int(X.shape[0] * test_size):], y[
+                                                                                                              int(
+                                                                                                                  X.shape[
+                                                                                                                      0] * test_size):]
 
 
 def check_data(data):

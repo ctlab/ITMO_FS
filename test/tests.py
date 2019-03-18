@@ -48,7 +48,7 @@ filter_tests = [
     (GiniIndexFilter(0.3), electricity_X, electricity_y, {'date': 0.37209712153031527}),
     (SpearmanCorrelationFilter(0.3), breast_X, breast_y, {}),
     # (FitCriterion(), breast_X, breast_y, {}),
-    (VDM(), breast_X, breast_y, {})
+    # (VDM(), breast_X, breast_y, {})
 ]
 
 

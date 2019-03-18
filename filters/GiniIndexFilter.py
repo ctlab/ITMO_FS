@@ -4,7 +4,7 @@ import numpy as np
 def estimate_index(X, y):
     try:
         x = X.values
-        y=y.values
+        y = y.values
     except AttributeError:
         x = X
     cum_x = np.cumsum(x / np.linalg.norm(x, 1, axis=0), axis=0)
@@ -14,7 +14,7 @@ def estimate_index(X, y):
     return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
 
 
-class GiniIndexFilter:
+class GiniIndexFilter(object):
     __border = 0.5
     __features = {}
 
@@ -31,3 +31,6 @@ class GiniIndexFilter:
         result = estimate_index(x, y)
         self.__features = dict(zip(feature_names, result))
         return dict([i for i in self.__features.items() if i[1] > self.__border])
+
+    def __repr__(self):
+        return "Gini Index filter with border {}".format(self.__border)
