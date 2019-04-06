@@ -2,8 +2,6 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 
-from filters.VDM import VDM
-from filters.FitCriterion import FitCriterion
 from filters.GiniIndexFilter import GiniIndexFilter
 from filters.SpearmanCorrelationFilter import SpearmanCorrelationFilter
 from hybrid import Melif
@@ -37,7 +35,6 @@ def breast_preprocess():
     return data, target
 
 
-
 electricity_X, electricity_y = electricity_preprocess()
 breast_X, breast_y = breast_preprocess()
 filter_tests = [
@@ -59,6 +56,8 @@ def cut(x, border):
         return [i for i in x if i > border]
 
 
+from sklearn.metrics import f1_score
+
 if __name__ == '__main__':
     for test in filter_tests:
         filter_test(*test)
@@ -66,5 +65,5 @@ if __name__ == '__main__':
     estimator = RandomForestClassifier()
 
     wrapper = Melif([SpearmanCorrelationFilter(-1), GiniIndexFilter(-1)])
-    wrapper.fit(breast_X, breast_y)
+    wrapper.fit(breast_X, breast_y, score=f1_score)
     wrapper.run(cut, estimator)
