@@ -1,8 +1,7 @@
 import numpy as np
+from utils.data_check import generate_features
 
-##TODO: Examples
-##TODO: Special cases(see below)
-##TODO: Delete debug section at the bottom
+# TODO: Special cases(see below)
 class FitCriterion:
     """
         Creates Fit Criterion builder
@@ -19,6 +18,17 @@ class FitCriterion:
 
         Examples
         --------
+        >>> x = np.array([[4, 1, 3, 2, 5],
+        ...               [5, 4, 3, 1, 4],
+        ...               [5, 2, 3, 0, 5],
+        ...               [1, 1, 4, 0, 5]])
+        >>> y = np.array([2,
+        ...               1,
+        ...               0,
+        ...               0])
+        >>> fc = FitCriterion()
+        >>> fc.run(x, y)
+        {0: 0.75, 1: 0.75, 2: 0.5, 3: 1.0, 4: 0.75}
 
     """
     def __init__(self, mean=np.mean):
@@ -44,17 +54,22 @@ class FitCriterion:
             Examples
             --------
         """
+        feature_labels = generate_features(x, None)  # Generating feature labels for output data
+        x = np.asarray(x)  # Converting input data to numpy array
+        y = np.asarray(y)
+
         fc = np.zeros(x.shape[1])  # Array with amounts of correct predictions for each feature
-        tokensN = np.max(y) + 1  # Number of different class tokens
+        tokensN = int(np.max(y)) + 1  # Number of different class tokens
 
         # Utility arrays
         centers = np.empty(tokensN)  # Array with centers of sets of feature values for each class token
         variances = np.empty(tokensN)  # Array with variances of sets of feature values for each class token
         # Each of arrays above will be separately calculated for each feature
-        distances = np.empty(tokensN) # Array with distances between sample's value and each class's center
+        distances = np.empty(tokensN)  # Array with distances between sample's value and each class's center
         # This array will be separately calculated for each feature and each sample
 
-        for feature_index, feature in enumerate(x.T):  # For each feature
+        for feature_index in range(x.shape[1]):  # For each feature
+            feature = x.T[feature_index]
             # Initializing utility structures
             class_values = [[] for _ in range(tokensN)]  # Array with lists of feature values for each class token
             for index, value in enumerate(y):  # Filling array
@@ -67,23 +82,11 @@ class FitCriterion:
             # Main calculations
             for sample_index, value in enumerate(feature):  # For each sample value
                 for i in range(tokensN):  # For each class token
-                    ##TODO: ?? cases 0 / 0, smth / 0
+                    # TODO: cases 0 / 0, smth / 0
+                    # TODO: disable warnings
                     distances[i] = np.abs(value - centers[i]) / variances[i]
                 fc[feature_index] += np.argmin(distances) == y[sample_index]
 
         fc /= y.shape[0]  # Normalization
-        return fc
 
-# x = np.array([[4, 1, 3, 2, 5],
-#               [5, 4, 3, 1, 4],
-#               [5, 2, 3, 0, 5],
-#               [1, 1, 4, 0, 5]])
-#
-# y = np.array([2,
-#               1,
-#               0,
-#               0])
-#
-# fcc = FitCriterion()
-# fcc.run(x, y)
-
+        return dict(zip(feature_labels, fc))  # Adding feature labels

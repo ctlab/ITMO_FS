@@ -1,10 +1,8 @@
 import numpy as np
 from tqdm import tqdm
 
-##TODO some more optimization
-##TODO: ?? Normalization with division by 2
-##TODO: ?? write converter
-##TODO: ?? add types selection
+# TODO: Some more optimization
+# TODO: Normalization with division by 2
 class VDM:
     """
         Creates Value Difference Metric builder
@@ -55,6 +53,9 @@ class VDM:
             See Also
             --------
         """
+        x = np.asarray(x)  # Converting input data to numpy arrays
+        y = np.asarray(y)
+
         vdm = np.zeros((x.shape[0], x.shape[0]))  # Initializing output matrix
 
         for column in tqdm(x.T):  # For each attribute separately:
@@ -97,4 +98,3 @@ class VDM:
                     for index_j, j in enumerate(column):
                         vdm[index_i][index_j] += deltas[i][j] * weights[i]
         return vdm
-
