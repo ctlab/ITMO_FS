@@ -18,6 +18,7 @@ class FitCriterion:
 
         Examples
         --------
+<<<<<<< HEAD
         >>> x = np.array([[4, 1, 3, 2, 5],
         ...               [5, 4, 3, 1, 4],
         ...               [5, 2, 3, 0, 5],
@@ -29,7 +30,6 @@ class FitCriterion:
         >>> fc = FitCriterion()
         >>> fc.run(x, y)
         {0: 0.75, 1: 0.75, 2: 0.5, 3: 1.0, 4: 0.75}
-
     """
     def __init__(self, mean=np.mean):
         self.mean = mean
@@ -65,11 +65,13 @@ class FitCriterion:
         centers = np.empty(tokensN)  # Array with centers of sets of feature values for each class token
         variances = np.empty(tokensN)  # Array with variances of sets of feature values for each class token
         # Each of arrays above will be separately calculated for each feature
+
         distances = np.empty(tokensN)  # Array with distances between sample's value and each class's center
         # This array will be separately calculated for each feature and each sample
 
         for feature_index in range(x.shape[1]):  # For each feature
             feature = x.T[feature_index]
+
             # Initializing utility structures
             class_values = [[] for _ in range(tokensN)]  # Array with lists of feature values for each class token
             for index, value in enumerate(y):  # Filling array
@@ -88,5 +90,4 @@ class FitCriterion:
                 fc[feature_index] += np.argmin(distances) == y[sample_index]
 
         fc /= y.shape[0]  # Normalization
-
         return dict(zip(feature_labels, fc))  # Adding feature labels

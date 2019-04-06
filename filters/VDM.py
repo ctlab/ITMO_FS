@@ -98,3 +98,4 @@ class VDM:
                     for index_j, j in enumerate(column):
                         vdm[index_i][index_j] += deltas[i][j] * weights[i]
         return vdm
+
