@@ -1,9 +1,9 @@
 import random as rnd
-import pandas as pd
 import numpy as np
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import make_scorer
 from copy import copy
+from importlib import reload
 
 
 class Add_del(object):
@@ -20,9 +20,12 @@ class Add_del(object):
             maximize = True if bigger values are better for score function
         seed: int
             Seed for python random
+        best_score : float
+            The best score of given metric on the feature combination after add-del procedure
 
         See Also
         --------
+        Lecture about feature selection (ru), p.13 - http://www.ccas.ru/voron/download/Modeling.pdf
 
         Examples
         --------
@@ -32,7 +35,7 @@ class Add_del(object):
         >>> y = np.array(data[1])
         >>> lg = linear_model.LogisticRegression(solver='lbfgs')
         >>> add_del = Add_del(lg, accuracy)
-        >>> features, score = add_del.run(X, y)
+        >>> features = add_del.run(X, y)
         >>> features
         [5, 6, 8, 11, 16]
 
@@ -42,7 +45,7 @@ class Add_del(object):
         >>> y = pd.DataFrame(boston['target'])
         >>> lasso = linear_model.Lasso()
         >>> add_del = Add_del(lasso, mean_absolute_error, maximize=False)
-        >>> features, score = add_del.run(X, y)
+        >>> features = add_del.run(X, y)
         >>> features
         ['ZN', 'INDUS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B']
 
@@ -54,6 +57,7 @@ class Add_del(object):
         self.score = score
         self.maximize = maximize
         rnd.seed(seed)
+        self.best_score = None
 
     def _add(self, X, y, cv=3, silent=True):
 
@@ -161,9 +165,6 @@ class Add_del(object):
            features : list
                List of feature after add-del procedure
 
-           score : float
-               The best score after add-del procedure of `score` metric.
-
            See Also
            --------
 
@@ -172,25 +173,36 @@ class Add_del(object):
 
        """
 
-    return_feature_names = False
+        return_feature_names = False
 
-    if isinstance(X, pd.DataFrame):
-        return_feature_names = True
-        columns = np.array(X.columns)
+        try:
+            import pandas
 
-    X = np.array(X)
-    y = np.array(y).ravel()
+            if isinstance(X, pandas.DataFrame):
+                return_feature_names = True
+                columns = np.array(X.columns)
+                return_feature_names = True
+            else:
+                pandas = reload(pandas)
 
-    if silent == False:
-        print('add trial')
-    features = self._add(X, y, cv, silent)
 
-    if silent == False:
-        print('del trial')
-    features, score = self._del(X, y, features, cv, silent)
+        except ModuleNotFoundError:
+            pass
 
-    if return_feature_names:
-        return (list(columns[features]), score)
+        X = np.array(X)
+        y = np.array(y).ravel()
 
-    return (features, score)
+        if silent == False:
+            print('add trial')
+        features = self._add(X, y, cv, silent)
 
+        if silent == False:
+            print('del trial')
+
+        features, score = self._del(X, y, features, cv, silent)
+        self.best_score = score
+
+        if return_feature_names:
+            return list(columns[features])
+
+        return features
