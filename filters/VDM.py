@@ -52,6 +52,7 @@ class VDM:
                 numpy.ndarray, shape (n_samples, n_samples) with selected version of metrics
             See Also
             --------
+
         """
         x = np.asarray(x)  # Converting input data to numpy arrays
         y = np.asarray(y)
@@ -98,4 +99,3 @@ class VDM:
                     for index_j, j in enumerate(column):
                         vdm[index_i][index_j] += deltas[i][j] * weights[i]
         return vdm
-

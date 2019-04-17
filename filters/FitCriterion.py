@@ -18,7 +18,6 @@ class FitCriterion:
 
         Examples
         --------
-<<<<<<< HEAD
         >>> x = np.array([[4, 1, 3, 2, 5],
         ...               [5, 4, 3, 1, 4],
         ...               [5, 2, 3, 0, 5],
@@ -45,11 +44,14 @@ class FitCriterion:
 
             Returns
             -------
-            result:
-                numpy.ndarray, shape (n_features) with Fit Criterion ratios for each feature
+            result: python dict containing entries (feature, ratio)
+                Dictionary with Fit Criterion ratios for input dataset
+                If passed data has no `.features' field, feature labels will be generated as sequential integers
+                starting from zero.
 
             See Also
             --------
+            utils.data_check.generate_features()
 
             Examples
             --------
