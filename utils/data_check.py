@@ -26,7 +26,7 @@ def check_features(features, size):
         raise TypeError("Features should be strings")
 
 
-def genearate_features(X, features):
+def generate_features(X, features=None):
     try:
         features = X.columns
     except AttributeError:

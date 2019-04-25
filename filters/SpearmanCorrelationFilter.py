@@ -18,7 +18,7 @@ def spearmen_corr(x, y):
 
 class SpearmanCorrelationFilter(object):
     __border = 0.5
-    __features = {}
+    feature_scores = {}
 
     ##todo theory and comments
     def __init__(self, border=0.5):
@@ -32,8 +32,8 @@ class SpearmanCorrelationFilter(object):
                 feature_names = list(range(x.shape[1]))
         # check_features(feature_names, x.shape[1])
         result = spearmen_corr(x, y)
-        self.__features = dict(zip(feature_names, result))
-        return dict([i for i in self.__features.items() if i[1] > self.__border])
+        self.feature_scores = dict(zip(feature_names, result))
+        return [i[1] for i in self.feature_scores.items() if i[1] > self.__border]
 
     def __repr__(self):
         return "Spearman correlation with border {}".format(self.__border)

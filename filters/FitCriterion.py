@@ -1,5 +1,7 @@
 import numpy as np
 
+from utils import generate_features
+
 
 ##TODO: Examples
 ##TODO: Special cases(see below)
@@ -26,7 +28,9 @@ class FitCriterion:
     def __init__(self, mean=np.mean):
         self.mean = mean
 
-    def run(self, x, y):
+    feature_scores = {}
+
+    def run(self, x, y, feature_names=None):
         """
             Parameters
             ----------
@@ -45,10 +49,11 @@ class FitCriterion:
 
             Examples
             --------
+            :param feature_names: names for features, not needed for pandas DataFrames
         """
         fc = np.zeros(x.shape[1])  # Array with amounts of correct predictions for each feature
         tokensN = np.max(y) + 1  # Number of different class tokens
-
+        feature_names = generate_features(x, feature_names)
         # Utility arrays
         centers = np.empty(tokensN)  # Array with centers of sets of feature values for each class token
         variances = np.empty(tokensN)  # Array with variances of sets of feature values for each class token
@@ -56,7 +61,7 @@ class FitCriterion:
         distances = np.empty(tokensN)  # Array with distances between sample's value and each class's center
         # This array will be separately calculated for each feature and each sample
 
-        for feature_index, feature in enumerate(x.T.values):  # For each feature
+        for feature_index, feature in enumerate(x.T):  # For each feature
             # Initializing utility structures
             class_values = [[] for _ in range(tokensN)]  # Array with lists of feature values for each class token
             for index, value in enumerate(y):  # Filling array
@@ -74,7 +79,11 @@ class FitCriterion:
                 fc[feature_index] += np.argmin(distances) == y[sample_index]
 
         fc /= y.shape[0]  # Normalization
-        print(fc)
+        self.feature_scores = dict(zip(feature_names, fc))
+        return fc
+
+    def __repr__(self):
+        return "Fit criterion with mean {}".format(self.mean)
 
 # x = np.array([[4, 1, 3, 2, 5],
 #               [5, 4, 3, 1, 4],

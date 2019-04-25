@@ -26,7 +26,7 @@ class Melif:
         logging.info('Runing basic MeLiF\nFilters:{}'.format(self.__filters))
 
     def fit(self, X, y, feature_names=None, score=None):
-        feature_names = genearate_features(X, feature_names)
+        feature_names = generate_features(X, feature_names)
         check_shapes(X, y)
         # check_features(features_names)
         self.__feature_names = feature_names
@@ -50,7 +50,8 @@ class Melif:
         t = 1
         nu = {i: [] for i in self.__feature_names}
         for _filter in self.__filters:
-            for key, value in _filter.run(self.train_x, self.train_y).items():
+            _filter.run(self.train_x, self.train_y)
+            for key, value in _filter.feature_scores.items():
                 nu[key].append(value)
 
         points = [self.__filter_weights]
@@ -66,8 +67,8 @@ class Melif:
             if F == {}:
                 break
             keys = list(F.keys())
-            estimator.fit(self.train_x[list(F.keys())], self.train_y)
-            predicted = estimator.predict(self.test_x[keys])
+            estimator.fit(self.train_x[:, list(F.keys())], self.train_y)
+            predicted = estimator.predict(self.test_x[:,keys])
             score = self.__score(self.test_y, predicted)
             logging.info(
                 'Measure at current point : {}'.format(score))

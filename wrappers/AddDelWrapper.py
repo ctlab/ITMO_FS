@@ -1,9 +1,10 @@
 import random as rnd
-import numpy as np
-from sklearn.model_selection import cross_val_score
-from sklearn.metrics import make_scorer
 from copy import copy
 from importlib import reload
+
+import numpy as np
+from sklearn.metrics import make_scorer
+from sklearn.model_selection import cross_val_score
 
 
 class Add_del(object):
@@ -78,7 +79,7 @@ class Add_del(object):
                                                         cv=cv)))
             scores.append(current_score)
 
-            if silent == False:
+            if not silent:
                 print('feature {} (score: {})'.format(feature, current_score))
 
             if self.maximize == True and current_score <= prev_score:
@@ -89,10 +90,10 @@ class Add_del(object):
 
             prev_score = current_score
 
-        if silent == False:
-            if self.maximize == True:
+        if not silent:
+            if self.maximize:
                 print('max score: {}'.format(np.max(scores)))
-            elif self.maximize == False:
+            elif not self.maximize:
                 print('min score: {}'.format(np.min(scores)))
 
         return appended
@@ -105,7 +106,7 @@ class Add_del(object):
         current_score = 0
         scores = [prev_score]
 
-        if silent == False:
+        if not silent:
             print('score: {}'.format(prev_score))
 
         iter_features = copy(features)
@@ -120,30 +121,30 @@ class Add_del(object):
                                                         cv=cv)))
             scores.append(current_score)
 
-            if silent == False:
+            if not silent:
                 print('remove feature {} (score: {})'.format(feature, current_score))
 
-            if self.maximize == True and prev_score > current_score:
+            if self.maximize and prev_score > current_score:
                 features.append(feature)
 
-            if self.maximize == False and prev_score <= current_score:
+            if not self.maximize and prev_score <= current_score:
                 features.append(feature)
 
-            if self.maximize == True and current_score > prev_score:
+            if self.maximize and current_score > prev_score:
                 prev_score = current_score
 
-            if self.maximize == False and current_score <= prev_score:
+            if not self.maximize and current_score <= prev_score:
                 prev_score = current_score
 
-        if self.maximize == True:
+        if self.maximize:
             res_score = np.max(scores)
-        elif self.maximize == False:
+        elif not self.maximize:
             res_score = np.min(scores)
 
         if silent == 'False':
             print('score: {}'.format(res_score))
 
-        return (features, res_score)
+        return features, res_score
 
     def run(self, X, y, cv=3, silent=True):
         """
@@ -192,11 +193,11 @@ class Add_del(object):
         X = np.array(X)
         y = np.array(y).ravel()
 
-        if silent == False:
+        if not silent:
             print('add trial')
         features = self._add(X, y, cv, silent)
 
-        if silent == False:
+        if not silent:
             print('del trial')
 
         features, score = self._del(X, y, features, cv, silent)

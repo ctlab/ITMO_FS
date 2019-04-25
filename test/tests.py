@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 
+from filters import FitCriterion, SymmetricUncertainty
 from filters.GiniIndexFilter import GiniIndexFilter
 from filters.SpearmanCorrelationFilter import SpearmanCorrelationFilter
 from hybrid import Melif
@@ -9,7 +10,9 @@ from hybrid import Melif
 
 def filter_test(filter, X, y, answer):
     try:
-        assert filter.run(X, y).keys() == answer.keys()
+        filter.run(X, y)
+
+        assert filter.feature_scores.keys() == answer.keys()
         print('Test passed')
     except AssertionError:
         print('Test failed')
@@ -64,6 +67,7 @@ if __name__ == '__main__':
 
     estimator = RandomForestClassifier()
 
-    wrapper = Melif([SpearmanCorrelationFilter(-1), GiniIndexFilter(-1)])
-    wrapper.fit(breast_X, breast_y, score=f1_score)
+    wrapper = Melif([SpearmanCorrelationFilter(-1), FitCriterion(),
+                     SymmetricUncertainty.SymmetricUncertaintyFilter(breast_X.shape[1])])
+    wrapper.fit(breast_X.values, breast_y.values, score=f1_score)
     wrapper.run(cut, estimator)
