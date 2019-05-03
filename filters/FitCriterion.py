@@ -1,7 +1,7 @@
 import numpy as np
 from utils.data_check import generate_features
 
-# TODO: Special cases(see below)
+
 class FitCriterion:
     """
         Creates Fit Criterion builder
@@ -86,8 +86,8 @@ class FitCriterion:
             # Main calculations
             for sample_index, value in enumerate(feature):  # For each sample value
                 for i in range(tokensN):  # For each class token
-                    # TODO: cases 0 / 0, smth / 0
-                    # TODO: disable warnings
+                    # Here can be raise warnings by 0/0 division. In this case, default results
+                    # are interpreted correctly
                     distances[i] = np.abs(value - centers[i]) / variances[i]
                 fc[feature_index] += np.argmin(distances) == y[sample_index]
 
