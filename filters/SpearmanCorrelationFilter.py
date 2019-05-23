@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def spearmen_corr(x, y):
+def spearman_corr(x, y):
     # n = x.shape[0]
     # c = 6 / (n * (n - 1) * (n + 1))
     #
@@ -17,12 +17,11 @@ def spearmen_corr(x, y):
 
 
 class SpearmanCorrelationFilter(object):
-    __border = 0.5
     feature_scores = {}
 
     ##todo theory and comments
-    def __init__(self, border=0.5):
-        self.__border = border
+    def __init__(self, cutting_rule):
+        self.__cutting_rule = cutting_rule
 
     def run(self, x, y, feature_names=None):
         try:
@@ -31,9 +30,9 @@ class SpearmanCorrelationFilter(object):
             if feature_names is None:
                 feature_names = list(range(x.shape[1]))
         # check_features(feature_names, x.shape[1])
-        result = spearmen_corr(x, y)
+        result = spearman_corr(x, y)
         self.feature_scores = dict(zip(feature_names, result))
-        return [i[1] for i in self.feature_scores.items() if i[1] > self.__border]
+        return self.__cutting_rule(self.feature_scores)
 
     def __repr__(self):
-        return "Spearman correlation with border {}".format(self.__border)
+        return "Spearman correlation with rule {}".format(self.__cutting_rule)

@@ -1,7 +1,5 @@
 import math
 
-import numpy as np
-
 
 class InformationGainFilter:
     """
@@ -66,7 +64,5 @@ class InformationGainFilter:
 
                 con_entropy += sub_entropy * p
             list_f[index] = entropy - con_entropy
-
-
 
         return list_f

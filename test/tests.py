@@ -1,11 +1,13 @@
+
+
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+
 
 from filters import FitCriterion, SymmetricUncertainty
 from filters.GiniIndexFilter import GiniIndexFilter
 from filters.SpearmanCorrelationFilter import SpearmanCorrelationFilter
-from hybrid import Melif
+
 
 
 def filter_test(filter, X, y, answer):
@@ -19,7 +21,7 @@ def filter_test(filter, X, y, answer):
 
 
 def wrapper_test(wrapper):
-    pass  # TODO test wrapper algorithm
+    pass  ## TODO test wrapper algorithm
 
 
 def electricity_preprocess():
@@ -40,6 +42,7 @@ def breast_preprocess():
 
 electricity_X, electricity_y = electricity_preprocess()
 breast_X, breast_y = breast_preprocess()
+
 filter_tests = [
     (SpearmanCorrelationFilter(0.3), electricity_X, electricity_y,
      {'date': 0.9999999989252104, 'day': 0.9999999499088564, 'period': 0.9999999991477627,
@@ -52,22 +55,7 @@ filter_tests = [
 ]
 
 
-def cut(x, border):
-    if type(x) is dict:
-        return dict([i for i in x.items() if i[1] > border])
-    if type(x) is np.ndarray or type(x) is list:
-        return [i for i in x if i > border]
-
-
-from sklearn.metrics import f1_score
 
 if __name__ == '__main__':
     for test in filter_tests:
         filter_test(*test)
-
-    estimator = RandomForestClassifier()
-
-    wrapper = Melif([SpearmanCorrelationFilter(-1), FitCriterion(),
-                     SymmetricUncertainty.SymmetricUncertaintyFilter(breast_X.shape[1])])
-    wrapper.fit(breast_X.values, breast_y.values, score=f1_score)
-    wrapper.run(cut, estimator)
