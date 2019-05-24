@@ -20,7 +20,7 @@ class SpearmanCorrelationFilter(object):
     feature_scores = {}
 
     ##todo theory and comments
-    def __init__(self, cutting_rule):
+    def __init__(self, cutting_rule=None):
         self.__cutting_rule = cutting_rule
 
     def run(self, x, y, feature_names=None):
@@ -32,6 +32,8 @@ class SpearmanCorrelationFilter(object):
         # check_features(feature_names, x.shape[1])
         result = spearman_corr(x, y)
         self.feature_scores = dict(zip(feature_names, result))
+        if self.__cutting_rule is None:
+            return self.feature_scores
         return self.__cutting_rule(self.feature_scores)
 
     def __repr__(self):

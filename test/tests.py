@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 
-
+from sklearn.svm import SVC
 from filters import FitCriterion, SymmetricUncertainty
 from filters.GiniIndexFilter import GiniIndexFilter
 from filters.SpearmanCorrelationFilter import SpearmanCorrelationFilter
@@ -59,3 +59,4 @@ filter_tests = [
 if __name__ == '__main__':
     for test in filter_tests:
         filter_test(*test)
+

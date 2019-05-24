@@ -49,7 +49,11 @@ class Melif:
         for _filter in self.__filters:
             _filter.run(self.train_x, self.train_y, feature_names=self.__feature_names)
             for key, value in _filter.feature_scores.items():
-                nu[key].append(value)
+                _filter.feature_scores[key] = abs(value)
+            _min = min(_filter.feature_scores.values())
+            _max = max(_filter.feature_scores.values())
+            for key, value in _filter.feature_scores.items():
+                nu[key].append((value - _min) / (_max - _min))
         if self.points is None:
             self.points = [self.__filter_weights]
         best_point = self.points[0]
