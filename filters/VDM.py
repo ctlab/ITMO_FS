@@ -1,10 +1,13 @@
 import numpy as np
 from tqdm import tqdm
 
+
 ##TODO some optimization
 class VDM:
     def __init__(self):
         pass
+
+    feature_scores = {}
 
     def run(self, x, y, weighted=True):
         """
@@ -59,7 +62,8 @@ class VDM:
             # Calculating deltas:
             deltas = {}  # dict, For each pair of attribute values (i, j) contains delta(i, j)
             for i, i_count_c in tqdm(count_x_c.items()):  # For each attribute value i with its distribution i_count_c
-                for j, j_count_c in tqdm(count_x_c.items()):  # For each attribute value j with its distribution j_count_c
+                for j, j_count_c in tqdm(
+                        count_x_c.items()):  # For each attribute value j with its distribution j_count_c
                     delta = 0
                     count_i = count_x[i]  # Amount of samples with attribute value == i
                     count_j = count_x[j]  # Amount of samples with attribute value == j
