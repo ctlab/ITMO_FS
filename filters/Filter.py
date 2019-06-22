@@ -1,11 +1,16 @@
-import filters.FitCriterion
+import filters.FitCriterion  # TODO: .run() feature_names
 import filters.GiniIndexFilter
-
+import filters.IGFilter  # TODO: strange .run() interface; .run() feature_names; no default constructor
+import filters.RandomFilter  # TODO: bad .run() interface; .run() feature_names; no default constructor
+# TODO: move all feature_names?
 
 # Default-constructed measures
 class DefaultMeasures:
-    FitCriterion = filters.FitCriterion()
+    FitCriterion = filters.FitCriterion()  # Can be customized
     GiniIndex = filters.GiniIndexFilter()
+    # IGFilter = filters.IGFilter()
+    # RandomFilter = filters.RandomFilter()
+
 
 GLOB_MEASURE = {"FitCriterion": DefaultMeasures.FitCriterion}
 
