@@ -1,16 +1,26 @@
-import filters.FitCriterion  # TODO: .run() feature_names
-import filters.GiniIndexFilter
-import filters.IGFilter  # TODO: strange .run() interface; .run() feature_names; no default constructor
-import filters.RandomFilter  # TODO: bad .run() interface; .run() feature_names; no default constructor
+import filters
 # TODO: move all feature_names?
 
-# Default-constructed measures
+
+# Default measures
 class DefaultMeasures:
     FitCriterion = filters.FitCriterion()  # Can be customized
-    GiniIndex = filters.GiniIndexFilter()
-    # IGFilter = filters.IGFilter()
-    # RandomFilter = filters.RandomFilter()
+    # TODO: .run() feature_names
 
+    GiniIndex = filters.GiniIndexFilter()
+
+    # IGFilter = filters.IGFilter()  # TODO: unexpected .run() interface; .run() feature_names; no default constructor
+
+    # RandomFilter = filters.RandomFilter() # TODO: bad .run() interface; .run() feature_names; no default constructor
+
+    SpearmanCorrelation = filters.SpearmanCorrelationFilter()
+
+    # SymmetricUncertainty = filters.SymmetricUncertainty()  # TODO
+
+    VDM = filters.VDM()  # TODO: probably not a filter
+
+
+print(DefaultMeasures.SpearmanCorrelation)
 
 GLOB_MEASURE = {"FitCriterion": DefaultMeasures.FitCriterion}
 
