@@ -33,7 +33,7 @@ class FitCriterion:
     def __init__(self, mean=np.mean):
         self.mean = mean
 
-    def run(self, x, y):
+    def run(self, x, y, feature_names=None):
         """
             Parameters
             ----------
@@ -41,6 +41,8 @@ class FitCriterion:
                 Input samples' parameters.
             y: array-like, shape (n_samples)
                 Input samples' class labels. Class labels must be sequential integers.
+            feature_names: iterable
+                Names for features in resulting dict, sequential integers will be used if None passed.
 
             Returns
             -------
@@ -56,7 +58,8 @@ class FitCriterion:
             Examples
             --------
         """
-        feature_labels = generate_features(x, None)  # Generating feature labels for output data
+        feature_names = generate_features(x, feature_names)  # Generating feature labels for output data
+
         x = np.asarray(x)  # Converting input data to numpy array
         y = np.asarray(y)
 
@@ -92,4 +95,4 @@ class FitCriterion:
                 fc[feature_index] += np.argmin(distances) == y[sample_index]
 
         fc /= y.shape[0]  # Normalization
-        return dict(zip(feature_labels, fc))  # Adding feature labels
+        return dict(zip(feature_names, fc))  # Adding feature labels
