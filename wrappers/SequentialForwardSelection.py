@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 import random as rnd
-
 import numpy as np
+from wrappers.wrapper_utils import get_current_accuracy
+
 
 
 class SequentialForwardSelection:
@@ -64,7 +65,7 @@ class SequentialForwardSelection:
             current_features = np.append(current_features, feature)
             self.__estimator__.fit([X[i] for i in current_features], y)
 
-            current_accuracy = self.get_current_accuracy(X, current_features, test_x, test_y)
+            current_accuracy = get_current_accuracy(X, current_features, test_x, test_y)
 
             if current_accuracy > accuracy:
                 self.__features__ = current_features
@@ -73,33 +74,6 @@ class SequentialForwardSelection:
                     break
             else:
                 current_features = old_features
-
-    def get_current_accuracy(self, X, current_features, test_x, test_y):
-        """
-        Checks the Accuracy of the Current Features
-            Parameters
-            ----------
-            X : array-like, shape (n_features,n_samples)
-                The training input samples.
-            current_features : array-like, shape (n_features,n_samples)
-                Current Set of Features
-            test_x : array-like, shape (n_features, n_samples)
-                Testing Set
-            test_y : array-like , shape(n_samples)
-                Labels
-            Returns
-            ------
-            float, Accuracy of the Current Features
-
-        """
-
-        correct = 0
-        for i in range(test_x.length):
-            predict = self.__estimator__.predict([X[j] for j in current_features])
-            if predict == test_y[i]:
-                correct += 1
-        current_accuracy = correct / test_x.length
-        return current_accuracy
 
     def predict(self, X):
         self.__estimator__.predict([X[i] for i in self.__features__])

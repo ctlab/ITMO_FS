@@ -1,6 +1,8 @@
 import numpy as np
 from utils.data_check import generate_features
 
+from utils import generate_features
+
 
 class FitCriterion:
     """
@@ -33,6 +35,8 @@ class FitCriterion:
     def __init__(self, mean=np.mean):
         self.mean = mean
 
+
+    feature_scores = {}
     def run(self, x, y, feature_names=None):
         """
             Parameters
@@ -57,6 +61,7 @@ class FitCriterion:
 
             Examples
             --------
+            :param feature_names: names for features, not needed for pandas DataFrames
         """
         feature_names = generate_features(x, feature_names)  # Generating feature labels for output data
 
@@ -64,8 +69,9 @@ class FitCriterion:
         y = np.asarray(y)
 
         fc = np.zeros(x.shape[1])  # Array with amounts of correct predictions for each feature
-        tokensN = int(np.max(y)) + 1  # Number of different class tokens
 
+        tokensN = np.max(y) + 1  # Number of different class tokens
+        feature_names = generate_features(x, feature_names)
         # Utility arrays
         centers = np.empty(tokensN)  # Array with centers of sets of feature values for each class token
         variances = np.empty(tokensN)  # Array with variances of sets of feature values for each class token
@@ -74,9 +80,8 @@ class FitCriterion:
         distances = np.empty(tokensN)  # Array with distances between sample's value and each class's center
         # This array will be separately calculated for each feature and each sample
 
-        for feature_index in range(x.shape[1]):  # For each feature
-            feature = x.T[feature_index]
 
+        for feature_index, feature in enumerate(x.T):  # For each feature
             # Initializing utility structures
             class_values = [[] for _ in range(tokensN)]  # Array with lists of feature values for each class token
             for index, value in enumerate(y):  # Filling array
@@ -95,4 +100,22 @@ class FitCriterion:
                 fc[feature_index] += np.argmin(distances) == y[sample_index]
 
         fc /= y.shape[0]  # Normalization
-        return dict(zip(feature_names, fc))  # Adding feature labels
+
+        self.feature_scores = dict(zip(feature_names, fc))
+        return fc
+
+    def __repr__(self):
+        return "Fit criterion with mean {}".format(self.mean)
+
+# x = np.array([[4, 1, 3, 2, 5],
+#               [5, 4, 3, 1, 4],
+#               [5, 2, 3, 0, 5],
+#               [1, 1, 4, 0, 5]])
+#
+# y = np.array([2,
+#               1,
+#               0,
+#               0])
+#
+# fcc = FitCriterion()
+# fcc.run(x, y)

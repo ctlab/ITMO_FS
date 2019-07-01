@@ -7,8 +7,12 @@ Install with
     
 Current available algorithms:
 
--Random filter
-
--Random wrapper
-
--Sequential forward selection
+-Random filter<br>
+-Random wrapper<br>
+-Sequential forward selection<br>
+-Spearman correlation<br>
+-Symmetric uncertainty<br>
+-Information gain<br>
+-Gini index<br>
+-Value difference metric<br>
+-Fit criterion<br>
