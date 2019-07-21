@@ -2,10 +2,6 @@ import numpy as np
 from utils.functions import cartesian
 
 
-
-
-##TODO some optimization
-
 class VDM:
     """
         Creates Value Difference Metric builder
