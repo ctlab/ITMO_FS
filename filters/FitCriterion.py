@@ -46,8 +46,8 @@ class FitCriterion:
 
             Returns
             -------
-            result: python dict containing entries (feature, ratio)
-                Dictionary with Fit Criterion ratios for input dataset
+            result: python dict containing entries (feature, score)
+                Dictionary with Fit Criterion scores for input dataset
                 If passed data has no `.features' field, feature labels will be generated as sequential integers
                 starting from zero.
 
