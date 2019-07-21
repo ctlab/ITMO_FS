@@ -2,6 +2,10 @@ import numpy as np
 from utils.functions import cartesian
 
 
+
+
+##TODO some optimization
+
 class VDM:
     """
         Creates Value Difference Metric builder
@@ -52,6 +56,10 @@ class VDM:
             See Also
             --------
 
+
+    feature_scores = {}
+
+    def run(self, x, y, weighted=True):
         """
         x = np.asarray(x)  # Converting input data to numpy arrays
         y = np.asarray(y)
@@ -80,6 +88,7 @@ class VDM:
             # for every feature value
 
             # Calculating deltas:
+
             deltas = np.zeros((n_values, n_values), dtype=np.double)  # Array for calculating deltas
 
             # Calculating components where exactly one of probabilities is not zero:
@@ -133,4 +142,5 @@ class VDM:
                         if amounts_x[i] == 0 or amounts_x[j] == 0:
                             continue
                         vdm[cartesian(entries_x[i], entries_x[j])] += deltas[i][j] * weights[i]
+
         return vdm
