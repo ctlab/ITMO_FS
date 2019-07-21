@@ -227,39 +227,3 @@ class Filter:
             return x[:, selected_features]
         else:  # pandas.DataFrame
             return x.loc[:, selected_features]
-
-import numpy as np, pandas as pd
-x = np.array([[0, 0, 0, 0],
-              [1, 0, 1, 1],
-              [1, 0, 0, 2]])
-
-y = np.array([0,
-              1,
-              1])
-
-#myfilter = Filter("gini", "border", 0.1)  # Filter which drops features with Gini Index less than 0.5
-#print(myfilter.run(x, y, store_scores=True))
-#print(myfilter.feature_scores)
-
-# myfilter = Filter("gini", "border", 0.5, stor)
-# ss = myfilter.run(x, y)
-# print(ss)
-
-
-rand_filter = Filter("random", "upper_border", 2)  # Filter that randomly chooses 2 features
-x_pandas = pd.DataFrame(x)  # Pandas example
-x_pandas = x_pandas.rename(columns={0: "a", 1: "b", 2: "c", 3: "d"})  # Setting names to columns.
-y_pandas = pd.Series(y)
-print(str(rand_filter.run(x_pandas, y_pandas)))
-
-my_filter = Filter(filters.FitCriterion(mean=np.median), "best", 2)
-print(my_filter.run(x, y, store_scores=True))
-
-#
-# randomfilter = Filter("random", "upper_border", 2)
-# ss = randomfilter.run(x, y)
-# print(ss)
-#
-# ss = randomfilter.run(xp, yp)
-# print(ss)
-#
