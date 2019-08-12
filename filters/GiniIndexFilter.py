@@ -14,12 +14,13 @@ def estimate_index(X, y):
     return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
 
 
+
 class GiniIndexFilter(object):
     __border = 0.5
     feature_scores = {}
 
-    def __init__(self, border=0.5):
-        self.__border = border
+    def __init__(self):
+        pass
 
     # TODO return filtered X
     def run(self, x, y, feature_names=None):
@@ -30,6 +31,7 @@ class GiniIndexFilter(object):
                 feature_names = list(range(x.shape[1]))
         # check_features(feature_names, x.shape[1])
         result = estimate_index(x, y)
+
         self.feature_scores = dict(zip(feature_names, result))
         return dict([i for i in self.feature_scores.items() if i[1] > self.__border])
 

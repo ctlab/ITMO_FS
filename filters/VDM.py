@@ -1,98 +1,147 @@
 import numpy as np
-from tqdm import tqdm
+from utils.functions import cartesian
+
+
 
 
 ##TODO some optimization
+
 class VDM:
-    def __init__(self):
-        pass
+    """
+        Creates Value Difference Metric builder
+        http://aura.abdn.ac.uk/bitstream/handle/2164/10951/payne_ecai_98.pdf?sequence=1
+        https://www.jair.org/index.php/jair/article/view/10182
+
+        Parameters
+        ----------
+        weighted: bool
+            If weighted = False, modified version of metric which omits the weights is used
+
+        See Also
+        --------
+
+        Examples
+        --------
+        >>> x = np.array([[0, 0, 0, 0],
+        ...               [1, 0, 1, 1],
+        ...               [1, 0, 0, 2]])
+        >>>
+        >>> y = np.array([0,
+        ...               1,
+        ...               1])
+        >>> vdm = VDM()
+        >>> vdm.run(x, y)
+        array([[0.         4.35355339 4.        ]
+               [4.5        0.         0.5       ]
+               [4.         0.35355339 0.        ]])
+    """
+    def __init__(self, weighted=True):
+        self.weighted = weighted
+
+    def run(self, x, y):
+        """
+            Generates metric for the data
+            Complexity: O(n_features * n_samples^3) worst case, should be faster on a real data
+
+            Parameters
+            ----------
+            x: array-like, shape (n_features, n_samples)
+                Input samples' parameters. Parameters among every class must be sequential integers.
+            y: array-like, shape (n_samples)
+                Input samples' class labels. Class labels must be sequential integers.
+
+            Returns
+            -------
+            result:
+                numpy.ndarray, shape=(n_samples, n_samples), dtype=np.double with selected version of metrics
+            See Also
+            --------
+
 
     feature_scores = {}
 
     def run(self, x, y, weighted=True):
         """
-                Value Difference Metric
-                http://aura.abdn.ac.uk/bitstream/handle/2164/10951/payne_ecai_98.pdf?sequence=1
-                https://www.jair.org/index.php/jair/article/view/10182
+        x = np.asarray(x)  # Converting input data to numpy arrays
+        y = np.asarray(y)
 
-                Parameters
-                ----------
-                x: array-like, shape (n_features, n_samples)
-                    Input samples' parameters.
-                y: array-like, shape (1, n_samples)
-                    Input samples' class labels.
-                weighted: bool
-                    If weighted = False, modified version of metric used which omits the weights
+        n_labels = np.max(y) + 1  # Number of different class labels
+        n_samples = x.shape[0]  # Number of samples
 
-                Returns
-                -------
-                result:
-                    numpy.ndarray, shape (n_samples, n_samples) with selected version of metrics
-                See Also
-                --------
-                Examples
-                >>> x = np.array([[-2, 1, 1],
-                ...               [3, 1, 2],
-                ...               [3, 1, 1]])
-                >>>
-                >>> y = np.array([[7],
-                ...               [3],
-                ...               [3]])
-                >>> VDM(x, y)
-                array([[0.        , 2.70710678, 2.35355339],
-                       [3.        , 0.        , 1.35355339],
-                       [2.5       , 1.20710678, 0.        ]])
-                --------
-            """
-        vdm = np.zeros((x.shape[0], x.shape[0]))  # Initializing output matrix
+        vdm = np.zeros((n_samples, n_samples), dtype=np.double)  # Initializing output matrix
 
-        for column in tqdm(x.T):  # For each attribute separately:
-            # Initialising secondary structures:
-            count_x_c = {}  # dict of dicts, for each attribute value contains distribution of class labels for samples
-            count_x = {}  # dict, for each attribute value contains amount of samples with it
-            for index, i in tqdm(enumerate(column)):  # For each sample
-                count_x.setdefault(i, 0)
-                count_x[i] += 1  # Increasing number of samples with attribute value == i
+        for feature in x.T:  # For each attribute:
+            # Initializing utility structures:
+            n_values = np.max(feature) + 1  # Number of different values for the feature
 
-                c = y[index]  # Class label c of the corresponding sample
-                count_x_c.setdefault(i, {})
-                count_x_c[i].setdefault(c, 0)
-                count_x_c[i][c] += 1  # Increasing number of samples with attribute value == i && class label == c
+            entries_x = np.empty(n_values, dtype=object) # Array containing list of indexes for every feature value
+            entries_x[:] = [[] for _ in range(n_values)]
+
+            entries_c_x = np.array([{} for _ in range(n_labels)])  # Array of dirs of kind
+            # {(feature value, amount of entries) for each class label
+
+            for i, value in enumerate(feature):  # For each sample:
+                entries_x[value].append(i)  # Adding sample index to entries list
+                entries_c_x[y[i]][value] = entries_c_x[y[i]].get(value, 0) + 1  # Adding entry for corresponding
+                # class label
+
+            amounts_x = np.array(list(map(len, entries_x)))  # Array containing amounts of samples
+            # for every feature value
 
             # Calculating deltas:
-            deltas = {}  # dict, For each pair of attribute values (i, j) contains delta(i, j)
-            for i, i_count_c in tqdm(count_x_c.items()):  # For each attribute value i with its distribution i_count_c
-                for j, j_count_c in tqdm(
-                        count_x_c.items()):  # For each attribute value j with its distribution j_count_c
-                    delta = 0
-                    count_i = count_x[i]  # Amount of samples with attribute value == i
-                    count_j = count_x[j]  # Amount of samples with attribute value == j
-                    for c, count_c in i_count_c.items():
-                        delta += (count_c / count_i - j_count_c.get(c, 0) / count_j) ** 2
 
-                    for c, count_c in j_count_c.items():
-                        if c not in i_count_c:
-                            delta += (count_c / count_x[j]) ** 2
-                    deltas[(i, j)] = delta
+            deltas = np.zeros((n_values, n_values), dtype=np.double)  # Array for calculating deltas
 
-            # Calculating weights if needed:
-            if weighted:
-                weights = {}  # dict, For each attribute value i contains weight(i)
-                for i, i_count_c in count_x_c.items():  # For each attribute value i with its distribution i_count_c
-                    weight = 0
-                    for _, count_c in i_count_c.items():  # For each class label in the distribution of i
-                        weight += count_c ** 2
-                    weight = np.sqrt(weight)
-                    weight /= count_x[i]
-                    weights[i] = weight
+            # Calculating components where exactly one of probabilities is not zero:
+            for c in range(n_labels):  # For each class:
+                entries = np.array(list(entries_c_x[c].keys()))  # Feature values which are presented in pairs for
+                # the class
+                amounts = np.array(list(entries_c_x[c].values()))  # Corresponding amounts
+                non_entries = np.arange(n_values)  # Feature values which are not presented in pairs for the class
+                non_entries[entries] = -1
+                non_entries = non_entries[non_entries != -1]
 
-            # Calculating VDM:
-            if not weighted:
-                for index_i, i in enumerate(column):
-                    for index_j, j in enumerate(column):
-                        vdm[index_i][index_j] += deltas[(i, j)]
-            else:
-                for index_i, i in enumerate(column):
-                    for index_j, j in enumerate(column):
-                        vdm[index_i][index_j] += deltas[(i, j)] * weights[i]
+                for i in range(len(entries)):  # For each feature value
+                    value = entries[i]  # Current value
+                    v_c_instances = amounts[i]  # Amount of instances with such value and such class
+                    v_instances = amounts_x[value]  # Amount of instances with such value
+                    target_x, target_y = cartesian([value], non_entries)  # Target indexes for deltas array
+                    deltas[target_x, target_y] += (v_c_instances / v_instances) ** 2
+            deltas += deltas.T  # As we didn't determined indexes order, for each i, j some components are
+            # written to delta(i, j) while others to delta(j, i), but exactly once. Adding transposed matrix to fix this
+
+            # Calculating components where both probabilities are not zero:
+            for c in range(n_labels):  # For each class:
+                entries = np.array(list(entries_c_x[c].keys()))  # Feature values which are presented in pairs for
+                # the class
+                amounts = np.array(list(entries_c_x[c].values()))  # Corresponding amounts
+                probs = amounts / amounts_x[entries]  # Conditional probabilities
+                target_x, target_y = cartesian(np.arange(len(entries)), np.arange(len(entries)))  # Target indexes
+                # for deltas array
+                deltas[entries[target_x], entries[target_y]] += (probs[target_x] - probs[target_y]) ** 2
+
+            # Updating vdm:
+            if not self.weighted:  # If non-weighted version of metrics was selected
+                for i in range(n_values):  # For each value i
+                    for j in range(n_values):  # For each value j
+                        if amounts_x[i] == 0 or amounts_x[j] == 0:  # If some value does not appear in current feature,
+                            # skip it
+                            continue
+                        vdm[cartesian(entries_x[i], entries_x[j])] += deltas[i][j]
+            else:  # If weighted version of metrics was selected
+                weights = np.zeros(n_values, dtype=np.double)  # Initializing weights array
+                for c in range(n_labels):  # For each class:
+                    entries = np.array(list(entries_c_x[c].keys()))  # Feature values which are presented in pairs for
+                    # the class
+                    amounts = np.array(list(entries_c_x[c].values()))  # Corresponding amounts
+                    probs = amounts / amounts_x[entries]  # Conditional probabilities
+                    weights[entries] += probs ** 2
+                weights = np.sqrt(weights)
+
+                for i in range(n_values):  # For each value i
+                    for j in range(n_values):  # For each value j
+                        if amounts_x[i] == 0 or amounts_x[j] == 0:
+                            continue
+                        vdm[cartesian(entries_x[i], entries_x[j])] += deltas[i][j] * weights[i]
+
         return vdm

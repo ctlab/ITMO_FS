@@ -16,12 +16,14 @@ def spearman_corr(x, y):
     return sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))
 
 
+
 class SpearmanCorrelationFilter(object):
     feature_scores = {}
 
     ##todo theory and comments
     def __init__(self, cutting_rule=None):
         self.__cutting_rule = cutting_rule
+
 
     def run(self, x, y, feature_names=None):
         try:
@@ -30,6 +32,7 @@ class SpearmanCorrelationFilter(object):
             if feature_names is None:
                 feature_names = list(range(x.shape[1]))
         # check_features(feature_names, x.shape[1])
+
         result = spearman_corr(x, y)
         self.feature_scores = dict(zip(feature_names, result))
         if self.__cutting_rule is None:
