@@ -2,8 +2,6 @@ import numpy as np
 from utils.functions import cartesian
 
 
-
-
 ##TODO some optimization
 
 class VDM:
@@ -35,6 +33,7 @@ class VDM:
                [4.5        0.         0.5       ]
                [4.         0.35355339 0.        ]])
     """
+
     def __init__(self, weighted=True):
         self.weighted = weighted
 
@@ -74,7 +73,7 @@ class VDM:
             # Initializing utility structures:
             n_values = np.max(feature) + 1  # Number of different values for the feature
 
-            entries_x = np.empty(n_values, dtype=object) # Array containing list of indexes for every feature value
+            entries_x = np.empty(n_values, dtype=object)  # Array containing list of indexes for every feature value
             entries_x[:] = [[] for _ in range(n_values)]
 
             entries_c_x = np.array([{} for _ in range(n_labels)])  # Array of dirs of kind
