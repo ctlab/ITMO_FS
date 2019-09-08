@@ -186,7 +186,6 @@ class Add_del(object):
             else:
                 pandas = reload(pandas)
 
-
         except ModuleNotFoundError:
             pass
 
