@@ -7,6 +7,15 @@ import filters
 
 # TODO: move all feature_names?
 
+# x = np.array([[4, 1, 3, 2, 5],
+#                       [5, 4, 3, 1, 4],
+#                       [5, 2, 3, 0, 5],
+#                       [1, 1, 4, 0, 5]])
+# y = np.array([2,
+#               1,
+#               0,
+#               0])
+# {0: 0.75, 1: 0.75, 2: 0.5, 3: 1.0, 4: 0.75}
 
 # Default measures
 class DefaultMeasures:
@@ -14,6 +23,68 @@ class DefaultMeasures:
 
     # TODO: .run() feature_names
 
+    # return array(ratio)
+    @staticmethod
+    def fc_measure(X, y):
+        x = np.asarray(X)  # Converting input data to numpy array
+        y = np.asarray(y)
+
+        fc = np.zeros(x.shape[1])  # Array with amounts of correct predictions for each feature
+
+        tokensN = np.max(y) + 1  # Number of different class tokens
+
+        centers = np.empty(tokensN)  # Array with centers of sets of feature values for each class token
+        variances = np.empty(tokensN)  # Array with variances of sets of feature values for each class token
+        # Each of arrays above will be separately calculated for each feature
+
+        distances = np.empty(tokensN)  # Array with distances between sample's value and each class's center
+        # This array will be separately calculated for each feature and each sample
+
+        for feature_index, feature in enumerate(x.T):  # For each feature
+            # Initializing utility structures
+            class_values = [[] for _ in range(tokensN)]  # Array with lists of feature values for each class token
+            for index, value in enumerate(y):  # Filling array
+                class_values[value].append(feature[index])
+            for token, values in enumerate(class_values):  # For each class token's list of feature values
+                tmp_arr = np.array(values)
+                centers[token] = np.mean(tmp_arr)
+                variances[token] = np.var(tmp_arr)
+
+            # Main calculations
+            for sample_index, value in enumerate(feature):  # For each sample value
+                for i in range(tokensN):  # For each class token
+                    # Here can be raise warnings by 0/0 division. In this case, default results
+                    # are interpreted correctly
+                    distances[i] = np.abs(value - centers[i]) / variances[i]
+                fc[feature_index] += np.argmin(distances) == y[sample_index]
+
+        fc /= y.shape[0]
+        return fc
+
+    # return array(index)
+    @staticmethod
+    def fratio_measure(X, y):
+        f_ratios = []
+        for feature in X.T:
+            Mu = np.mean(feature)
+            inter_class = 0.0
+            intra_class = 0.0
+            y_t = y.T
+            for value in np.unique(y_t):
+                index_for_this_value = np.where(y_t == value)[0]
+                n = np.sum(feature[index_for_this_value])
+                mu = np.mean(feature[index_for_this_value])
+                var = np.var(feature[index_for_this_value])
+                inter_class += n * np.power((mu - Mu), 2)
+                intra_class += (n - 1) * var
+
+            f_ratio = inter_class / intra_class
+            f_ratios.append(f_ratio)
+        f_ratios = np.array(f_ratios)
+        # return top n f_ratios
+        return np.argpartition(f_ratios, -10)[-10:]
+
+    # return array(ratio)
     @staticmethod
     def gini_index(X, y):
         try:
@@ -28,6 +99,8 @@ class DefaultMeasures:
         return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
 
     # IGFilter = filters.IGFilter()  # TODO: unexpected .run() interface; .run() feature_names; no default constructor
+    # @staticmethod
+    # def ig_measure(X, y):
 
     # RandomFilter = filters.RandomFilter() # TODO: bad .run() interface; .run() feature_names; no default constructor
 
@@ -56,8 +129,12 @@ class DefaultMeasures:
 
 # print(DefaultMeasures.SpearmanCorrelation)
 
-GLOB_MEASURE = {"FitCriterion": DefaultMeasures.FitCriterion, "SpearmanCorr": DefaultMeasures.spearman_corr,
-                "PearsonCorr": DefaultMeasures.pearson_corr, "GiniIndex": DefaultMeasures.gini_index}
+GLOB_MEASURE = {"FitCriterion": DefaultMeasures.fc_measure,
+                "FRatio": DefaultMeasures.fratio_measure,
+                "GiniIndex": DefaultMeasures.gini_index,
+                "InformationGain": DefaultMeasures.ig_measure,
+                "SpearmanCorr": DefaultMeasures.spearman_corr,
+                "PearsonCorr": DefaultMeasures.pearson_corr}
 
 
 class DefaultCuttingRules:
@@ -98,7 +175,8 @@ class DefaultCuttingRules:
 
 GLOB_CR = {"Best by value": DefaultCuttingRules.select_best_by_value,
            "Worst by value": DefaultCuttingRules.select_worst_by_value,
-           "K best": DefaultCuttingRules.select_k_best, "K worst": DefaultCuttingRules.select_k_worst}
+           "K best": DefaultCuttingRules.select_k_best,
+           "K worst": DefaultCuttingRules.select_k_worst}
 
 
 class Filter(object):
