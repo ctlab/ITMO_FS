@@ -52,6 +52,8 @@ class DefaultMeasures:
         return sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))
 
 
+
+
 # print(DefaultMeasures.SpearmanCorrelation)
 
 GLOB_MEASURE = {"FitCriterion": DefaultMeasures.FitCriterion, "SpearmanCorr": DefaultMeasures.spearman_corr,
