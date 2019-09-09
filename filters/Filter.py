@@ -1,30 +1,20 @@
 from functools import partial
-
-import numpy as np
+from sklearn.feature_selection import mutual_info_classif as MI
+from sklearn.metrics import mutual_info_score as MI_features
+from importlib import reload
 import math
+import numpy as np
 
 import filters
 
 
 # TODO: move all feature_names?
 
-# x = np.array([[4, 1, 3, 2, 5],
-#                       [5, 4, 3, 1, 4],
-#                       [5, 2, 3, 0, 5],
-#                       [1, 1, 4, 0, 5]])
-# y = np.array([2,
-#               1,
-#               0,
-#               0])
-
-# {0: 0.75, 1: 0.75, 2: 0.5, 3: 1.0, 4: 0.75}
-
 # Default measures
 class DefaultMeasures:
     FitCriterion = filters.FitCriterion()  # Can be customized
 
     # TODO: .run() feature_names
-
     # return array(ratio)
     @staticmethod
     def fc_measure(X, y):
@@ -66,25 +56,35 @@ class DefaultMeasures:
     # return array(index)
     @staticmethod
     def fratio_measure(X, y):
-        f_ratios = []
-        for feature in X.T:
-            Mu = np.mean(feature)
+        def __calculate_F_ratio__(row, y_data):
+            """
+            Calculates the Fisher ratio of the row passed to the data
+            :param row: ndarray, feature
+            :param y_data: ndarray, labels
+            :return: int, fisher_ratio
+            """
+            Mu = np.mean(row)
             inter_class = 0.0
             intra_class = 0.0
-            y_t = y.T
-            for value in np.unique(y_t):
-                index_for_this_value = np.where(y_t == value)[0]
-                n = np.sum(feature[index_for_this_value])
-                mu = np.mean(feature[index_for_this_value])
-                var = np.var(feature[index_for_this_value])
+            for value in np.unique(y_data):
+                index_for_this_value = np.where(y_data == value)[0]
+                n = np.sum(row[index_for_this_value])
+                mu = np.mean(row[index_for_this_value])
+                var = np.var(row[index_for_this_value])
                 inter_class += n * np.power((mu - Mu), 2)
                 intra_class += (n - 1) * var
 
             f_ratio = inter_class / intra_class
+            return f_ratio
+
+        f_ratios = []
+        for feature in X.T:
+            f_ratio = __calculate_F_ratio__(feature, y.T)
             f_ratios.append(f_ratio)
         f_ratios = np.array(f_ratios)
-        # return top n f_ratios
-        return np.argpartition(f_ratios, -10)[-10:]
+        # return top n f_ratios TODO maybe add n into parameters?
+        n = 10
+        return np.argpartition(f_ratios, -n)[-n:]
 
     # return array(ratio)
     @staticmethod
@@ -101,11 +101,24 @@ class DefaultMeasures:
         return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
 
     # IGFilter = filters.IGFilter()  # TODO: unexpected .run() interface; .run() feature_names; no default constructor
-
     # return array(ratio)
     @staticmethod
     def ig_measure(X, y):
         # Calculate the entropy of y.
+        def cal_entropy(y):
+            dict_label = dict()
+            for label in y:
+                if label not in dict_label:
+                    dict_label.update({label: 1})
+                else:
+                    dict_label[label] += 1
+            entro = 0.0
+            for i in dict_label.values():
+                entro += -i / len(y) * math.log(i / len(y), 2)
+            return entro
+
+        entropy = cal_entropy(y)
+
         dict_label = dict()
         for label in y:
             if label not in dict_label:
@@ -149,11 +162,85 @@ class DefaultMeasures:
             list_f[index] = entropy - con_entropy
         return list_f
 
+    # return list(index)
+    # i'm used MID as default. Or we need add ability to choose info_gain?
+    @staticmethod
+    def mrmr_measure(X, y):
+        def _find_first_feature(X, y):
+
+            max_mi = -1
+            feature_index = 0
+
+            for i in range(X.shape[1]):
+                cur_mi = MI(X[:, i].reshape(-1, 1), y)
+                if cur_mi > max_mi:
+                    feature_index = i
+                    max_mi = cur_mi
+
+            return feature_index
+
+        def _MID(A, B, y):
+            return MI(A.reshape(-1, 1), y) - np.sum(
+                [MI_features(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / \
+                   B.shape[1]
+
+        def _MIQ(A, B, y):
+            return MI(A.reshape(-1, 1), y) / (
+                    np.sum([MI_features(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / B.shape[1])
+
+        def _find_next_features(feature_set, not_used_features, X, y, info_gain):
+
+            max_criteria = -1
+            feature_index = 0
+
+            for i in not_used_features:
+                if info_gain == 'MID':
+                    info_criteria = _MID(X[:, i], X[:, list(feature_set)], y)
+                elif info_gain == 'MIQ':
+                    info_criteria = _MIQ(X[:, i], X[:, list(feature_set)], y)
+                if info_criteria > max_criteria:
+                    feature_index = i
+                    max_criteria = info_criteria
+
+            return feature_index
+
+        number_of_features, info_gain = 3, 'MID'  # TODO maybe add number_of_features, info_gain into parameters?
+        assert not 1 < X.shape[1] < number_of_features, 'incorrect number of features'
+
+        return_feature_names = False
+
+        try:
+            import pandas
+
+            if isinstance(X, pandas.DataFrame):
+                return_feature_names = True
+                columns = np.array(X.columns)
+            else:
+                pandas = reload(pandas)
+
+        except ModuleNotFoundError:
+            pass
+
+        X = np.array(X)
+        y = np.array(y).ravel()
+
+        first_feature = _find_first_feature(X, y)
+        used_features = {first_feature}
+        not_used_features = set([i for i in range(X.shape[1]) if i != first_feature])
+
+        for _ in range(number_of_features - 1):
+            feature = _find_next_features(used_features, not_used_features, X, y, info_gain)
+            used_features.add(feature)
+            not_used_features.remove(feature)
+
+        if return_feature_names:
+            return list(columns[list(used_features)])
+
+        return list(used_features)
+
     # RandomFilter = filters.RandomFilter() # TODO: bad .run() interface; .run() feature_names; no default constructor
 
     # SymmetricUncertainty = filters.SymmetricUncertainty()  # TODO
-
-    VDM = filters.VDM()  # TODO: probably not a filter
 
     @staticmethod
     def spearman_corr(X, y):
@@ -171,7 +258,7 @@ class DefaultMeasures:
         sq_dev_y = y_dev * y_dev
         return sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))
 
-    # TODO Fehner correlation,concordation coef
+    VDM = filters.VDM()  # TODO: probably not a filter
 
 
 # print(DefaultMeasures.SpearmanCorrelation)
@@ -180,6 +267,7 @@ GLOB_MEASURE = {"FitCriterion": DefaultMeasures.fc_measure,
                 "FRatio": DefaultMeasures.fratio_measure,
                 "GiniIndex": DefaultMeasures.gini_index,
                 "InformationGain": DefaultMeasures.ig_measure,
+                "MrmrDiscrete": DefaultMeasures.mrmr_measure,
                 "SpearmanCorr": DefaultMeasures.spearman_corr,
                 "PearsonCorr": DefaultMeasures.pearson_corr}
 
@@ -207,17 +295,15 @@ class DefaultCuttingRules:
 
     @staticmethod
     def select_k_best(k):
-        return partial(DefaultCuttingRules.__select_k, k=k, reverse=True)
+        return partial(DefaultCuttingRules.__select_k, k=k)
 
     @staticmethod
     def select_k_worst(k):
-        return partial(DefaultCuttingRules.__select_k, k=k)
+        return partial(DefaultCuttingRules.__select_k, k=-k)
 
     @classmethod
-    def __select_k(cls, scores, k, reverse=False):
-        if type(k) != int:
-            raise TypeError("Number of features should be integer")
-        return [keys[0] for keys in sorted(scores.items(), key=lambda kv: kv[1], reverse=reverse)[:k]]
+    def __select_k(cls, scores, k):
+        return [keys[0] for keys in sorted(scores.items(), key=lambda kv: kv[1])[:k]]
 
 
 GLOB_CR = {"Best by value": DefaultCuttingRules.select_best_by_value,
@@ -228,11 +314,7 @@ GLOB_CR = {"Best by value": DefaultCuttingRules.select_best_by_value,
 
 class Filter(object):
     def __init__(self, measure, cutting_rule):
-        try:
-            self.measure = GLOB_MEASURE[measure]
-        except KeyError:
-            raise KeyError("No %r measure yet" % measure)
-
+        self.measure = measure
         self.cutting_rule = cutting_rule
         self.feature_scores = None
 
