@@ -11,6 +11,7 @@ import filters
 # Default measures
 class DefaultMeasures:
     FitCriterion = filters.FitCriterion()  # Can be customized
+
     # TODO: .run() feature_names
 
     @staticmethod
@@ -25,7 +26,6 @@ class DefaultMeasures:
         diff_x = (cum_x[1:] - cum_x[:-1])
         diff_y = (cum_y[1:] + cum_y[:-1])
         return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
-
 
     # IGFilter = filters.IGFilter()  # TODO: unexpected .run() interface; .run() feature_names; no default constructor
 
@@ -51,13 +51,13 @@ class DefaultMeasures:
         sq_dev_y = y_dev * y_dev
         return sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))
 
-
+    # TODO Fehner correlation,concordation coef
 
 
 # print(DefaultMeasures.SpearmanCorrelation)
 
 GLOB_MEASURE = {"FitCriterion": DefaultMeasures.FitCriterion, "SpearmanCorr": DefaultMeasures.spearman_corr,
-                "PearsonCorr": DefaultMeasures.pearson_corr}
+                "PearsonCorr": DefaultMeasures.pearson_corr, "GiniIndex": DefaultMeasures.gini_index}
 
 
 class DefaultCuttingRules:
@@ -83,15 +83,17 @@ class DefaultCuttingRules:
 
     @staticmethod
     def select_k_best(k):
-        return partial(DefaultCuttingRules.__select_k, k=k)
+        return partial(DefaultCuttingRules.__select_k, k=k, reverse=True)
 
     @staticmethod
     def select_k_worst(k):
-        return partial(DefaultCuttingRules.__select_k, k=-k)
+        return partial(DefaultCuttingRules.__select_k, k=k)
 
     @classmethod
-    def __select_k(cls, scores, k):
-        return [keys[0] for keys in sorted(scores.items(), key=lambda kv: kv[1])[:k]]
+    def __select_k(cls, scores, k, reverse=False):
+        if type(k) != int:
+            raise TypeError("Number of features should be integer")
+        return [keys[0] for keys in sorted(scores.items(), key=lambda kv: kv[1], reverse=reverse)[:k]]
 
 
 GLOB_CR = {"Best by value": DefaultCuttingRules.select_best_by_value,
