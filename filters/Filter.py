@@ -105,7 +105,7 @@ class DefaultMeasures:
     @staticmethod
     def ig_measure(X, y):
         # Calculate the entropy of y.
-        def cal_entropy(y):
+        def __cal_entropy(y):
             dict_label = dict()
             for label in y:
                 if label not in dict_label:
@@ -117,7 +117,7 @@ class DefaultMeasures:
                 entro += -i / len(y) * math.log(i / len(y), 2)
             return entro
 
-        entropy = cal_entropy(y)
+        entropy = __cal_entropy(y)
 
         dict_label = dict()
         for label in y:
@@ -166,7 +166,7 @@ class DefaultMeasures:
     # i'm used MID as default. Or we need add ability to choose info_gain?
     @staticmethod
     def mrmr_measure(X, y):
-        def _find_first_feature(X, y):
+        def __find_first_feature(X, y):
 
             max_mi = -1
             feature_index = 0
@@ -179,25 +179,25 @@ class DefaultMeasures:
 
             return feature_index
 
-        def _MID(A, B, y):
+        def __MID(A, B, y):
             return MI(A.reshape(-1, 1), y) - np.sum(
                 [MI_features(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / \
                    B.shape[1]
 
-        def _MIQ(A, B, y):
+        def __MIQ(A, B, y):
             return MI(A.reshape(-1, 1), y) / (
                     np.sum([MI_features(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / B.shape[1])
 
-        def _find_next_features(feature_set, not_used_features, X, y, info_gain):
+        def __find_next_features(feature_set, not_used_features, X, y, info_gain):
 
             max_criteria = -1
             feature_index = 0
 
             for i in not_used_features:
                 if info_gain == 'MID':
-                    info_criteria = _MID(X[:, i], X[:, list(feature_set)], y)
+                    info_criteria = __MID(X[:, i], X[:, list(feature_set)], y)
                 elif info_gain == 'MIQ':
-                    info_criteria = _MIQ(X[:, i], X[:, list(feature_set)], y)
+                    info_criteria = __MIQ(X[:, i], X[:, list(feature_set)], y)
                 if info_criteria > max_criteria:
                     feature_index = i
                     max_criteria = info_criteria
@@ -224,12 +224,12 @@ class DefaultMeasures:
         X = np.array(X)
         y = np.array(y).ravel()
 
-        first_feature = _find_first_feature(X, y)
+        first_feature = __find_first_feature(X, y)
         used_features = {first_feature}
         not_used_features = set([i for i in range(X.shape[1]) if i != first_feature])
 
         for _ in range(number_of_features - 1):
-            feature = _find_next_features(used_features, not_used_features, X, y, info_gain)
+            feature = __find_next_features(used_features, not_used_features, X, y, info_gain)
             used_features.add(feature)
             not_used_features.remove(feature)
 
