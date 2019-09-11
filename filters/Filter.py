@@ -1,21 +1,32 @@
 from functools import partial
-from sklearn.feature_selection import mutual_info_classif as MI
-from sklearn.metrics import mutual_info_score as MI_features
 from importlib import reload
-import math
+from math import log
+
 import numpy as np
+from scipy import sparse as sp
+from sklearn.feature_selection import mutual_info_classif as MI
 
 import filters
-
+from utils import generate_features
 
 # TODO: move all feature_names?
 
 # Default measures
+x = np.array([[4, 1, 3, 2, 5],
+              [5, 4, 3, 1, 4],
+              [5, 2, 3, 0, 5],
+              [1, 1, 4, 0, 5]])
+y = np.array([2,
+              1,
+              0,
+              0])
+
+
 class DefaultMeasures:
     FitCriterion = filters.FitCriterion()  # Can be customized
 
     # TODO: .run() feature_names
-    # return array(ratio)
+    # return dict(ratio)
     @staticmethod
     def fc_measure(X, y):
         x = np.asarray(X)  # Converting input data to numpy array
@@ -51,7 +62,7 @@ class DefaultMeasures:
                 fc[feature_index] += np.argmin(distances) == y[sample_index]
 
         fc /= y.shape[0]
-        return fc
+        return dict(zip(generate_features(x), fc))
 
     # return array(index)
     @staticmethod
@@ -83,7 +94,7 @@ class DefaultMeasures:
             f_ratios.append(f_ratio)
         f_ratios = np.array(f_ratios)
         # return top n f_ratios TODO maybe add n into parameters?
-        n = 10
+        n = 3
         return np.argpartition(f_ratios, -n)[-n:]
 
     # return array(ratio)
@@ -114,7 +125,7 @@ class DefaultMeasures:
                     dict_label[label] += 1
             entro = 0.0
             for i in dict_label.values():
-                entro += -i / len(y) * math.log(i / len(y), 2)
+                entro += -i / len(y) * log(i / len(y), 2)
             return entro
 
         entropy = __cal_entropy(y)
@@ -127,7 +138,7 @@ class DefaultMeasures:
                 dict_label[label] += 1
         entropy = 0.0
         for i in dict_label.values():
-            entropy += -i / len(y) * math.log(i / len(y), 2)
+            entropy += -i / len(y) * log(i / len(y), 2)
 
         list_f = np.empty(X.shape[1])
         for index in range(len(X.T)):
@@ -156,7 +167,7 @@ class DefaultMeasures:
                 # calculate the probability of corresponding label.
                 sub_entropy = 0.0
                 for l in dict_y.values():
-                    sub_entropy += -l / sum(dict_y.values()) * math.log(l / sum(dict_y.values()), 2)
+                    sub_entropy += -l / sum(dict_y.values()) * log(l / sum(dict_y.values()), 2)
 
                 con_entropy += sub_entropy * p
             list_f[index] = entropy - con_entropy
@@ -166,6 +177,59 @@ class DefaultMeasures:
     # i'm used MID as default. Or we need add ability to choose info_gain?
     @staticmethod
     def mrmr_measure(X, y):
+        def __contingency_matrix(labels_true, labels_pred):
+            """Build a contingency matrix describing the relationship between labels.
+
+                Parameters
+                ----------
+                labels_true : int array, shape = [n_samples]
+                    Ground truth class labels to be used as a reference
+
+                labels_pred : array, shape = [n_samples]
+                    Cluster labels to evaluate
+
+                Returns
+                -------
+                contingency : {array-like, sparse}, shape=[n_classes_true, n_classes_pred]
+                    Matrix :math:`C` such that :math:`C_{i, j}` is the number of samples in
+                    true class :math:`i` and in predicted class :math:`j`. If
+                    ``eps is None``, the dtype of this array will be integer. If ``eps`` is
+                    given, the dtype will be float.
+                """
+            classes, class_idx = np.unique(labels_true, return_inverse=True)
+            clusters, cluster_idx = np.unique(labels_pred, return_inverse=True)
+            n_classes = classes.shape[0]
+            n_clusters = clusters.shape[0]
+            # Using coo_matrix to accelerate simple histogram calculation,
+            # i.e. bins are consecutive integers
+            # Currently, coo_matrix is faster than histogram2d for simple cases
+            contingency = sp.coo_matrix((np.ones(class_idx.shape[0]),
+                                         (class_idx, cluster_idx)),
+                                        shape=(n_classes, n_clusters),
+                                        dtype=np.int)
+            contingency = contingency.tocsr()
+            contingency.sum_duplicates()
+            return contingency
+
+        def __mi(U, V):
+            contingency = __contingency_matrix(U, V)
+            nzx, nzy, nz_val = sp.find(contingency)
+            contingency_sum = contingency.sum()
+            pi = np.ravel(contingency.sum(axis=1))
+            pj = np.ravel(contingency.sum(axis=0))
+            log_contingency_nm = np.log(nz_val)
+            contingency_nm = nz_val / contingency_sum
+            # Don't need to calculate the full outer product, just for non-zeroes
+            outer = (pi.take(nzx).astype(np.int64, copy=False)
+                     * pj.take(nzy).astype(np.int64, copy=False))
+            log_outer = -np.log(outer) + log(pi.sum()) + log(pj.sum())
+            mi = (contingency_nm * (log_contingency_nm - log(contingency_sum)) +
+                  contingency_nm * log_outer)
+            return mi.sum()
+
+        # def __mutual_info_classif(X, y):
+        #     n_samples, n_features = X.shape
+
         def __find_first_feature(X, y):
 
             max_mi = -1
@@ -179,14 +243,22 @@ class DefaultMeasures:
 
             return feature_index
 
-        def __MID(A, B, y):
+        def __MID1(A, B, y):
+            print(__mi(A.reshape(-1, 1), y))
             return MI(A.reshape(-1, 1), y) - np.sum(
-                [MI_features(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / \
+                [__mi(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / \
+                   B.shape[1]
+
+        def __MID(A, B, y):
+            q = MI(A.reshape(-1, 1), y)
+            print(q)
+            return q - np.sum(
+                [__mi(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / \
                    B.shape[1]
 
         def __MIQ(A, B, y):
             return MI(A.reshape(-1, 1), y) / (
-                    np.sum([MI_features(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / B.shape[1])
+                    np.sum([__mi(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / B.shape[1])
 
         def __find_next_features(feature_set, not_used_features, X, y, info_gain):
 
@@ -196,6 +268,9 @@ class DefaultMeasures:
             for i in not_used_features:
                 if info_gain == 'MID':
                     info_criteria = __MID(X[:, i], X[:, list(feature_set)], y)
+                    print(info_criteria)
+                    info_criteria1 = __MID1(X[:, i], X[:, list(feature_set)], y)
+                    print(info_criteria1, end="\n\n")
                 elif info_gain == 'MIQ':
                     info_criteria = __MIQ(X[:, i], X[:, list(feature_set)], y)
                 if info_criteria > max_criteria:
@@ -330,3 +405,14 @@ class Filter(object):
             self.feature_scores = feature_scores
         selected_features = self.cutting_rule(feature_scores)
         return x[:, selected_features]
+
+def test():
+    print(DefaultMeasures.fc_measure(x, y))
+    print(DefaultMeasures.fratio_measure(x, y))
+    print(DefaultMeasures.gini_index(x, y))
+    print(DefaultMeasures.ig_measure(x, y))
+    # print(DefaultMeasures.mrmr_measure(x, y))
+    print(DefaultMeasures.spearman_corr(x, y))
+    print(DefaultMeasures.pearson_corr(x, y))
+
+test()
