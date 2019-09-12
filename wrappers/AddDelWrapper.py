@@ -53,12 +53,15 @@ class Add_del(object):
     """
 
     def __init__(self, estimator, score, maximize=True, seed=42):
-
+        if not hasattr(estimator, 'fit'):
+            raise TypeError("estimator should be an estimator implementing "
+                            "'fit' method, %r was passed" % estimator)
         self.estimator = estimator
         self.score = score
         self.maximize = maximize
         rnd.seed(seed)
         self.best_score = None
+
 
     def _add(self, X, y, cv=3, silent=True):
 
@@ -171,6 +174,10 @@ class Add_del(object):
 
            Examples
            --------
+           :param silent:
+           :param y:
+           :param X:
+           :param cv:
 
        """
 

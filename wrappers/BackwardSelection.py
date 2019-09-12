@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
 from collections import OrderedDict
+
 import numpy as np
 
-from wrappers.wrapper_utils import get_current_accuracy
+from utils import generate_features
+from wrappers.wrapper_utils import get_current_cv_accuracy
 
 
 class BackwardSelection:
@@ -27,13 +29,18 @@ class BackwardSelection:
 
         """
 
-    def __init__(self, estimator, n_features):
+    def __init__(self, estimator, n_features, measure):
+        # self.__class__ = type(estimator.__class__.__name__, (self.__class__, estimator.__class__), vars(estimator))
+        if not hasattr(estimator, 'fit'):
+            raise TypeError("estimator should be an estimator implementing "
+                            "'fit' method, %r was passed" % estimator)
         self.__estimator__ = estimator
         self.__n_features__ = n_features
-        self.__features__ = []
+        self.features__ = []
+        self.__measure = measure
+        self.best_score = 0
 
-
-    def fit(self, X, y, test_x, test_y, feature_ranks):
+    def fit(self, X, y, cv=3):
         """
             Fits wrapper.
 
@@ -43,12 +50,8 @@ class BackwardSelection:
                 The training input samples.
             y : array-like, shape (n_features,n_samples)
                 the target values.
-            test_x : array-like, shape (n_features, n_samples)
-                Testing Set
-            test_y : array-like , shape(n_samples)
-                Labels
-            feature_ranks : dict,
-                Contains features index and its ranks
+            cv : int
+                Number of folds in cross-validation
             Returns
             ------
             None
@@ -59,29 +62,30 @@ class BackwardSelection:
             --------
 
         """
-        sorted_features_ranks = OrderedDict(sorted(feature_ranks.items(), key=lambda x: x[1]))
+        features_ranks = dict(zip(generate_features(X), self.__measure(X, y)))
+        sorted_features_ranks = OrderedDict(sorted(features_ranks.items(), key=lambda x: x[1]))
         selected_features = np.array([feature for feature in sorted_features_ranks])
         number_of_features_left_to_remove = self.__n_features__
 
-        self.__estimator__.fit([X[i] for i in selected_features], y)
-        accuracy = get_current_accuracy((self.__estimator__, X, selected_features, test_x, test_y))
+        self.__estimator__.fit(X[:, selected_features], y)
+        accuracy = get_current_cv_accuracy(self.__estimator__, X, y, selected_features, cv)
         i = 0
-        while len(sorted_features_ranks) != i:
-            iteration_features = np.delete(selected_features, (i))
-            self.__estimator__.fit([X[i] for i in iteration_features], y)
+        self.best_score = accuracy
+        while len(sorted_features_ranks) != i and i < len(selected_features):
+            iteration_features = np.delete(selected_features, i)
+            self.__estimator__.fit(X[:, iteration_features], y)
 
-            iteration_accuracy = get_current_accuracy(self.__estimator__, X, iteration_features, test_x, test_y)
-            if iteration_accuracy > accuracy:
+            iteration_accuracy = get_current_cv_accuracy(self.__estimator__, X, y, iteration_features, cv)
+            if iteration_accuracy > self.best_score:
                 selected_features = iteration_features
                 number_of_features_left_to_remove -= 1
+                self.best_score = iteration_accuracy
                 if not number_of_features_left_to_remove:
                     break
             else:
-                i +=1
+                i += 1
 
-        self.__features__ = selected_features
-
-
+        self.features__ = selected_features
 
     def predict(self, X):
-        self.__estimator__.predict([X[i] for i in self.__features__])
+        self.__estimator__.predict(X[:, self.features__])

@@ -103,7 +103,11 @@ GLOB_CR = {"Best by value": DefaultCuttingRules.select_best_by_value,
 
 class Filter(object):
     def __init__(self, measure, cutting_rule):
-        self.measure = measure
+        try:
+            self.measure = GLOB_MEASURE[measure]
+        except KeyError:
+            raise KeyError("No %r measure yet" % measure)
+
         self.cutting_rule = cutting_rule
         self.feature_scores = None
 
