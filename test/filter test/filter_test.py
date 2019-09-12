@@ -2,6 +2,7 @@ import unittest
 
 import scipy.io
 from sklearn.datasets import load_iris
+from sklearn.feature_selection import SelectKBest
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
 
@@ -12,6 +13,8 @@ from wrappers.BackwardSelection import *
 
 class MyTestCase(unittest.TestCase):
     basehock = scipy.io.loadmat('BASEHOCK.mat')
+    coil = scipy.io.loadmat('COIL20.mat')
+    orl = scipy.io.loadmat('orlraws10P.mat')
 
     def test_filter(self):
         filtering = Filter("SpearmanCorr", GLOB_CR["Best by value"](0.9999))
@@ -20,15 +23,20 @@ class MyTestCase(unittest.TestCase):
         print(data.shape, '--->', res.shape)
 
     def test_pearson_mat(self):
-        data, target = self.basehock['X'], self.basehock['Y']
+        data, target = self.orl['X'], self.orl['Y']
         filtering = Filter("PearsonCorr", GLOB_CR["Best by value"](0.0))
         res = filtering.run(data, target)
         print(data.shape, '--->', res.shape)
 
     def test_gini_index_mat(self):
         data, target = self.basehock['X'], self.basehock['Y']
-        filtering = Filter("GiniIndex", GLOB_CR["K best"](6))
-        res = filtering.run(data, target)
+        # filtering = Filter("GiniIndex", GLOB_CR["K best"](6))
+        res = Filter("GiniIndex", GLOB_CR["K best"](6)).run(data, target)
+        print(data.shape, '--->', res.shape)
+
+    def test_sklearn(self):
+        data, target = self.basehock['X'], self.basehock['Y']
+        res=SelectKBest(GLOB_MEASURE["GiniIndex"], k=6).fit_transform(data, target)
         print(data.shape, '--->', res.shape)
 
     def test_add_del(self):
