@@ -5,6 +5,7 @@ from sklearn.datasets import load_iris
 from sklearn.feature_selection import SelectKBest
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
+from skfeature import function as sk
 
 from filters.Filter import *
 from wrappers.AddDelWrapper import *
@@ -36,8 +37,11 @@ class MyTestCase(unittest.TestCase):
 
     def test_sklearn(self):
         data, target = self.basehock['X'], self.basehock['Y']
-        res=SelectKBest(GLOB_MEASURE["GiniIndex"], k=6).fit_transform(data, target)
+        res = SelectKBest(GLOB_MEASURE["GiniIndex"], k=6).fit_transform(data, target)
         print(data.shape, '--->', res.shape)
+
+        ## В Аризоне дана только метрика без отсекающих правил
+        ## по сути фильтры у них без отсекающих правил, а во врапперах прописаны сами естиматоры
 
     def test_add_del(self):
         data, target = self.basehock['X'][:, :100], self.basehock['Y']
