@@ -333,6 +333,7 @@ class DefaultMeasures:
         sq_dev_y = y_dev * y_dev
         return sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))
 
+    # TODO Fehner correlation,concordation coef
     VDM = filters.VDM()  # TODO: probably not a filter
 
 
@@ -370,15 +371,17 @@ class DefaultCuttingRules:
 
     @staticmethod
     def select_k_best(k):
-        return partial(DefaultCuttingRules.__select_k, k=k)
+        return partial(DefaultCuttingRules.__select_k, k=k, reverse=True)
 
     @staticmethod
     def select_k_worst(k):
-        return partial(DefaultCuttingRules.__select_k, k=-k)
+        return partial(DefaultCuttingRules.__select_k, k=k)
 
     @classmethod
-    def __select_k(cls, scores, k):
-        return [keys[0] for keys in sorted(scores.items(), key=lambda kv: kv[1])[:k]]
+    def __select_k(cls, scores, k, reverse=False):
+        if type(k) != int:
+            raise TypeError("Number of features should be integer")
+        return [keys[0] for keys in sorted(scores.items(), key=lambda kv: kv[1], reverse=reverse)[:k]]
 
 
 GLOB_CR = {"Best by value": DefaultCuttingRules.select_best_by_value,
@@ -389,6 +392,11 @@ GLOB_CR = {"Best by value": DefaultCuttingRules.select_best_by_value,
 
 class Filter(object):
     def __init__(self, measure, cutting_rule):
+        try:
+            self.measure = GLOB_MEASURE[measure]
+        except KeyError:
+            raise KeyError("No %r measure yet" % measure)
+
         self.measure = measure
         self.cutting_rule = cutting_rule
         self.feature_scores = None
