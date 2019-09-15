@@ -14,7 +14,6 @@ def estimate_index(X, y):
     return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
 
 
-
 class GiniIndexFilter(object):
     __border = 0.5
     feature_scores = {}

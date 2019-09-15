@@ -20,23 +20,24 @@ class FitCriterion:
 
         Examples
         --------
-        >>> x = np.array([[4, 1, 3, 2, 5],
-        ...               [5, 4, 3, 1, 4],
-        ...               [5, 2, 3, 0, 5],
-        ...               [1, 1, 4, 0, 5]])
-        >>> y = np.array([2,
-        ...               1,
-        ...               0,
-        ...               0])
-        >>> fc = FitCriterion()
-        >>> fc.run(x, y)
+        x = np.array([[4, 1, 3, 2, 5],
+                      [5, 4, 3, 1, 4],
+                      [5, 2, 3, 0, 5],
+                      [1, 1, 4, 0, 5]])
+        y = np.array([2,
+                      1,
+                      0,
+                      0])
+        fc = FitCriterion()
+        fc.run(x, y)
         {0: 0.75, 1: 0.75, 2: 0.5, 3: 1.0, 4: 0.75}
     """
+
     def __init__(self, mean=np.mean):
         self.mean = mean
 
-
     feature_scores = {}
+
     def run(self, x, y, feature_names=None):
         """
             Parameters
@@ -80,7 +81,6 @@ class FitCriterion:
         distances = np.empty(tokensN)  # Array with distances between sample's value and each class's center
         # This array will be separately calculated for each feature and each sample
 
-
         for feature_index, feature in enumerate(x.T):  # For each feature
             # Initializing utility structures
             class_values = [[] for _ in range(tokensN)]  # Array with lists of feature values for each class token
@@ -102,20 +102,7 @@ class FitCriterion:
         fc /= y.shape[0]  # Normalization
 
         self.feature_scores = dict(zip(feature_names, fc))
-        return fc
+        return self.feature_scores
 
     def __repr__(self):
         return "Fit criterion with mean {}".format(self.mean)
-
-# x = np.array([[4, 1, 3, 2, 5],
-#               [5, 4, 3, 1, 4],
-#               [5, 2, 3, 0, 5],
-#               [1, 1, 4, 0, 5]])
-#
-# y = np.array([2,
-#               1,
-#               0,
-#               0])
-#
-# fcc = FitCriterion()
-# fcc.run(x, y)
