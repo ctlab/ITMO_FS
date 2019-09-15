@@ -1,5 +1,4 @@
 from functools import partial
-from importlib import reload
 from math import log
 
 import numpy as np
@@ -10,17 +9,6 @@ import filters
 from utils import generate_features
 
 # TODO: move all feature_names?
-
-# Default measures
-x = np.array([[4, 1, 3, 2, 5],
-              [5, 4, 3, 1, 4],
-              [5, 2, 3, 0, 5],
-              [1, 1, 4, 0, 5]])
-y = np.array([2,
-              1,
-              0,
-              0])
-
 
 class DefaultMeasures:
     FitCriterion = filters.FitCriterion()  # Can be customized
@@ -344,15 +332,3 @@ class Filter(object):
             self.feature_scores = feature_scores
         selected_features = self.cutting_rule(feature_scores)
         return x[:, selected_features]
-
-
-# def test():
-    # print(DefaultMeasures.fc_measure(x, y))
-    # print(DefaultMeasures.fratio_measure(x, y))
-    # print(DefaultMeasures.gini_index(x, y))
-    # print(DefaultMeasures.ig_measure(x, y))
-    # print(DefaultMeasures.mrmr_measure(x, y))
-    # print(DefaultMeasures.spearman_corr(x, y))
-    # print(DefaultMeasures.pearson_corr(x, y))
-
-# test()
