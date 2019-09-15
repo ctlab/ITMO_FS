@@ -200,6 +200,7 @@ class DefaultMeasures:
         # Using coo_matrix to accelerate simple histogram calculation,
         # i.e. bins are consecutive integers
         # Currently, coo_matrix is faster than histogram2d for simple cases
+        # TODO redo it with numpy
         contingency = sp.coo_matrix((np.ones(class_idx.shape[0]),
                                      (class_idx, cluster_idx)),
                                     shape=(n_classes, n_clusters),
@@ -234,7 +235,7 @@ class DefaultMeasures:
         X = np.array(X)
         y = np.array(y).ravel()
 
-        print([DefaultMeasures.__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
+        # print([DefaultMeasures.__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
         return [MI(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])]
 
     @staticmethod
@@ -320,10 +321,13 @@ GLOB_CR = {"Best by value": DefaultCuttingRules.select_best_by_value,
 
 class Filter(object):
     def __init__(self, measure, cutting_rule):
-        try:
-            self.measure = GLOB_MEASURE[measure]
-        except KeyError:
-            raise KeyError("No %r measure yet" % measure)
+        if measure is str:
+            try:
+                self.measure = GLOB_MEASURE[measure]
+            except KeyError:
+                raise KeyError("No %r measure yet" % measure)
+        else:
+            self.measure = measure
 
         self.cutting_rule = cutting_rule
         self.feature_scores = None
@@ -342,13 +346,13 @@ class Filter(object):
         return x[:, selected_features]
 
 
-def test():
+# def test():
     # print(DefaultMeasures.fc_measure(x, y))
     # print(DefaultMeasures.fratio_measure(x, y))
     # print(DefaultMeasures.gini_index(x, y))
     # print(DefaultMeasures.ig_measure(x, y))
-    print(DefaultMeasures.mrmr_measure(x, y))
+    # print(DefaultMeasures.mrmr_measure(x, y))
     # print(DefaultMeasures.spearman_corr(x, y))
     # print(DefaultMeasures.pearson_corr(x, y))
 
-test()
+# test()
