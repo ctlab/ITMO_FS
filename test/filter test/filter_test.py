@@ -6,8 +6,10 @@ from sklearn.datasets import load_iris
 from sklearn.feature_selection import SelectKBest
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
+from sklearn.svm import SVC
 
 from filters.Filter import *
+from hybrid.Melif import Melif
 from wrappers.AddDelWrapper import *
 from wrappers.BackwardSelection import *
 
@@ -71,6 +73,16 @@ class MyTestCase(unittest.TestCase):
         print(wrapper.best_score)
 
     ##----------Melif--------------------------------
+    def test_melif(self):
+        data, target = self.basehock['X'], self.basehock['Y']
+        _filters = [Filter('GiniIndex', cutting_rule=GLOB_CR["Best by value"](0.4)),
+                    Filter('FitCriterion', cutting_rule=GLOB_CR["Best by value"](0.0)),
+                    Filter('FRatio', cutting_rule=GLOB_CR["Best by value"](0.6)),
+                    Filter('InformationGain', cutting_rule=GLOB_CR["Best by value"](-0.4))]
+        melif = Melif(_filters)
+        melif.fit(data, target)
+        estimator = SVC()
+        melif.run(GLOB_CR['K best'](50), estimator)
 
     ##----------END----------------------------------
     def test_add_del(self):

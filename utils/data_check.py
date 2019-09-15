@@ -44,7 +44,10 @@ def check_shapes(X, y):
 
 
 def check_filters(filters):
-    pass  # TODO check if current object has run
+    for filter_ in filters:
+        if not hasattr(filter_, 'run'):
+            raise TypeError("filters should be a lost of filters each implementing "
+                            "'run' method, %r was passed" % filter_)
 
 
 def check_classifier(classifier):

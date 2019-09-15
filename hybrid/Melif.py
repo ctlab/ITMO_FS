@@ -33,7 +33,7 @@ class Melif:
         self.__filter_weights = np.ones(len(self.__filters)) / len(self.__filters)
         self.points = points
 
-    def run(self, cutting_rule=None, estimator=None, test_size=0.3, delta=0.5):
+    def run(self, cutting_rule, estimator, test_size=0.3, delta=0.5):
         self.__estimator = estimator
         self.__cutting_rule = cutting_rule
         self.__delta = delta
