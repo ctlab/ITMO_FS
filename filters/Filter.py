@@ -8,14 +8,12 @@ from sklearn.feature_selection import mutual_info_classif as MI
 import filters
 from utils import generate_features
 
+
 # TODO: move all feature_names?
 
 class DefaultMeasures:
-    FitCriterion = filters.FitCriterion()  # Can be customized
-
-    # TODO: .run() feature_names
     @staticmethod
-    def fc_measure(X, y):
+    def fitcriterion_measure(X, y):
         x = np.asarray(X)  # Converting input data to numpy array
         y = np.asarray(y)
 
@@ -89,12 +87,7 @@ class DefaultMeasures:
 
     @staticmethod
     def gini_index(X, y):
-        try:
-            x = X.values
-            y = y.values
-        except AttributeError:
-            x = X
-        cum_x = np.cumsum(x / np.linalg.norm(x, 1, axis=0), axis=0)
+        cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
         cum_y = np.cumsum(y / np.linalg.norm(y, 1))
         diff_x = (cum_x[1:] - cum_x[:-1])
         diff_y = (cum_y[1:] + cum_y[:-1])
@@ -238,17 +231,17 @@ class DefaultMeasures:
     def spearman_corr(X, y):
         n = X.shape[0]
         c = 6 / (n * (n - 1) * (n + 1))
-        dif = X - np.vstack(tuple([y] * X.shape[1])).T
+        dif = X - np.hstack(tuple([y] * X.shape[1]))
         return 1 - c * np.sum(dif * dif, axis=0)
 
     @staticmethod
     def pearson_corr(X, y):
         x_dev = X - np.mean(X, axis=0)
         y_dev = y - np.mean(y)
-        sum_dev = x_dev.T.dot(y_dev)
+        sum_dev = y_dev.T.dot(x_dev)
         sq_dev_x = x_dev * x_dev
         sq_dev_y = y_dev * y_dev
-        return sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))
+        return (sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))).reshape((-1,))
 
     # TODO Fehner correlation,concordation coef
     VDM = filters.VDM()  # TODO: probably not a filter
@@ -256,7 +249,7 @@ class DefaultMeasures:
 
 # print(DefaultMeasures.SpearmanCorrelation)
 
-GLOB_MEASURE = {"FitCriterion": DefaultMeasures.fc_measure,
+GLOB_MEASURE = {"FitCriterion": DefaultMeasures.fitcriterion_measure,
                 "FRatio": DefaultMeasures.fratio_measure,
                 "GiniIndex": DefaultMeasures.gini_index,
                 "InformationGain": DefaultMeasures.ig_measure,
@@ -309,18 +302,22 @@ GLOB_CR = {"Best by value": DefaultCuttingRules.select_best_by_value,
 
 class Filter(object):
     def __init__(self, measure, cutting_rule):
-        if measure is str:
+        if type(measure) is str:
             try:
                 self.measure = GLOB_MEASURE[measure]
             except KeyError:
                 raise KeyError("No %r measure yet" % measure)
         else:
             self.measure = measure
-
         self.cutting_rule = cutting_rule
         self.feature_scores = None
 
     def run(self, x, y, store_scores=False, feature_names=None):
+        try:
+            x = x.values
+            y = y.values
+        except AttributeError:
+            x = x
         self.feature_scores = None
         try:
             feature_names = x.columns

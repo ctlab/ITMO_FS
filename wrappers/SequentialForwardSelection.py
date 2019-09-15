@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-import random as rnd
-import numpy as np
-from wrappers.wrapper_utils import get_current_accuracy
 
+
+import numpy as np
+
+from wrappers.wrapper_utils import get_current_accuracy
 
 
 class SequentialForwardSelection:
@@ -27,11 +28,10 @@ class SequentialForwardSelection:
 
         """
 
-    def __init__(self, estimator, n_features, seed=1):
+    def __init__(self, estimator, n_features):
         self.__estimator__ = estimator
         self.__n_features__ = n_features
         self.__features__ = []
-        rnd.seed(seed)
 
     def fit(self, X, y, test_x, test_y):
         """

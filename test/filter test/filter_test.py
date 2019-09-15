@@ -1,3 +1,4 @@
+import time
 import unittest
 
 import scipy.io
@@ -24,21 +25,60 @@ class MyTestCase(unittest.TestCase):
         res = Filter("SpearmanCorr", GLOB_CR["Best by value"](0.9999)).run(data, target)
         print("SpearmanCorr:", data.shape, '--->', res.shape)
 
+    ##----------Filters------------------------------
+    def __compare_measure__(self, measure_name, data):
+        data, target = data['X'], data['Y']
+
+        start_time = time.time()
+        res = Filter(measure_name, GLOB_CR["K best"](6)).run(data, target)
+        print("ITMO_FS time --- %s seconds ---" % (time.time() - start_time))
+
+        start_time = time.time()
+        res = SelectKBest(GLOB_MEASURE[measure_name], k=6).fit_transform(data, target)
+        print("SKLEARN time --- %s seconds ---" % (time.time() - start_time))
+        print(data.shape, '--->', res.shape)
+
     def test_pearson_mat(self):
-        data, target = self.orl['X'], self.orl['Y']
-        res = Filter("PearsonCorr", GLOB_CR["Best by value"](0.0)).run(data, target)
-        print("PearsonCorr:", data.shape, '--->', res.shape)
+        self.__compare_measure__("PearsonCorr", self.basehock)  # samples:1993 features:4862
+        # ITMO    0.12962937355041504 seconds
+        # SKLEARN 0.12220430374145508 seconds
+        self.__compare_measure__("PearsonCorr", self.coil)  # samples:1440 features:1024
+        # ITMO    0.01994633674621582 seconds
+        # SKLEARN 0.024933815002441406 seconds
+        self.__compare_measure__("PearsonCorr", self.orl)  # samples:100 features:10304
+        # ITMO    0.018949508666992188 seconds
+        # SKLEARN 0.016954898834228516 seconds
 
     def test_gini_index_mat(self):
-        data, target = self.basehock['X'], self.basehock['Y']
-        # filtering = Filter("GiniIndex", GLOB_CR["K best"](6))
-        res = Filter("GiniIndex", GLOB_CR["K best"](6)).run(data, target)
-        print("GiniIndex:", data.shape, '--->', res.shape)
+        self.__compare_measure__("GiniIndex", self.basehock)  # samples:1993 features:4862
+        # ITMO    0.3725132942199707 seconds
+        # SKLEARN 0.3790163993835449 seconds
+        self.__compare_measure__("GiniIndex", self.coil)  # samples:1440 features:1024
+        # ITMO    0.04388904571533203 seconds
+        # SKLEARN 0.056841373443603516 seconds
+        self.__compare_measure__("GiniIndex", self.orl)  # samples:100 features:10304
+        # ITMO    0.04886913299560547 seconds
+        # SKLEARN 0.04886794090270996 seconds
 
-    def test_sklearn(self):
+    ##----------Wrapper------------------------------
+    def test_backward_selection(self):
         data, target = self.basehock['X'], self.basehock['Y']
-        res = SelectKBest(GLOB_MEASURE["GiniIndex"], k=6).fit_transform(data, target)
-        print("SkLearn:", data.shape, '--->', res.shape)
+        lr = LogisticRegression()
+        wrapper = BackwardSelection(lr, 100, GLOB_MEASURE["GiniIndex"])
+        wrapper.fit(data[:, :200], target)
+        print(wrapper.best_score)
+        wrapper.fit(data[:, :300], target)
+        print(wrapper.best_score)
+
+    ##----------Melif--------------------------------
+
+    ##----------END----------------------------------
+    def test_add_del(self):
+        data, target = self.basehock['X'][:, :100], self.basehock['Y']
+        lr = LogisticRegression()
+        wrapper = Add_del(lr, f1_score)
+        wrapper.run(data, target, silent=True)
+        print(wrapper.best_score)
 
     @classmethod
     def __test_mrmr(cls, data, target):
@@ -54,25 +94,6 @@ class MyTestCase(unittest.TestCase):
 
     def test_mrmr_orl(self):
         MyTestCase.__test_mrmr(self.orl['X'], self.orl['Y'])
-
-        ## В Аризоне дана только метрика без отсекающих правил
-        ## по сути фильтры у них без отсекающих правил, а во врапперах прописаны сами естиматоры
-
-    # def test_add_del(self):
-    #     data, target = self.basehock['X'][:, :100], self.basehock['Y']
-    #     lr = LogisticRegression()
-    #     wrapper = Add_del(lr, f1_score)
-    #     wrapper.run(data, target, silent=True)
-    #     print(wrapper.best_score)
-    #
-    # def test_backward_selection(self):
-    #     data, target = self.basehock['X'], self.basehock['Y']
-    #     lr = LogisticRegression()
-    #     wrapper = BackwardSelection(lr, 100, GLOB_MEASURE["GiniIndex"])
-    #     wrapper.fit(data[:, :200], target)
-    #     print(wrapper.best_score)
-    #     wrapper.fit(data[:, :300], target)
-    #     print(wrapper.best_score)
 
 
 if __name__ == '__main__':
