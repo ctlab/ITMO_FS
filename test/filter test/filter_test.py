@@ -2,6 +2,8 @@ import time
 import unittest
 
 import scipy.io
+from skfeature.function.statistical_based import gini_index,f_score
+from skfeature.function.information_theoretical_based import MRMR
 from sklearn.datasets import load_iris
 from sklearn.feature_selection import SelectKBest
 from sklearn.linear_model import LogisticRegression
@@ -12,9 +14,6 @@ from filters.Filter import *
 from hybrid.Melif import Melif
 from wrappers.AddDelWrapper import *
 from wrappers.BackwardSelection import *
-
-
-# from skfeature import function as sk
 
 
 class MyTestCase(unittest.TestCase):
@@ -76,10 +75,10 @@ class MyTestCase(unittest.TestCase):
     def test_melif(self):
         data, target = self.basehock['X'], self.basehock['Y']
         _filters = [Filter('GiniIndex', cutting_rule=GLOB_CR["Best by value"](0.4)),
-                    Filter('FitCriterion', cutting_rule=GLOB_CR["Best by value"](0.0)),
-                    Filter('FRatio', cutting_rule=GLOB_CR["Best by value"](0.6)),
+                    # Filter('FitCriterion', cutting_rule=GLOB_CR["Best by value"](0.0)),
+                    Filter(GLOB_MEASURE["FRatio"](data.shape[1]), cutting_rule=GLOB_CR["Best by value"](0.6)),
                     Filter('InformationGain', cutting_rule=GLOB_CR["Best by value"](-0.4))]
-        melif = Melif(_filters)
+        melif = Melif(_filters, f1_score)
         melif.fit(data, target)
         estimator = SVC()
         melif.run(GLOB_CR['K best'](50), estimator)
@@ -91,6 +90,24 @@ class MyTestCase(unittest.TestCase):
         wrapper = Add_del(lr, f1_score)
         wrapper.run(data, target, silent=True)
         print(wrapper.best_score)
+
+    def test_arizona(self):
+        data, target = self.coil['X'], self.coil['Y']
+        start_time = time.time()
+        features = gini_index.gini_index(data, target)
+        print("ARIZONA time --- %s seconds ---" % (time.time() - start_time))
+
+        start_time = time.time()
+        features = GLOB_MEASURE["GiniIndex"](data, target)
+        print("ITMO time --- %s seconds ---" % (time.time() - start_time))
+
+        start_time = time.time()
+        features = f_score.f_score(data,target)
+        print("ARIZONA time --- %s seconds ---" % (time.time() - start_time))
+
+        start_time = time.time()
+        features = GLOB_MEASURE["FRatio"](data.shape[-1])(data, target)
+        print("ITMO time --- %s seconds ---" % (time.time() - start_time))
 
     @classmethod
     def __test_mrmr(cls, data, target):

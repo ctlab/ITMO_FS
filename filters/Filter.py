@@ -9,28 +9,26 @@ import filters
 from utils import generate_features
 
 
-# TODO: move all feature_names?
-
 class DefaultMeasures:
     @staticmethod
-    def fitcriterion_measure(X, y):
+    def fit_criterion_measure(X, y):
         x = np.asarray(X)  # Converting input data to numpy array
-        y = np.asarray(y)
+        y = np.asarray(y.reshape((-1,)))
 
         fc = np.zeros(x.shape[1])  # Array with amounts of correct predictions for each feature
 
-        tokensN = np.max(y) + 1  # Number of different class tokens
+        tokens_n = np.max(y) + 1  # Number of different class tokens
 
-        centers = np.empty(tokensN)  # Array with centers of sets of feature values for each class token
-        variances = np.empty(tokensN)  # Array with variances of sets of feature values for each class token
+        centers = np.empty(tokens_n)  # Array with centers of sets of feature values for each class token
+        variances = np.empty(tokens_n)  # Array with variances of sets of feature values for each class token
         # Each of arrays above will be separately calculated for each feature
 
-        distances = np.empty(tokensN)  # Array with distances between sample's value and each class's center
+        distances = np.empty(tokens_n)  # Array with distances between sample's value and each class's center
         # This array will be separately calculated for each feature and each sample
 
         for feature_index, feature in enumerate(x.T):  # For each feature
             # Initializing utility structures
-            class_values = [[] for _ in range(tokensN)]  # Array with lists of feature values for each class token
+            class_values = [[] for _ in range(tokens_n)]  # Array with lists of feature values for each class token
             for index, value in enumerate(y):  # Filling array
                 class_values[value].append(feature[index])
             for token, values in enumerate(class_values):  # For each class token's list of feature values
@@ -40,7 +38,7 @@ class DefaultMeasures:
 
             # Main calculations
             for sample_index, value in enumerate(feature):  # For each sample value
-                for i in range(tokensN):  # For each class token
+                for i in range(tokens_n):  # For each class token
                     # Here can be raise warnings by 0/0 division. In this case, default results
                     # are interpreted correctly
                     distances[i] = np.abs(value - centers[i]) / variances[i]
@@ -57,7 +55,6 @@ class DefaultMeasures:
         :param y_data: ndarray, labels
         :return: int, fisher_ratio
         """
-        Mu = np.mean(row)
         inter_class = 0.0
         intra_class = 0.0
         for value in np.unique(y_data):
@@ -65,14 +62,14 @@ class DefaultMeasures:
             n = np.sum(row[index_for_this_value])
             mu = np.mean(row[index_for_this_value])
             var = np.var(row[index_for_this_value])
-            inter_class += n * np.power((mu - Mu), 2)
+            inter_class += n * np.power((mu - mu), 2)
             intra_class += (n - 1) * var
 
         f_ratio = inter_class / intra_class
         return f_ratio
 
     @classmethod
-    def __fratio_measure(cls, X, y, n):
+    def __f_ratio_measure(cls, X, y, n):
         assert not 1 < X.shape[1] < n, 'incorrect number of features'
         f_ratios = []
         for feature in X.T:
@@ -82,8 +79,8 @@ class DefaultMeasures:
         return np.argpartition(f_ratios, -n)[-n:]
 
     @staticmethod
-    def fratio_measure(n):
-        return partial(DefaultMeasures.__fratio_measure, n=n)
+    def f_ratio_measure(n):
+        return partial(DefaultMeasures.__f_ratio_measure, n=n)
 
     @staticmethod
     def gini_index(X, y):
@@ -102,25 +99,15 @@ class DefaultMeasures:
                 dict_label.update({label: 1})
             else:
                 dict_label[label] += 1
-        entro = 0.0
-        for i in dict_label.values():
-            entro += -i / len(y) * log(i / len(y), 2)
-        return entro
-
-    # IGFilter = filters.IGFilter()  # TODO: unexpected .run() interface; .run() feature_names; no default constructor
-    # return array(ratio)
-    @staticmethod
-    def ig_measure(X, y):
-        entropy = DefaultMeasures.__cal_entropy(y)
-        dict_label = dict()
-        for label in y:
-            if label not in dict_label:
-                dict_label.update({label: 1})
-            else:
-                dict_label[label] += 1
         entropy = 0.0
         for i in dict_label.values():
             entropy += -i / len(y) * log(i / len(y), 2)
+        return entropy
+
+    @staticmethod
+    def ig_measure(X, y):
+        y = y.reshape((-1,))
+        entropy = DefaultMeasures.__cal_entropy(y)
         list_f = np.empty(X.shape[1])
         for index in range(len(X.T)):
             dict_i = dict()
@@ -213,11 +200,11 @@ class DefaultMeasures:
     def __mrmr_measure(cls, X, y, n):
         assert not 1 < X.shape[1] < n, 'incorrect number of features'
 
-        X = np.array(X)
+        x = np.array(X)
         y = np.array(y).ravel()
 
         # print([DefaultMeasures.__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
-        return [MI(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])]
+        return [MI(x[:, j].reshape(-1, 1), y) for j in range(x.shape[1])]
 
     @staticmethod
     def mrmr_measure(n):
@@ -249,8 +236,8 @@ class DefaultMeasures:
 
 # print(DefaultMeasures.SpearmanCorrelation)
 
-GLOB_MEASURE = {"FitCriterion": DefaultMeasures.fitcriterion_measure,
-                "FRatio": DefaultMeasures.fratio_measure,
+GLOB_MEASURE = {"FitCriterion": DefaultMeasures.fit_criterion_measure,
+                "FRatio": DefaultMeasures.f_ratio_measure,
                 "GiniIndex": DefaultMeasures.gini_index,
                 "InformationGain": DefaultMeasures.ig_measure,
                 "MrmrDiscrete": DefaultMeasures.mrmr_measure,
@@ -312,7 +299,7 @@ class Filter(object):
         self.cutting_rule = cutting_rule
         self.feature_scores = None
 
-    def run(self, x, y, store_scores=False, feature_names=None):
+    def run(self, x, y, feature_names=None, store_scores=False):
         try:
             x = x.values
             y = y.values

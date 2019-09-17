@@ -47,7 +47,7 @@ class Melif:
         self.train_x, self.train_y, self.test_x, self.test_y = train_test_split(self.__X, self.__y, test_size)
         nu = {i: [] for i in self.__feature_names}
         for _filter in self.__filters:
-            _filter.run(self.train_x, self.train_y, feature_names=self.__feature_names)
+            _filter.run(self.train_x, self.train_y, feature_names=self.__feature_names, store_scores=True)
             for key, value in _filter.feature_scores.items():
                 _filter.feature_scores[key] = abs(value)
             _min = min(_filter.feature_scores.values())
@@ -86,11 +86,12 @@ class Melif:
             point = points[i]
             logging.info('Time:{}'.format(dt.datetime.now() - time))
             logging.info('point:{}'.format(point))
-            n = dict(zip(features.keys(), self.measure(np.array(list(features.values())), point)))
-            F = self.__cutting_rule(n)
+            l = list(features.values())
+            n = dict(zip(features.keys(), self.measure(np.array(l), point)))
+            keys = self.__cutting_rule(n)
+            F = {i: features[i] for i in keys}
             if F == {}:
                 break  # TODO rewrite that thing
-            keys = list(F.keys())
             self.__estimator.fit(self.train_x[:, keys], self.train_y)
             predicted = self.__estimator.predict(self.test_x[:, keys])
             score = self.__score(self.test_y, predicted)
