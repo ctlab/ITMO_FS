@@ -15,12 +15,18 @@ class Melif:
     __y = []
     __X = []
     __alphas = []
+    __estimator = None
+    __points = []
+    __cutting_rule = None
+    __delta = None
+    _train_x = _train_y = _test_x = _test_y = None
 
-    def __init__(self, filters, score=None):  ##todo scorer name
+    def __init__(self, filters, score=None):  # TODO scorer name
         check_filters(filters)
-        self.__classifiers = filters
         self.__filters = filters
         self.__score = score
+        self.best_measure = 0
+        self.best_point = []
 
     def fit(self, X, y, feature_names=None, points=None):
         logging.info('Runing basic MeLiF\nFilters:{}'.format(self.__filters))
@@ -31,7 +37,7 @@ class Melif:
         self.__X = X
         self.__y = y
         self.__filter_weights = np.ones(len(self.__filters)) / len(self.__filters)
-        self.points = points
+        self.__points = points
 
     def run(self, cutting_rule, estimator, test_size=0.3, delta=0.5):
         self.__estimator = estimator
@@ -44,27 +50,27 @@ class Melif:
         time = dt.datetime.now()
         logging.info("time:{}".format(time))
         check_cutting_rule(cutting_rule)
-        self.train_x, self.train_y, self.test_x, self.test_y = train_test_split(self.__X, self.__y, test_size)
+        self._train_x, self._train_y, self._test_x, self._test_y = train_test_split(self.__X, self.__y, test_size)
         nu = {i: [] for i in self.__feature_names}
         for _filter in self.__filters:
-            _filter.run(self.train_x, self.train_y, feature_names=self.__feature_names, store_scores=True)
+            _filter.run(self._train_x, self._train_y, feature_names=self.__feature_names, store_scores=True)
             for key, value in _filter.feature_scores.items():
                 _filter.feature_scores[key] = abs(value)
             _min = min(_filter.feature_scores.values())
             _max = max(_filter.feature_scores.values())
             for key, value in _filter.feature_scores.items():
                 nu[key].append((value - _min) / (_max - _min))
-        if self.points is None:
-            self.points = [self.__filter_weights]
-        best_point = self.points[0]
+        if self.__points is None:
+            self.__points = [self.__filter_weights]
+        best_point = self.__points[0]
         best_measure = 0
         best_f = {}
-        for point in self.points:
-            score, try_point, F = self.search(point, nu)
+        for point in self.__points:
+            score, try_point, f_dict = self.__search(point, nu)
             if score > best_measure:
                 best_measure = score
                 best_point = point
-                best_f = F
+                best_f = f_dict
         self.best_measure = best_measure
         self.best_point = best_point
         logging.info('Footer')
@@ -75,7 +81,7 @@ class Melif:
             logging.info("Feature: {}, value: {}".format(key, value))
         return best_f
 
-    def search(self, point, features):
+    def __search(self, point, features):
         i = 0
         best_point = point
         best_measure = 0
@@ -86,37 +92,38 @@ class Melif:
             point = points[i]
             logging.info('Time:{}'.format(dt.datetime.now() - time))
             logging.info('point:{}'.format(point))
-            l = list(features.values())
-            n = dict(zip(features.keys(), self.measure(np.array(l), point)))
+            values = list(features.values())
+            n = dict(zip(features.keys(), self.__measure(np.array(values), point)))
             keys = self.__cutting_rule(n)
-            F = {i: features[i] for i in keys}
-            if F == {}:
+            new_features = {i: features[i] for i in keys}
+            if new_features == {}:
                 break  # TODO rewrite that thing
-            self.__estimator.fit(self.train_x[:, keys], self.train_y)
-            predicted = self.__estimator.predict(self.test_x[:, keys])
-            score = self.__score(self.test_y, predicted)
+            self.__estimator.fit(self._train_x[:, keys], self._train_y)
+            predicted = self.__estimator.predict(self._test_x[:, keys])
+            score = self.__score(self._test_y, predicted)
             logging.info(
                 'Measure at current point : {}'.format(score))
             if score > best_measure:
                 best_measure = score
                 best_point = point
-                best_f = F
-                points += self.get_candidates(point, self.__delta)
+                best_f = new_features
+                points += self.__get_candidates(point, self.__delta)
             i += 1
         return best_measure, best_point, best_f
 
-    def get_candidates(self, point, delta=0.1):
+    @staticmethod
+    def __get_candidates(point, delta=0.1):
         candidates = np.tile(point, (len(point) * 2, 1)) + np.vstack(
             (np.eye(len(point)) * delta, np.eye(len(point)) * -delta))
         return list(candidates)
 
-    def score_features(self, nu, candidate):
-        x = np.array(list(nu.values()))
-        n = dict(zip(nu.keys(), self.measure()))
-        F = self.__cutting_rule(n)
-        keys = list(F.keys())
-        self.__estimator.fit(self.train_x[list(F.keys())], self.train_y)
-        return self.__score(self.test_y, self.__estimator.predict(self.test_x[keys]))
+    def __score_features(self, nu, candidate):
+        n = dict(zip(nu.keys(), self.__measure(nu, candidate)))
+        scores = self.__cutting_rule(n)
+        keys = list(scores.keys())
+        self.__estimator.fit(self._train_x[list(scores.keys())], self._train_y)
+        return self.__score(self._test_y, self.__estimator.predict(self._test_x[keys]))
 
-    def measure(self, nu, weights):
+    @staticmethod
+    def __measure(nu, weights):
         return np.dot(nu, weights)

@@ -11,6 +11,7 @@ from sklearn.metrics import f1_score
 from sklearn.svm import SVC
 
 from filters.Filter import *
+import filters.Filter
 from hybrid.Melif import Melif
 from wrappers.AddDelWrapper import *
 from wrappers.BackwardSelection import *

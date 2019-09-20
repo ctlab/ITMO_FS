@@ -1,8 +1,9 @@
+import random as rnd
+from importlib import reload
+
+import numpy as np
 from sklearn.feature_selection import mutual_info_classif as MI
 from sklearn.metrics import mutual_info_score as MI_features
-from importlib import reload
-import numpy as np
-import random as rnd
 
 
 class MrmrDiscreteFilter(object):
@@ -37,7 +38,8 @@ class MrmrDiscreteFilter(object):
         self.number_of_features = number_of_features
         rnd.seed = seed
 
-    def _find_first_feature(self, X, y):
+    @staticmethod
+    def _find_first_feature(X, y):
 
         max_mi = -1
         feature_index = 0
@@ -52,6 +54,7 @@ class MrmrDiscreteFilter(object):
 
     def _find_next_features(self, feature_set, not_used_features, X, y, info_gain):
 
+        info_criteria = 0
         max_criteria = -1
         feature_index = 0
 
@@ -66,13 +69,15 @@ class MrmrDiscreteFilter(object):
 
         return feature_index
 
-    def _MID(self, A, B, y):
-        return MI(A.reshape(-1, 1), y) - np.sum([MI_features(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / \
-               B.shape[1]
+    @staticmethod
+    def _MID(A, B, y):
+        return MI(A.reshape(-1, 1), y) - np.sum(
+            [MI_features(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / B.shape[1]
 
-    def _MIQ(self, A, B, y):
+    @staticmethod
+    def _MIQ(A, B, y):
         return MI(A.reshape(-1, 1), y) / (
-                    np.sum([MI_features(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / B.shape[1])
+                np.sum([MI_features(A.ravel(), B[:, j].ravel()) for j in range(B.shape[1])]) / B.shape[1])
 
     def run(self, X, y, info_gain='MID'):
         """
@@ -101,6 +106,7 @@ class MrmrDiscreteFilter(object):
 
       """
 
+        columns = None
         assert not 1 < X.shape[1] < self.number_of_features, 'incorrect number of features'
 
         return_feature_names = False
@@ -117,15 +123,15 @@ class MrmrDiscreteFilter(object):
         except ModuleNotFoundError:
             pass
 
-        X = np.array(X)
+        x = np.array(X)
         y = np.array(y).ravel()
 
-        first_feature = self._find_first_feature(X, y)
+        first_feature = self._find_first_feature(x, y)
         used_features = {first_feature}
-        not_used_features = set([i for i in range(X.shape[1]) if i != first_feature])
+        not_used_features = set([i for i in range(x.shape[1]) if i != first_feature])
 
         for _ in range(self.number_of_features - 1):
-            feature = self._find_next_features(used_features, not_used_features, X, y, info_gain)
+            feature = self._find_next_features(used_features, not_used_features, x, y, info_gain)
             used_features.add(feature)
             not_used_features.remove(feature)
 

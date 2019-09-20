@@ -62,8 +62,7 @@ class Add_del(object):
         rnd.seed(seed)
         self.best_score = None
 
-
-    def _add(self, X, y, cv=3, silent=True):
+    def __add(self, X, y, cv=3, silent=True):
 
         prev_score = 0
         current_score = 0
@@ -101,7 +100,7 @@ class Add_del(object):
 
         return appended
 
-    def _del(self, X, y, features, cv=3, silent=True):
+    def __del(self, X, y, features, cv=3, silent=True):
 
         prev_score = abs(np.mean(cross_val_score(self.estimator, X[:, features], y,
                                                  scoring=make_scorer(self.score, greater_is_better=self.maximize),
@@ -201,12 +200,12 @@ class Add_del(object):
 
         if not silent:
             print('add trial')
-        features = self._add(X, y, cv, silent)
+        features = self.__add(X, y, cv, silent)
 
         if not silent:
             print('del trial')
 
-        features, score = self._del(X, y, features, cv, silent)
+        features, score = self.__del(X, y, features, cv, silent)
         self.best_score = score
 
         if return_feature_names:

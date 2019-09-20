@@ -9,7 +9,7 @@ import filters
 from utils import generate_features
 
 
-class DefaultMeasures:
+class _DefaultMeasures:
     @staticmethod
     def fit_criterion_measure(X, y):
         x = np.asarray(X)  # Converting input data to numpy array
@@ -73,14 +73,14 @@ class DefaultMeasures:
         assert not 1 < X.shape[1] < n, 'incorrect number of features'
         f_ratios = []
         for feature in X.T:
-            f_ratio = DefaultMeasures.__calculate_F_ratio(feature, y.T)
+            f_ratio = _DefaultMeasures.__calculate_F_ratio(feature, y.T)
             f_ratios.append(f_ratio)
         f_ratios = np.array(f_ratios)
         return np.argpartition(f_ratios, -n)[-n:]
 
     @staticmethod
     def f_ratio_measure(n):
-        return partial(DefaultMeasures.__f_ratio_measure, n=n)
+        return partial(_DefaultMeasures.__f_ratio_measure, n=n)
 
     @staticmethod
     def gini_index(X, y):
@@ -107,7 +107,7 @@ class DefaultMeasures:
     @staticmethod
     def ig_measure(X, y):
         y = y.reshape((-1,))
-        entropy = DefaultMeasures.__cal_entropy(y)
+        entropy = _DefaultMeasures.__cal_entropy(y)
         list_f = np.empty(X.shape[1])
         for index in range(len(X.T)):
             dict_i = dict()
@@ -179,7 +179,7 @@ class DefaultMeasures:
 
     @staticmethod
     def __mi(U, V):
-        contingency = DefaultMeasures.__contingency_matrix(U, V)
+        contingency = _DefaultMeasures.__contingency_matrix(U, V)
         nzx, nzy, nz_val = sp.find(contingency)
         contingency_sum = contingency.sum()
         pi = np.ravel(contingency.sum(axis=1))
@@ -203,12 +203,12 @@ class DefaultMeasures:
         x = np.array(X)
         y = np.array(y).ravel()
 
-        # print([DefaultMeasures.__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
+        # print([_DefaultMeasures.__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
         return [MI(x[:, j].reshape(-1, 1), y) for j in range(x.shape[1])]
 
     @staticmethod
     def mrmr_measure(n):
-        return partial(DefaultMeasures.__mrmr_measure, n=n)
+        return partial(_DefaultMeasures.__mrmr_measure, n=n)
 
     # RandomFilter = filters.RandomFilter() # TODO: bad .run() interface; .run() feature_names; no default constructor
 
@@ -234,25 +234,25 @@ class DefaultMeasures:
     VDM = filters.VDM()  # TODO: probably not a filter
 
 
-# print(DefaultMeasures.SpearmanCorrelation)
+# print(_DefaultMeasures.SpearmanCorrelation)
 
-GLOB_MEASURE = {"FitCriterion": DefaultMeasures.fit_criterion_measure,
-                "FRatio": DefaultMeasures.f_ratio_measure,
-                "GiniIndex": DefaultMeasures.gini_index,
-                "InformationGain": DefaultMeasures.ig_measure,
-                "MrmrDiscrete": DefaultMeasures.mrmr_measure,
-                "SpearmanCorr": DefaultMeasures.spearman_corr,
-                "PearsonCorr": DefaultMeasures.pearson_corr}
+GLOB_MEASURE = {"FitCriterion": _DefaultMeasures.fit_criterion_measure,
+                "FRatio": _DefaultMeasures.f_ratio_measure,
+                "GiniIndex": _DefaultMeasures.gini_index,
+                "InformationGain": _DefaultMeasures.ig_measure,
+                "MrmrDiscrete": _DefaultMeasures.mrmr_measure,
+                "SpearmanCorr": _DefaultMeasures.spearman_corr,
+                "PearsonCorr": _DefaultMeasures.pearson_corr}
 
 
-class DefaultCuttingRules:
+class _DefaultCuttingRules:
     @staticmethod
     def select_best_by_value(value):
-        return partial(DefaultCuttingRules.__select_by_value, value=value, more=True)
+        return partial(_DefaultCuttingRules.__select_by_value, value=value, more=True)
 
     @staticmethod
     def select_worst_by_value(value):
-        return partial(DefaultCuttingRules.__select_by_value, value=value, more=False)
+        return partial(_DefaultCuttingRules.__select_by_value, value=value, more=False)
 
     @staticmethod
     def __select_by_value(scores, value, more=True):
@@ -268,11 +268,11 @@ class DefaultCuttingRules:
 
     @staticmethod
     def select_k_best(k):
-        return partial(DefaultCuttingRules.__select_k, k=k, reverse=True)
+        return partial(_DefaultCuttingRules.__select_k, k=k, reverse=True)
 
     @staticmethod
     def select_k_worst(k):
-        return partial(DefaultCuttingRules.__select_k, k=k)
+        return partial(_DefaultCuttingRules.__select_k, k=k)
 
     @classmethod
     def __select_k(cls, scores, k, reverse=False):
@@ -281,10 +281,10 @@ class DefaultCuttingRules:
         return [keys[0] for keys in sorted(scores.items(), key=lambda kv: kv[1], reverse=reverse)[:k]]
 
 
-GLOB_CR = {"Best by value": DefaultCuttingRules.select_best_by_value,
-           "Worst by value": DefaultCuttingRules.select_worst_by_value,
-           "K best": DefaultCuttingRules.select_k_best,
-           "K worst": DefaultCuttingRules.select_k_worst}
+GLOB_CR = {"Best by value": _DefaultCuttingRules.select_best_by_value,
+           "Worst by value": _DefaultCuttingRules.select_worst_by_value,
+           "K best": _DefaultCuttingRules.select_k_best,
+           "K worst": _DefaultCuttingRules.select_k_worst}
 
 
 class Filter(object):

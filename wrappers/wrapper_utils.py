@@ -20,6 +20,8 @@ def get_current_accuracy(__estimator__, X, current_features, test_x, test_y):
         Returns
         ------
         float, Accuracy of the Current Features
+        :param X:
+        :param __estimator__:
 
     """
 
@@ -61,15 +63,15 @@ def get_current_cv_accuracy(__estimator__, X, y, current_features, cv=3):
 
 
 def cross_validate(X, y, random=False, k=3):
-    X_t, y_t = X, y
+    x_t, y_t = X, y
     if random:
-        X_t = shuffle(X_t)  # REDO THAT THING
+        x_t = shuffle(x_t)  # REDO THAT THING
         y_t = shuffle(y_t)
-    X_y_pairs = []
+    x_y_pairs = []
     n = int(X.shape[0] / k)
     for i in range(k):
-        X_y_pairs.append([X_t[i * n:(i + 1) * n], y_t[i * n:(i + 1) * n]])
+        x_y_pairs.append([x_t[i * n:(i + 1) * n], y_t[i * n:(i + 1) * n]])
     for i in range(X.shape[0] % k):
-        X_y_pairs[i][0] = vstack((X_y_pairs[i][0], X_t[n * k + i]))
-        X_y_pairs[i][1] = vstack((X_y_pairs[i][1], y_t[n * k + i]))
-    return X_y_pairs
+        x_y_pairs[i][0] = vstack((x_y_pairs[i][0], x_t[n * k + i]))
+        x_y_pairs[i][1] = vstack((x_y_pairs[i][1], y_t[n * k + i]))
+    return x_y_pairs
