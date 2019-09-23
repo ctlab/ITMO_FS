@@ -71,6 +71,9 @@ class _DefaultMeasures:
     @classmethod
     def __f_ratio_measure(cls, X, y, n):
         assert not 1 < X.shape[1] < n, 'incorrect number of features'
+        X = np.asanyarray(X)  # Converting input data to numpy array
+        y = np.asanyarray(y.reshape((-1,)))
+
         f_ratios = []
         for feature in X.T:
             f_ratio = _DefaultMeasures.__calculate_F_ratio(feature, y.T)
@@ -84,6 +87,9 @@ class _DefaultMeasures:
 
     @staticmethod
     def gini_index(X, y):
+        X = np.asanyarray(X)  # Converting input data to numpy array
+        y = np.asanyarray(y.reshape((-1,)))
+
         cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
         cum_y = np.cumsum(y / np.linalg.norm(y, 1))
         diff_x = (cum_x[1:] - cum_x[:-1])
@@ -92,7 +98,7 @@ class _DefaultMeasures:
 
     # Calculate the entropy of y.
     @staticmethod
-    def __cal_entropy(y):
+    def __calc_entropy(y):
         dict_label = dict()
         for label in y:
             if label not in dict_label:
@@ -105,41 +111,47 @@ class _DefaultMeasures:
         return entropy
 
     @staticmethod
-    def ig_measure(X, y):
-        y = y.reshape((-1,))
-        entropy = _DefaultMeasures.__cal_entropy(y)
-        list_f = np.empty(X.shape[1])
-        for index in range(len(X.T)):
-            dict_i = dict()
-            for i in range(len(X.T[index])):
-                if X.T[index][i] not in dict_i:
-                    dict_i.update({X.T[index][i]: [i]})
+    def __calc_conditional_entropy(x_j, y):
+        dict_i = dict()
+        for i in range(x_j.shape[0]):
+            if x_j[i] not in dict_i:
+                dict_i.update({x_j[i]: [i]})
+            else:
+                dict_i[x_j[i]].append(i)
+
+        # Conditional entropy of a feature.
+        con_entropy = 0.0
+        # get corresponding values in y.
+        for f in dict_i.values():
+            # Probability of each class in a feature.
+            p = len(f) / len(x_j)
+            # Dictionary of corresponding probability in labels.
+            dict_y = dict()
+            for i in f:
+                if y[i] not in dict_y:
+                    dict_y.update({y[i]: 1})
                 else:
-                    dict_i[X.T[index][i]].append(i)
-            # print(dict_i)
+                    dict_y[y[i]] += 1
 
-            # Conditional entropy of a feature.
-            con_entropy = 0.0
-            # get corresponding values in y.
-            for f in dict_i.values():
-                # Probability of each class in a feature.
-                p = len(f) / len(X.T[0])
-                # Dictionary of corresponding probability in labels.
-                dict_y = dict()
-                for i in f:
-                    if y[i] not in dict_y:
-                        dict_y.update({y[i]: 1})
-                    else:
-                        dict_y[y[i]] += 1
+            # calculate the probability of corresponding label.
+            sub_entropy = 0.0
+            for l in dict_y.values():
+                sub_entropy += -l / sum(dict_y.values()) * log(l / sum(dict_y.values()), 2)
 
-                # calculate the probability of corresponding label.
-                sub_entropy = 0.0
-                for l in dict_y.values():
-                    sub_entropy += -l / sum(dict_y.values()) * log(l / sum(dict_y.values()), 2)
+            con_entropy += sub_entropy * p
+        return con_entropy
 
-                con_entropy += sub_entropy * p
-            list_f[index] = entropy - con_entropy
-        return list_f
+    # IGFilter = filters.IGFilter()  # TODO: unexpected .run() interface; .run() feature_names; no default constructor
+    @staticmethod
+    def ig_measure(X, y):
+        X = np.asanyarray(X)  # Converting input data to numpy array
+        y = np.asanyarray(y.reshape((-1,)))
+
+        entropy = _DefaultMeasures.__calc_entropy(y)
+        f_ratios = np.empty(X.shape[1])
+        for index in range(X.shape[1]):
+            f_ratios[index] = entropy - _DefaultMeasures.__calc_conditional_entropy(X[:, index], y)
+        return f_ratios
 
     @staticmethod
     def __contingency_matrix(labels_true, labels_pred):
@@ -194,14 +206,12 @@ class _DefaultMeasures:
               contingency_nm * log_outer)
         return mi.sum()
 
-    # return list(index)
-    # i'm used MID as default. Or we need add ability to choose info_gain?
     @classmethod
     def __mrmr_measure(cls, X, y, n):
         assert not 1 < X.shape[1] < n, 'incorrect number of features'
 
-        x = np.array(X)
-        y = np.array(y).ravel()
+        x = np.asanyarray(X)  # Converting input data to numpy array
+        y = np.asanyarray(y).ravel()
 
         # print([_DefaultMeasures.__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
         return [MI(x[:, j].reshape(-1, 1), y) for j in range(x.shape[1])]
@@ -212,10 +222,24 @@ class _DefaultMeasures:
 
     # RandomFilter = filters.RandomFilter() # TODO: bad .run() interface; .run() feature_names; no default constructor
 
-    # SymmetricUncertainty = filters.SymmetricUncertainty()  # TODO
+    @staticmethod
+    def su_measure(X, y):
+        X = np.asanyarray(X)  # Converting input data to numpy array
+        y = np.asanyarray(y.reshape((-1,)))
+
+        entropy = _DefaultMeasures.__calc_entropy(y)
+        f_ratios = np.empty(X.shape[1])
+        for index in range(X.shape[1]):
+            entropy_x = _DefaultMeasures.__calc_entropy(X[:, index])
+            con_entropy = _DefaultMeasures.__calc_conditional_entropy(X[:, index], y)
+            f_ratios[index] = 2 * (entropy - con_entropy) / (entropy_x + entropy)
+        return f_ratios
 
     @staticmethod
     def spearman_corr(X, y):
+        X = np.asanyarray(X)  # Converting input data to numpy array
+        y = np.asanyarray(y.reshape((-1,)))
+
         n = X.shape[0]
         c = 6 / (n * (n - 1) * (n + 1))
         dif = X - np.hstack(tuple([y] * X.shape[1]))
@@ -223,6 +247,9 @@ class _DefaultMeasures:
 
     @staticmethod
     def pearson_corr(X, y):
+        X = np.asanyarray(X)  # Converting input data to numpy array
+        y = np.asanyarray(y.reshape((-1,)))
+
         x_dev = X - np.mean(X, axis=0)
         y_dev = y - np.mean(y)
         sum_dev = y_dev.T.dot(x_dev)
@@ -230,7 +257,31 @@ class _DefaultMeasures:
         sq_dev_y = y_dev * y_dev
         return (sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))).reshape((-1,))
 
-    # TODO Fehner correlation,concordation coef
+    # TODO concordation coef
+
+    @staticmethod
+    def fechner_corr(X, y):
+        """
+        Sample sign correlation (also known as Fechner correlation)
+        """
+        X = np.asanyarray(X)  # Converting input data to numpy array
+        y = np.asanyarray(y.reshape((-1,)))
+        y_mean = np.mean(y)
+        n = X.shape[0]
+
+        f_ratios = np.zeros(X.shape[1])
+        for j in range(X.shape[1]):
+            y_dev = y[j] - y_mean
+            x_j_mean = np.mean(X[:, j])
+            for i in range(n):
+                x_dev = X[i, j] - x_j_mean
+                if x_dev >= 0 & y_dev >= 0:
+                    f_ratios[j] += 1
+                else:
+                    f_ratios[j] -= 1
+            f_ratios[j] /= n
+        return f_ratios
+
     VDM = filters.VDM()  # TODO: probably not a filter
 
 
@@ -241,8 +292,10 @@ GLOB_MEASURE = {"FitCriterion": _DefaultMeasures.fit_criterion_measure,
                 "GiniIndex": _DefaultMeasures.gini_index,
                 "InformationGain": _DefaultMeasures.ig_measure,
                 "MrmrDiscrete": _DefaultMeasures.mrmr_measure,
+                "SymmetricUncertainty": _DefaultMeasures.su_measure,
                 "SpearmanCorr": _DefaultMeasures.spearman_corr,
-                "PearsonCorr": _DefaultMeasures.pearson_corr}
+                "PearsonCorr": _DefaultMeasures.pearson_corr,
+                "FechnerCorr": _DefaultMeasures.fechner_corr}
 
 
 class _DefaultCuttingRules:
