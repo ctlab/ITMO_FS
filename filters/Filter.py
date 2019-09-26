@@ -6,7 +6,6 @@ from scipy import sparse as sp
 from sklearn.feature_selection import mutual_info_classif as MI
 
 import filters
-from utils import generate_features
 
 
 class _DefaultMeasures:
@@ -41,11 +40,12 @@ class _DefaultMeasures:
                 for i in range(tokens_n):  # For each class token
                     # Here can be raise warnings by 0/0 division. In this case, default results
                     # are interpreted correctly
-                    distances[i] = np.abs(value - centers[i]) / variances[i]
+                    with np.errstate(divide='ignore', invalid="ignore"):  # TODO Nikita check this row please
+                        distances[i] = np.abs(value - centers[i]) / variances[i]
                 fc[feature_index] += np.argmin(distances) == y[sample_index]
 
         fc /= y.shape[0]
-        return dict(zip(generate_features(x), fc))
+        return fc
 
     @staticmethod
     def __calculate_F_ratio(row, y_data):
@@ -181,11 +181,10 @@ class _DefaultMeasures:
         # i.e. bins are consecutive integers
         # Currently, coo_matrix is faster than histogram2d for simple cases
         # TODO redo it with numpy
-        contingency = sp.coo_matrix((np.ones(class_idx.shape[0]),
+        contingency = sp.csr_matrix((np.ones(class_idx.shape[0]),
                                      (class_idx, cluster_idx)),
                                     shape=(n_classes, n_clusters),
                                     dtype=np.int)
-        contingency = contingency.tocsr()
         contingency.sum_duplicates()
         return contingency
 
@@ -282,10 +281,64 @@ class _DefaultMeasures:
             f_ratios[j] /= n
         return f_ratios
 
+    @staticmethod
+    def _label_binarize(y):
+        """
+        Binarize labels in a one-vs-all fashion
+        This function makes it possible to compute this transformation for a
+        fixed set of class labels known ahead of time.
+        """
+        classes = np.unique(y)
+        n_samples = len(y)
+        n_classes = len(classes)
+        row = np.arange(n_samples)
+        col = [np.where(classes == el)[0][0] for el in y]
+        data = np.repeat(1, n_samples)
+        # TODO redo it with numpy
+        return sp.csr_matrix((data, (row, col)), shape=(n_samples, n_classes)).toarray()
+
+    @staticmethod
+    def __chisquare(f_obs, f_exp):
+        """Fast replacement for scipy.stats.chisquare.
+        Version from https://github.com/scipy/scipy/pull/2525 with additional
+        optimizations.
+        """
+        f_obs = np.asarray(f_obs, dtype=np.float64)
+
+        # Reuse f_obs for chi-squared statistics
+        chisq = f_obs
+        chisq -= f_exp
+        chisq **= 2
+        with np.errstate(invalid="ignore"):
+            chisq /= f_exp
+        chisq = chisq.sum(axis=0)
+        return chisq
+
+    @staticmethod
+    def chi2_measure(X, y):
+        """
+        This score can be used to select the n_features features with the highest values
+        for the test chi-squared statistic from X,
+        which must contain only non-negative features such as booleans or frequencies
+        (e.g., term counts in document classification), relative to the classes.
+        """
+        if np.any(X < 0):
+            raise ValueError("Input X must be non-negative.")
+
+        Y = _DefaultMeasures._label_binarize(y)
+
+        # If you use sparse input
+        # you can use sklearn.utils.extmath.safe_sparse_dot instead
+        observed = np.dot(Y.T, X)  # n_classes * n_features
+
+        feature_count = X.sum(axis=0).reshape(1, -1)
+        class_prob = Y.mean(axis=0).reshape(1, -1)
+        expected = np.dot(class_prob.T, feature_count)
+
+        return _DefaultMeasures.__chisquare(observed, expected)
+
     VDM = filters.VDM()  # TODO: probably not a filter
 
-
-# print(_DefaultMeasures.SpearmanCorrelation)
 
 GLOB_MEASURE = {"FitCriterion": _DefaultMeasures.fit_criterion_measure,
                 "FRatio": _DefaultMeasures.f_ratio_measure,
@@ -295,7 +348,8 @@ GLOB_MEASURE = {"FitCriterion": _DefaultMeasures.fit_criterion_measure,
                 "SymmetricUncertainty": _DefaultMeasures.su_measure,
                 "SpearmanCorr": _DefaultMeasures.spearman_corr,
                 "PearsonCorr": _DefaultMeasures.pearson_corr,
-                "FechnerCorr": _DefaultMeasures.fechner_corr}
+                "FechnerCorr": _DefaultMeasures.fechner_corr,
+                "Chi2": _DefaultMeasures.chi2_measure}
 
 
 class _DefaultCuttingRules:
