@@ -10,9 +10,15 @@ import filters
 
 class _DefaultMeasures:
     @staticmethod
+    def __check_input(X, y):
+        X = np.asanyarray(X)  # Converting input data to numpy array
+        y = np.ravel(y)
+        assert X.shape[0] == len(y), 'Number of samples differs number of labels'
+        return X, y
+
+    @staticmethod
     def fit_criterion_measure(X, y):
-        x = np.asarray(X)  # Converting input data to numpy array
-        y = np.asarray(y.reshape((-1,)))
+        x, y = _DefaultMeasures.__check_input(X, y)
 
         fc = np.zeros(x.shape[1])  # Array with amounts of correct predictions for each feature
 
@@ -70,9 +76,9 @@ class _DefaultMeasures:
 
     @classmethod
     def __f_ratio_measure(cls, X, y, n):
+        X, y = _DefaultMeasures.__check_input(X, y)
+
         assert not 1 < X.shape[1] < n, 'incorrect number of features'
-        X = np.asanyarray(X)  # Converting input data to numpy array
-        y = np.asanyarray(y.reshape((-1,)))
 
         f_ratios = []
         for feature in X.T:
@@ -87,8 +93,7 @@ class _DefaultMeasures:
 
     @staticmethod
     def gini_index(X, y):
-        X = np.asanyarray(X)  # Converting input data to numpy array
-        y = np.asanyarray(y.reshape((-1,)))
+        X, y = _DefaultMeasures.__check_input(X, y)
 
         cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
         cum_y = np.cumsum(y / np.linalg.norm(y, 1))
@@ -144,8 +149,7 @@ class _DefaultMeasures:
     # IGFilter = filters.IGFilter()  # TODO: unexpected .run() interface; .run() feature_names; no default constructor
     @staticmethod
     def ig_measure(X, y):
-        X = np.asanyarray(X)  # Converting input data to numpy array
-        y = np.asanyarray(y.reshape((-1,)))
+        X, y = _DefaultMeasures.__check_input(X, y)
 
         entropy = _DefaultMeasures.__calc_entropy(y)
         f_ratios = np.empty(X.shape[1])
@@ -208,9 +212,7 @@ class _DefaultMeasures:
     @classmethod
     def __mrmr_measure(cls, X, y, n):
         assert not 1 < X.shape[1] < n, 'incorrect number of features'
-
-        x = np.asanyarray(X)  # Converting input data to numpy array
-        y = np.asanyarray(y).ravel()
+        x, y = _DefaultMeasures.__check_input(X, y)
 
         # print([_DefaultMeasures.__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
         return [MI(x[:, j].reshape(-1, 1), y) for j in range(x.shape[1])]
@@ -223,8 +225,7 @@ class _DefaultMeasures:
 
     @staticmethod
     def su_measure(X, y):
-        X = np.asanyarray(X)  # Converting input data to numpy array
-        y = np.asanyarray(y.reshape((-1,)))
+        X, y = _DefaultMeasures.__check_input(X, y)
 
         entropy = _DefaultMeasures.__calc_entropy(y)
         f_ratios = np.empty(X.shape[1])
@@ -236,18 +237,19 @@ class _DefaultMeasures:
 
     @staticmethod
     def spearman_corr(X, y):
-        X = np.asanyarray(X)  # Converting input data to numpy array
-        y = np.asanyarray(y.reshape((-1,)))
+        X, y = _DefaultMeasures.__check_input(X, y)
+
+        np.sort(X, axis=1)  # need to sort, because Spearman is a rank correlation
+        np.sort(y)
 
         n = X.shape[0]
         c = 6 / (n * (n - 1) * (n + 1))
-        dif = X - np.hstack(tuple([y] * X.shape[1]))
+        dif = X - np.repeat(y, X.shape[1]).reshape(X.shape)
         return 1 - c * np.sum(dif * dif, axis=0)
 
     @staticmethod
     def pearson_corr(X, y):
-        X = np.asanyarray(X)  # Converting input data to numpy array
-        y = np.asanyarray(y.reshape((-1,)))
+        X, y = _DefaultMeasures.__check_input(X, y)
 
         x_dev = X - np.mean(X, axis=0)
         y_dev = y - np.mean(y)
@@ -263,8 +265,8 @@ class _DefaultMeasures:
         """
         Sample sign correlation (also known as Fechner correlation)
         """
-        X = np.asanyarray(X)  # Converting input data to numpy array
-        y = np.asanyarray(y.reshape((-1,)))
+        X, y = _DefaultMeasures.__check_input(X, y)
+
         y_mean = np.mean(y)
         n = X.shape[0]
 
@@ -282,7 +284,7 @@ class _DefaultMeasures:
         return f_ratios
 
     @staticmethod
-    def _label_binarize(y):
+    def __label_binarize(y):
         """
         Binarize labels in a one-vs-all fashion
         This function makes it possible to compute this transformation for a
@@ -322,10 +324,12 @@ class _DefaultMeasures:
         which must contain only non-negative features such as booleans or frequencies
         (e.g., term counts in document classification), relative to the classes.
         """
+        X, y = _DefaultMeasures.__check_input(X, y)
+
         if np.any(X < 0):
             raise ValueError("Input X must be non-negative.")
 
-        Y = _DefaultMeasures._label_binarize(y)
+        Y = _DefaultMeasures.__label_binarize(y)
 
         # If you use sparse input
         # you can use sklearn.utils.extmath.safe_sparse_dot instead
@@ -336,6 +340,103 @@ class _DefaultMeasures:
         expected = np.dot(class_prob.T, feature_count)
 
         return _DefaultMeasures.__chisquare(observed, expected)
+
+    @staticmethod
+    def __distance_matrix(X, y, n_samples):
+        dm = np.zeros((n_samples, n_samples), dtype=tuple)
+
+        for i in range(n_samples):
+            for j in range(i, n_samples):
+                # using the Manhattan (L1) norm rather than
+                # the Euclidean (L2) norm,
+                # although the rationale is not specified
+                value = np.linalg.norm(X[i, :] - X[j, :], 1)
+                dm[i, j] = (value, j, y[j])
+                dm[j, i] = (value, i, y[i])
+        # sort_indices = dm.argsort(1)
+        # dm.sort(1)
+        # indices = np.arange(n_samples) #[sort_indices]
+        # dm = np.dstack((dm, indices))
+        return dm
+
+    # TODO redo with np.where
+    @staticmethod
+    def __take_k(dm_i, k, r_index, choice_func):
+        hits = []
+        dm_i = sorted(dm_i, key=lambda x: x[0])
+        for samp in dm_i:
+            if (samp[1] != r_index) & (k > 0) & (choice_func(samp[2])):
+                hits.append(samp)
+                k -= 1
+        return np.array(hits, int)
+
+    @staticmethod
+    def reliefF_measure(X, y, k_neighbors=1):
+        """
+        Based on the ReliefF algorithm as introduced in:
+        R.J. Urbanowicz et al. Relief-based feature selection: Introduction and review
+        Journal of Biomedical Informatics 85 (2018) 189–203
+
+        Differs with skrebate.ReliefF
+
+        Only for complete X
+
+        Rather than repeating the algorithm m(TODO Ask Nikita about user defined) times,
+        implement it exhaustively (i.e. n times, once for each instance)
+        for relatively small n (up to one thousand).
+
+        :param X: array-like {n_samples, n_features}
+            Training instances to compute the feature importance scores from
+        :param y: array-like {n_samples}
+            Training labels
+        :param k_neighbors: int (default: 1)
+            The number of neighbors to consider when assigning feature importance scores.
+            More neighbors results in more accurate scores, but takes longer.
+            Selection of k hits and misses is the basic difference to Relief
+            and ensures greater robustness of the algorithm concerning noise.
+        :return: array-like {n_features}
+            Feature importances
+        """
+        X, y = _DefaultMeasures.__check_input(X, y)
+
+        f_ratios = np.zeros(X.shape[1])
+        classes, counts = np.unique(y, return_counts=True)
+        prior_prob = dict(zip(classes, np.array(counts) / len(y)))
+        n_samples = X.shape[0]
+        n_features = X.shape[1]
+        dm = _DefaultMeasures.__distance_matrix(X, y, n_samples)
+        for i in range(n_samples):
+            r = X[i]
+            dm_i = dm[i]
+            hits = _DefaultMeasures.__take_k(dm_i, k_neighbors, i, lambda x: x == y[i])
+            if len(hits) != 0:
+                ind_hits = hits[:, 1]
+            else:
+                ind_hits = []
+            value_hits = X.take(ind_hits, axis=0)
+            m_c = np.empty(len(classes), np.ndarray)
+            for j in range(len(classes)):
+                if classes[j] != y[i]:
+                    misses = _DefaultMeasures.__take_k(dm_i, k_neighbors, i, lambda x: x == classes[j])
+                    ind_misses = misses[:, 1]
+                    m_c[j] = X.take(ind_misses, axis=0)
+
+            for A in range(n_features):
+                weight_hit = np.sum(np.abs(r[A] - value_hits[:, A]))
+                weight_miss = 0
+                for j in range(len(classes)):
+                    if classes[j] != y[i]:
+                        weight_miss += prior_prob[y[j]] * np.sum(np.abs(r[A] - m_c[j][:, A]))
+                f_ratios[A] += weight_miss / (1 - prior_prob[y[i]]) - weight_hit
+        # dividing by m * k guarantees that all final weights
+        # will be normalized within the interval [ − 1, 1].
+        f_ratios /= n_samples * k_neighbors
+        # The maximum and minimum values of A are determined over the entire
+        # set of instances.
+        # This normalization ensures that weight updates fall
+        # between 0 and 1 for both discrete and continuous features.
+        with np.errstate(divide='ignore', invalid="ignore"):  # todo
+            return f_ratios / (np.amax(X, axis=0) - np.amin(X, axis=0))
 
     VDM = filters.VDM()  # TODO: probably not a filter
 
@@ -349,6 +450,7 @@ GLOB_MEASURE = {"FitCriterion": _DefaultMeasures.fit_criterion_measure,
                 "SpearmanCorr": _DefaultMeasures.spearman_corr,
                 "PearsonCorr": _DefaultMeasures.pearson_corr,
                 "FechnerCorr": _DefaultMeasures.fechner_corr,
+                "ReliefF": _DefaultMeasures.reliefF_measure,
                 "Chi2": _DefaultMeasures.chi2_measure}
 
 
