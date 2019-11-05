@@ -2,8 +2,7 @@ import time
 import unittest
 
 import scipy.io
-from skfeature.function.statistical_based import gini_index,f_score
-from skfeature.function.information_theoretical_based import MRMR
+from skfeature.function.statistical_based import gini_index, f_score
 from sklearn.datasets import load_iris
 from sklearn.feature_selection import SelectKBest
 from sklearn.linear_model import LogisticRegression
@@ -11,7 +10,6 @@ from sklearn.metrics import f1_score
 from sklearn.svm import SVC
 
 from filters.Filter import *
-import filters.Filter
 from hybrid.Melif import Melif
 from wrappers.AddDelWrapper import *
 from wrappers.BackwardSelection import *
@@ -32,7 +30,9 @@ class MyTestCase(unittest.TestCase):
         data, target = data['X'], data['Y']
 
         start_time = time.time()
-        res = Filter(measure_name, GLOB_CR["K best"](6)).run(data, target)
+        custom = lambda x, y: np.sum(x + y, axis=1)
+        f = Filter(custom, GLOB_CR["K best"](6))
+        res = f.run(data, target)  # Filter(measure_name, GLOB_CR["K best"](6)).run(data, target)
         print("ITMO_FS time --- %s seconds ---" % (time.time() - start_time))
 
         start_time = time.time()
@@ -103,7 +103,7 @@ class MyTestCase(unittest.TestCase):
         print("ITMO time --- %s seconds ---" % (time.time() - start_time))
 
         start_time = time.time()
-        features = f_score.f_score(data,target)
+        features = f_score.f_score(data, target)
         print("ARIZONA time --- %s seconds ---" % (time.time() - start_time))
 
         start_time = time.time()
