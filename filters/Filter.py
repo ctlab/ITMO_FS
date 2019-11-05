@@ -1,7 +1,7 @@
 from .utils import *
 
 
-class Filter(object):
+class Filter(object):####TODO add logging
     def __init__(self, measure, cutting_rule):
         """
         Basic univariate filter class with chosen(even custom) measure and cutting rule
@@ -28,7 +28,7 @@ class Filter(object):
         self.feature_scores = None
         self.hash = None
 
-    def run(self, x, y, feature_names=None, store_scores=False):
+    def run(self, x, y, feature_names=None, store_scores=False, verbose=0):
         try:
             x = x.values
             y = y.values
