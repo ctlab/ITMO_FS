@@ -25,7 +25,7 @@ class Melif:
         check_filters(filters)
         self.__filters = filters
         self.__score = score
-        self.best_measure = 0
+        self.best_score = 0
         self.best_point = []
 
     def fit(self, X, y, feature_names=None, points=None):
@@ -63,19 +63,19 @@ class Melif:
         if self.__points is None:
             self.__points = [self.__filter_weights]
         best_point = self.__points[0]
-        best_measure = 0
+        best_score = 0
         best_f = {}
         for point in self.__points:
             score, try_point, f_dict = self.__search(point, nu)
-            if score > best_measure:
-                best_measure = score
+            if score > best_score:
+                best_score = score
                 best_point = point
                 best_f = f_dict
-        self.best_measure = best_measure
+        self.best_score = best_score
         self.best_point = best_point
         logging.info('Footer')
         logging.info("Best point:{}".format(best_point))
-        logging.info("Best Measure:{}".format(best_measure))
+        logging.info("Best Measure:{}".format(best_score))
         logging.info('Top features:')
         for key, value in sorted(best_f.items(), key=lambda x: x[1], reverse=True):
             logging.info("Feature: {}, value: {}".format(key, value))
@@ -84,7 +84,7 @@ class Melif:
     def __search(self, point, features):
         i = 0
         best_point = point
-        best_measure = 0
+        best_score = 0
         best_f = {}
         points = [point]
         time = dt.datetime.now()
@@ -103,13 +103,13 @@ class Melif:
             score = self.__score(self._test_y, predicted)
             logging.info(
                 'Measure at current point : {}'.format(score))
-            if score > best_measure:
-                best_measure = score
+            if score > best_score:
+                best_score = score
                 best_point = point
                 best_f = new_features
                 points += self.__get_candidates(point, self.__delta)
             i += 1
-        return best_measure, best_point, best_f
+        return best_score, best_point, best_f
 
     @staticmethod
     def __get_candidates(point, delta=0.1):
