@@ -9,7 +9,7 @@ import filters
 from utils import generate_features
 
 
-class _DefaultMeasures:
+class DefaultMeasures:
     @staticmethod
     def fit_criterion_measure(X, y):
         x = np.asarray(X)  # Converting input data to numpy array
@@ -73,14 +73,14 @@ class _DefaultMeasures:
         assert not 1 < X.shape[1] < n, 'incorrect number of features'
         f_ratios = []
         for feature in X.T:
-            f_ratio = _DefaultMeasures.__calculate_F_ratio(feature, y.T)
+            f_ratio = DefaultMeasures.__calculate_F_ratio(feature, y.T)
             f_ratios.append(f_ratio)
         f_ratios = np.array(f_ratios)
         return np.argpartition(f_ratios, -n)[-n:]
 
     @staticmethod
     def f_ratio_measure(n):
-        return partial(_DefaultMeasures.__f_ratio_measure, n=n)
+        return partial(DefaultMeasures.__f_ratio_measure, n=n)
 
     @staticmethod
     def gini_index(X, y):
@@ -107,7 +107,7 @@ class _DefaultMeasures:
     @staticmethod
     def ig_measure(X, y):
         y = y.reshape((-1,))
-        entropy = _DefaultMeasures.__cal_entropy(y)
+        entropy = DefaultMeasures.__cal_entropy(y)
         list_f = np.empty(X.shape[1])
         for index in range(len(X.T)):
             dict_i = dict()
@@ -179,7 +179,7 @@ class _DefaultMeasures:
 
     @staticmethod
     def __mi(U, V):
-        contingency = _DefaultMeasures.__contingency_matrix(U, V)
+        contingency = DefaultMeasures.__contingency_matrix(U, V)
         nzx, nzy, nz_val = sp.find(contingency)
         contingency_sum = contingency.sum()
         pi = np.ravel(contingency.sum(axis=1))
@@ -203,12 +203,12 @@ class _DefaultMeasures:
         x = np.array(X)
         y = np.array(y).ravel()
 
-        # print([_DefaultMeasures.__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
+        # print([DefaultMeasures.__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
         return [MI(x[:, j].reshape(-1, 1), y) for j in range(x.shape[1])]
 
     @staticmethod
     def mrmr_measure(n):
-        return partial(_DefaultMeasures.__mrmr_measure, n=n)
+        return partial(DefaultMeasures.__mrmr_measure, n=n)
 
     # RandomFilter = filters.RandomFilter() # TODO: bad .run() interface; .run() feature_names; no default constructor
 
@@ -234,15 +234,15 @@ class _DefaultMeasures:
     VDM = filters.VDM()  # TODO: probably not a filter
 
 
-# print(_DefaultMeasures.SpearmanCorrelation)
+# print(DefaultMeasures.SpearmanCorrelation)
 
-GLOB_MEASURE = {"FitCriterion": _DefaultMeasures.fit_criterion_measure,
-                "FRatio": _DefaultMeasures.f_ratio_measure,
-                "GiniIndex": _DefaultMeasures.gini_index,
-                "InformationGain": _DefaultMeasures.ig_measure,
-                "MrmrDiscrete": _DefaultMeasures.mrmr_measure,
-                "SpearmanCorr": _DefaultMeasures.spearman_corr,
-                "PearsonCorr": _DefaultMeasures.pearson_corr}
+GLOB_MEASURE = {"FitCriterion": DefaultMeasures.fit_criterion_measure,
+                "FRatio": DefaultMeasures.f_ratio_measure,
+                "GiniIndex": DefaultMeasures.gini_index,
+                "InformationGain": DefaultMeasures.ig_measure,
+                "MrmrDiscrete": DefaultMeasures.mrmr_measure,
+                "SpearmanCorr": DefaultMeasures.spearman_corr,
+                "PearsonCorr": DefaultMeasures.pearson_corr}
 
 
 class _DefaultCuttingRules:
