@@ -75,7 +75,7 @@ class Melif:
         self.best_point = best_point
         logging.info('Footer')
         logging.info("Best point:{}".format(best_point))
-        logging.info("Best Measure:{}".format(best_score))
+        logging.info("Best Score:{}".format(best_score))
         logging.info('Top features:')
         for key, value in sorted(best_f.items(), key=lambda x: x[1], reverse=True):
             logging.info("Feature: {}, value: {}".format(key, value))
@@ -102,7 +102,7 @@ class Melif:
             predicted = self.__estimator.predict(self._test_x[:, keys])
             score = self.__score(self._test_y, predicted)
             logging.info(
-                'Measure at current point : {}'.format(score))
+                'Score at current point : {}'.format(score))
             if score > best_score:
                 best_score = score
                 best_point = point
