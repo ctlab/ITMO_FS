@@ -1,66 +1,17 @@
-from functools import partial
-from math import log
-
-import numpy as np
-from scipy import sparse as sp
-from sklearn.feature_selection import mutual_info_classif as MI
-
-import filters
+from .utils import *
 
 
-class _DefaultMeasures:
-    @staticmethod
-    def __check_input(X, y):
-        X = np.asanyarray(X)  # Converting input data to numpy array
-        y = np.ravel(y)
-        assert X.shape[0] == len(y), 'Number of samples differs number of labels'
-        return X, y
 
-    @staticmethod
-    def fit_criterion_measure(X, y):
-        x, y = _DefaultMeasures.__check_input(X, y)
-
-        fc = np.zeros(x.shape[1])  # Array with amounts of correct predictions for each feature
-
-        tokens_n = np.max(y) + 1  # Number of different class tokens
-
-        centers = np.empty(tokens_n)  # Array with centers of sets of feature values for each class token
-        variances = np.empty(tokens_n)  # Array with variances of sets of feature values for each class token
-        # Each of arrays above will be separately calculated for each feature
-
-        distances = np.empty(tokens_n)  # Array with distances between sample's value and each class's center
-        # This array will be separately calculated for each feature and each sample
-
-        for feature_index, feature in enumerate(x.T):  # For each feature
-            # Initializing utility structures
-            class_values = [[] for _ in range(tokens_n)]  # Array with lists of feature values for each class token
-            for index, value in enumerate(y):  # Filling array
-                class_values[value].append(feature[index])
-            for token, values in enumerate(class_values):  # For each class token's list of feature values
-                tmp_arr = np.array(values)
-                centers[token] = np.mean(tmp_arr)
-                variances[token] = np.var(tmp_arr)
-
-            # Main calculations
-            for sample_index, value in enumerate(feature):  # For each sample value
-                for i in range(tokens_n):  # For each class token
-                    # Here can be raise warnings by 0/0 division. In this case, default results
-                    # are interpreted correctly
-                    with np.errstate(divide='ignore', invalid="ignore"):  # TODO Nikita check this row please
-                        distances[i] = np.abs(value - centers[i]) / variances[i]
-                fc[feature_index] += np.argmin(distances) == y[sample_index]
-
-        fc /= y.shape[0]
-        return fc
-
-    @staticmethod
-    def __calculate_F_ratio(row, y_data):
+class Filter(object):####TODO add logging
+    def __init__(self, measure, cutting_rule):
         """
-        Calculates the Fisher ratio of the row passed to the data
-        :param row: ndarray, feature
-        :param y_data: ndarray, labels
-        :return: int, fisher_ratio
+        Basic univariate filter class with chosen(even custom) measure and cutting rule
+        :param measure:
+            Examples
+         --------
+        >>> f=Filter("PearsonCorr", GLOB_CR["K best"](6))
         """
+
         inter_class = 0.0
         intra_class = 0.0
         for value in np.unique(y_data):
@@ -505,10 +456,18 @@ class Filter(object):
                 raise KeyError("No %r measure yet" % measure)
         else:
             self.measure = measure
-        self.cutting_rule = cutting_rule
-        self.feature_scores = None
 
-    def run(self, x, y, feature_names=None, store_scores=False):
+        if type(cutting_rule) is str:
+            try:
+                self.cutting_rule = GLOB_CR[cutting_rule]
+            except KeyError:
+                raise KeyError("No %r cutting rule yet" % measure)
+        else:
+            self.cutting_rule = cutting_rule
+        self.feature_scores = None
+        self.hash = None
+
+    def run(self, x, y, feature_names=None, store_scores=False, verbose=0):
         try:
             x = x.values
             y = y.values
@@ -520,7 +479,11 @@ class Filter(object):
         except AttributeError:
             if feature_names is None:
                 feature_names = list(range(x.shape[1]))
-        feature_scores = dict(zip(feature_names, self.measure(x, y)))
+        feature_scores = None
+        if not (self.hash == hash(self.measure)):
+            feature_scores = dict(zip(feature_names, self.measure(x, y)))
+            self.hash = hash(self.measure)
+
         if store_scores:
             self.feature_scores = feature_scores
         selected_features = self.cutting_rule(feature_scores)

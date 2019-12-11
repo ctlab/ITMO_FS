@@ -43,7 +43,9 @@ class MyTestCase(unittest.TestCase):
         data, target = data['X'], data['Y']
 
         start_time = time.time()
-        res = Filter(measure_name, GLOB_CR["K best"](6)).run(data, target)
+        custom = lambda x, y: np.sum(x + y, axis=1)
+        f = Filter(custom, GLOB_CR["K best"](6))
+        res = f.run(data, target)  # Filter(measure_name, GLOB_CR["K best"](6)).run(data, target)
         print("ITMO_FS time --- %s seconds ---" % (time.time() - start_time))
 
         start_time = time.time()
