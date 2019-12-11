@@ -3,11 +3,13 @@ import unittest
 
 import scipy.io
 from skfeature.function.statistical_based import gini_index, f_score
+from skfeature.function.information_theoretical_based import MRMR
 from sklearn.datasets import load_iris
 from sklearn.feature_selection import SelectKBest
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
 from sklearn.svm import SVC
+from skrebate import ReliefF
 
 from filters.Filter import *
 from hybrid.Melif import Melif
@@ -19,6 +21,17 @@ class MyTestCase(unittest.TestCase):
     basehock = scipy.io.loadmat('BASEHOCK.mat')
     coil = scipy.io.loadmat('COIL20.mat')
     orl = scipy.io.loadmat('orlraws10P.mat')
+
+    def test_relief(self):
+        n = 10
+        x = np.random.randint(n, size=(n, 6))
+        y = np.random.randint(n, size=n)
+        # print(y)
+        print(_DefaultMeasures.reliefF_measure(x, y, 6))
+        # skrebate
+        R = ReliefF()
+        R.fit(x, y)
+        print(R.feature_importances_)
 
     def test_filter(self):
         data, target = load_iris(True)
