@@ -27,7 +27,7 @@ class MyTestCase(unittest.TestCase):
         x = np.random.randint(n, size=(n, 6))
         y = np.random.randint(n, size=n)
         # print(y)
-        print(_DefaultMeasures.reliefF_measure(x, y, 6))
+        print(DefaultMeasures.reliefF_measure(x, y, 6))
         # skrebate
         R = ReliefF()
         R.fit(x, y)
