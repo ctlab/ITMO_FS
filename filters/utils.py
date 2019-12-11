@@ -3,10 +3,12 @@ from math import log
 
 import numpy as np
 from scipy import sparse as sp
-from sklearn.feature_selection import mutual_info_classif as MI
 
 import filters
 from utils import generate_features
+
+
+# from sklearn.feature_selection import mutual_info_classif as MI
 
 
 class DefaultMeasures:
@@ -84,15 +86,15 @@ class DefaultMeasures:
 
     @staticmethod
     def gini_index(X, y):
+        # TODO Check input
         cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
         cum_y = np.cumsum(y / np.linalg.norm(y, 1))
         diff_x = (cum_x[1:] - cum_x[:-1])
         diff_y = (cum_y[1:] + cum_y[:-1])
         return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
 
-    # Calculate the entropy of y.
     @staticmethod
-    def __cal_entropy(y):
+    def __calc_entropy(y):
         dict_label = dict()
         for label in y:
             if label not in dict_label:
@@ -105,41 +107,248 @@ class DefaultMeasures:
         return entropy
 
     @staticmethod
-    def ig_measure(X, y):
-        y = y.reshape((-1,))
-        entropy = DefaultMeasures.__cal_entropy(y)
-        list_f = np.empty(X.shape[1])
-        for index in range(len(X.T)):
-            dict_i = dict()
-            for i in range(len(X.T[index])):
-                if X.T[index][i] not in dict_i:
-                    dict_i.update({X.T[index][i]: [i]})
+    def __calc_conditional_entropy(x_j, y):
+        dict_i = dict()
+        for i in range(x_j.shape[0]):
+            if x_j[i] not in dict_i:
+                dict_i.update({x_j[i]: [i]})
+            else:
+                dict_i[x_j[i]].append(i)
+
+        # Conditional entropy of a feature.
+        con_entropy = 0.0
+        # get corresponding values in y.
+        for f in dict_i.values():
+            # Probability of each class in a feature.
+            p = len(f) / len(x_j)
+            # Dictionary of corresponding probability in labels.
+            dict_y = dict()
+            for i in f:
+                if y[i] not in dict_y:
+                    dict_y.update({y[i]: 1})
                 else:
-                    dict_i[X.T[index][i]].append(i)
-            # print(dict_i)
+                    dict_y[y[i]] += 1
 
-            # Conditional entropy of a feature.
-            con_entropy = 0.0
-            # get corresponding values in y.
-            for f in dict_i.values():
-                # Probability of each class in a feature.
-                p = len(f) / len(X.T[0])
-                # Dictionary of corresponding probability in labels.
-                dict_y = dict()
-                for i in f:
-                    if y[i] not in dict_y:
-                        dict_y.update({y[i]: 1})
-                    else:
-                        dict_y[y[i]] += 1
+            # calculate the probability of corresponding label.
+            sub_entropy = 0.0
+            for l in dict_y.values():
+                sub_entropy += -l / sum(dict_y.values()) * log(l / sum(dict_y.values()), 2)
 
-                # calculate the probability of corresponding label.
-                sub_entropy = 0.0
-                for l in dict_y.values():
-                    sub_entropy += -l / sum(dict_y.values()) * log(l / sum(dict_y.values()), 2)
+            con_entropy += sub_entropy * p
+        return con_entropy
 
-                con_entropy += sub_entropy * p
-            list_f[index] = entropy - con_entropy
-        return list_f
+    @staticmethod
+    def ig_measure(X, y):
+        entropy = DefaultMeasures.__calc_entropy(y)
+        f_ratios = np.empty(X.shape[1])
+        for index in range(X.shape[1]):
+            f_ratios[index] = entropy - DefaultMeasures.__calc_conditional_entropy(X[:, index], y)
+        return f_ratios
+
+    ##TODO redo sklearn stuff
+    # @classmethod
+    # def __mrmr_measure(cls, X, y, n):
+    #     assert not 1 < X.shape[1] < n, 'incorrect number of features'
+    #     x = np.array(X)
+    #     y = np.array(y).ravel()
+    #     # print([DefaultMeasures.__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
+    #     return [MI(x[:, j].reshape(-1, 1), y) for j in range(x.shape[1])]
+    #
+    # @staticmethod
+    # def mrmr_measure(n):
+    #     return partial(DefaultMeasures.__mrmr_measure, n=n)
+
+    @staticmethod
+    def su_measure(X, y):
+
+        entropy = DefaultMeasures.__calc_entropy(y)
+        f_ratios = np.empty(X.shape[1])
+        for index in range(X.shape[1]):
+            entropy_x = DefaultMeasures.__calc_entropy(X[:, index])
+            con_entropy = DefaultMeasures.__calc_conditional_entropy(X[:, index], y)
+            f_ratios[index] = 2 * (entropy - con_entropy) / (entropy_x + entropy)
+        return f_ratios
+
+    # TODO concordation coef
+
+    @staticmethod
+    def fechner_corr(X, y):
+        """
+        Sample sign correlation (also known as Fechner correlation)
+        """
+
+        y_mean = np.mean(y)
+        n = X.shape[0]
+
+        f_ratios = np.zeros(X.shape[1])
+        for j in range(X.shape[1]):
+            y_dev = y[j] - y_mean
+            x_j_mean = np.mean(X[:, j])
+            for i in range(n):
+                x_dev = X[i, j] - x_j_mean
+                if x_dev >= 0 & y_dev >= 0:
+                    f_ratios[j] += 1
+                else:
+                    f_ratios[j] -= 1
+            f_ratios[j] /= n
+        return f_ratios
+
+    @staticmethod
+    def __distance_matrix(X, y, n_samples):
+        dm = np.zeros((n_samples, n_samples), dtype=tuple)
+
+        for i in range(n_samples):
+            for j in range(i, n_samples):
+                # using the Manhattan (L1) norm rather than
+                # the Euclidean (L2) norm,
+                # although the rationale is not specified
+                value = np.linalg.norm(X[i, :] - X[j, :], 1)
+                dm[i, j] = (value, j, y[j])
+                dm[j, i] = (value, i, y[i])
+        # sort_indices = dm.argsort(1)
+        # dm.sort(1)
+        # indices = np.arange(n_samples) #[sort_indices]
+        # dm = np.dstack((dm, indices))
+        return dm
+
+    # TODO redo with np.where
+    @staticmethod
+    def __take_k(dm_i, k, r_index, choice_func):
+        hits = []
+        dm_i = sorted(dm_i, key=lambda x: x[0])
+        for samp in dm_i:
+            if (samp[1] != r_index) & (k > 0) & (choice_func(samp[2])):
+                hits.append(samp)
+                k -= 1
+        return np.array(hits, int)
+
+    @staticmethod
+    def reliefF_measure(X, y, k_neighbors=1):
+        """
+        Based on the ReliefF algorithm as introduced in:
+        R.J. Urbanowicz et al. Relief-based feature selection: Introduction and review
+        Journal of Biomedical Informatics 85 (2018) 189–203
+
+        Differs with skrebate.ReliefF
+
+        Only for complete X
+
+        Rather than repeating the algorithm m(TODO Ask Nikita about user defined) times,
+        implement it exhaustively (i.e. n times, once for each instance)
+        for relatively small n (up to one thousand).
+
+        :param X: array-like {n_samples, n_features}
+            Training instances to compute the feature importance scores from
+        :param y: array-like {n_samples}
+            Training labels
+        :param k_neighbors: int (default: 1)
+            The number of neighbors to consider when assigning feature importance scores.
+            More neighbors results in more accurate scores, but takes longer.
+            Selection of k hits and misses is the basic difference to Relief
+            and ensures greater robustness of the algorithm concerning noise.
+        :return: array-like {n_features}
+            Feature importances
+        """
+        # TODO CHECK INPUT
+
+        f_ratios = np.zeros(X.shape[1])
+        classes, counts = np.unique(y, return_counts=True)
+        prior_prob = dict(zip(classes, np.array(counts) / len(y)))
+        n_samples = X.shape[0]
+        n_features = X.shape[1]
+        dm = DefaultMeasures.__distance_matrix(X, y, n_samples)
+        for i in range(n_samples):
+            r = X[i]
+            dm_i = dm[i]
+            hits = DefaultMeasures.__take_k(dm_i, k_neighbors, i, lambda x: x == y[i])
+            if len(hits) != 0:
+                ind_hits = hits[:, 1]
+            else:
+                ind_hits = []
+            value_hits = X.take(ind_hits, axis=0)
+            m_c = np.empty(len(classes), np.ndarray)
+            for j in range(len(classes)):
+                if classes[j] != y[i]:
+                    misses = DefaultMeasures.__take_k(dm_i, k_neighbors, i, lambda x: x == classes[j])
+                    ind_misses = misses[:, 1]
+                    m_c[j] = X.take(ind_misses, axis=0)
+
+            for A in range(n_features):
+                weight_hit = np.sum(np.abs(r[A] - value_hits[:, A]))
+                weight_miss = 0
+                for j in range(len(classes)):
+                    if classes[j] != y[i]:
+                        weight_miss += prior_prob[y[j]] * np.sum(np.abs(r[A] - m_c[j][:, A]))
+                f_ratios[A] += weight_miss / (1 - prior_prob[y[i]]) - weight_hit
+        # dividing by m * k guarantees that all final weights
+        # will be normalized within the interval [ − 1, 1].
+        f_ratios /= n_samples * k_neighbors
+        # The maximum and minimum values of A are determined over the entire
+        # set of instances.
+        # This normalization ensures that weight updates fall
+        # between 0 and 1 for both discrete and continuous features.
+        with np.errstate(divide='ignore', invalid="ignore"):  # todo
+            return f_ratios / (np.amax(X, axis=0) - np.amin(X, axis=0))
+
+    @staticmethod
+    def __label_binarize(y):
+        """
+        Binarize labels in a one-vs-all fashion
+        This function makes it possible to compute this transformation for a
+        fixed set of class labels known ahead of time.
+        """
+        classes = np.unique(y)
+        n_samples = len(y)
+        n_classes = len(classes)
+        row = np.arange(n_samples)
+        col = [np.where(classes == el)[0][0] for el in y]
+        data = np.repeat(1, n_samples)
+        # TODO redo it with numpy
+        return sp.csr_matrix((data, (row, col)), shape=(n_samples, n_classes)).toarray()
+
+    @staticmethod
+    def __chisquare(f_obs, f_exp):
+        """Fast replacement for scipy.stats.chisquare.
+        Version from https://github.com/scipy/scipy/pull/2525 with additional
+        optimizations.
+        """
+        f_obs = np.asarray(f_obs, dtype=np.float64)
+
+        # Reuse f_obs for chi-squared statistics
+        chisq = f_obs
+        chisq -= f_exp
+        chisq **= 2
+        with np.errstate(invalid="ignore"):
+            chisq /= f_exp
+        chisq = chisq.sum(axis=0)
+        return chisq
+
+    @staticmethod
+    def chi2_measure(X, y):
+        """
+        This score can be used to select the n_features features with the highest values
+        for the test chi-squared statistic from X,
+        which must contain only non-negative features such as booleans or frequencies
+        (e.g., term counts in document classification), relative to the classes.
+        """
+        # TODO CHECK INPUT
+
+        if np.any(X < 0):
+            raise ValueError("Input X must be non-negative.")
+
+        y = DefaultMeasures.__label_binarize(y)
+
+        # If you use sparse input
+        # you can use sklearn.utils.extmath.safe_sparse_dot instead
+        observed = np.dot(y.T, X)  # n_classes * n_features
+
+        feature_count = X.sum(axis=0).reshape(1, -1)
+        class_prob = y.mean(axis=0).reshape(1, -1)
+        expected = np.dot(class_prob.T, feature_count)
+
+        return DefaultMeasures.__chisquare(observed, expected)
+
+    # Calculate the entropy of y.
 
     @staticmethod
     def __contingency_matrix(labels_true, labels_pred):
@@ -194,24 +403,6 @@ class DefaultMeasures:
               contingency_nm * log_outer)
         return mi.sum()
 
-    # return list(index)
-    # i'm used MID as default. Or we need add ability to choose info_gain?
-    @classmethod
-    def __mrmr_measure(cls, X, y, n):
-        assert not 1 < X.shape[1] < n, 'incorrect number of features'
-
-        x = np.array(X)
-        y = np.array(y).ravel()
-
-        # print([DefaultMeasures.__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
-        return [MI(x[:, j].reshape(-1, 1), y) for j in range(x.shape[1])]
-
-    @staticmethod
-    def mrmr_measure(n):
-        return partial(DefaultMeasures.__mrmr_measure, n=n)
-
-    # RandomFilter = filters.RandomFilter() # TODO: bad .run() interface; .run() feature_names; no default constructor
-
     # SymmetricUncertainty = filters.SymmetricUncertainty()  # TODO
 
     @staticmethod
@@ -230,19 +421,31 @@ class DefaultMeasures:
         sq_dev_y = y_dev * y_dev
         return (sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))).reshape((-1,))
 
-    # TODO Fehner correlation,concordation coef
     VDM = filters.VDM()  # TODO: probably not a filter
 
 
 # print(DefaultMeasures.SpearmanCorrelation)
 
+# GLOB_MEASURE = {"FitCriterion": DefaultMeasures.fit_criterion_measure,
+#                 "FRatio": DefaultMeasures.f_ratio_measure,
+#                 "GiniIndex": DefaultMeasures.gini_index,
+#                 "InformationGain": DefaultMeasures.ig_measure,
+#                 "MrmrDiscrete": DefaultMeasures.mrmr_measure,
+#                 "SpearmanCorr": DefaultMeasures.spearman_corr,
+#                 "PearsonCorr": DefaultMeasures.pearson_corr}
+
+
 GLOB_MEASURE = {"FitCriterion": DefaultMeasures.fit_criterion_measure,
                 "FRatio": DefaultMeasures.f_ratio_measure,
                 "GiniIndex": DefaultMeasures.gini_index,
                 "InformationGain": DefaultMeasures.ig_measure,
-                "MrmrDiscrete": DefaultMeasures.mrmr_measure,
+                # "MrmrDiscrete": DefaultMeasures.mrmr_measure,
+                "SymmetricUncertainty": DefaultMeasures.su_measure,
                 "SpearmanCorr": DefaultMeasures.spearman_corr,
-                "PearsonCorr": DefaultMeasures.pearson_corr}
+                "PearsonCorr": DefaultMeasures.pearson_corr,
+                "FechnerCorr": DefaultMeasures.fechner_corr,
+                "ReliefF": DefaultMeasures.reliefF_measure,
+                "Chi2": DefaultMeasures.chi2_measure}
 
 
 class _DefaultCuttingRules:
