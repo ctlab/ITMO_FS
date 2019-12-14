@@ -50,8 +50,22 @@ class RecursiveElimination:
 
             See Also
             --------
+            Guyon, I., Weston, J., Barnhill, S., & Vapnik, V., “Gene selection for cancer classification using support vector machines”, Mach. Learn., 46(1-3), 389–422, 2002.
+            https://link.springer.com/article/10.1023/A:1012487302797
+
             Examples
             --------
+            from sklearn.datasets import make_classification
+			from wrappers import RecursiveElimination
+			from sklearn.svm import SVC
+			import numpy as np
+
+			dataset = make_classification(n_samples=1000, n_features=20)
+			data, target = np.array(dataset[0]), np.array(dataset[1])
+			model = SVC(kernel='linear')
+			rfe = RecursiveElimination(model, 5)
+			rfe.fit(data, target)
+			print("Resulting features: ", rfe.__features__)
 
         """
         self.__features__ = generate_features(X)
