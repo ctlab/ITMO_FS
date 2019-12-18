@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-
-
 import numpy as np
 
-from wrappers.wrapper_utils import get_current_accuracy
+from .wrapper_utils import get_current_accuracy
 
 
 class SequentialForwardSelection:
