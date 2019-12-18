@@ -1,3 +1,5 @@
+import os
+import sys
 import time
 import unittest
 
@@ -7,6 +9,8 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
 from sklearn.svm import SVC
+
+sys.path.append(os.path.abspath(os.path.join('..\\..', 'ITMO_FS')))
 
 from ITMO_FS.filters.Filter import *
 from ITMO_FS.hybrid.Melif import Melif
