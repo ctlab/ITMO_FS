@@ -29,7 +29,7 @@ class RecursiveElimination:
         if not hasattr(estimator, 'fit'):
             raise TypeError("estimator should be an estimator implementing "
                             "'fit' method, %r was passed" % estimator)
-        
+
         self.__estimator__ = estimator
         self.__n_features__ = n_features
         self.__features__ = []
@@ -70,7 +70,6 @@ class RecursiveElimination:
         """
         self.__features__ = generate_features(X)
 
-
         while len(self.__features__) != self.__n_features__:
             self.__estimator__.fit(X[:, self.__features__], y)
 
@@ -79,8 +78,8 @@ class RecursiveElimination:
             elif hasattr(self.__estimator__, 'feature_importances_'):
                 coefs = np.square(self.__estimator__.feature_importances_)
             else:
-            	raise TypeError("estimator should be an estimator with a "
-                            "'coef_' or 'feature_importances_' attribute, %r was passed" % estimator)
+                raise TypeError("estimator should be an estimator with a "
+                                "'coef_' or 'feature_importances_' attribute, %r was passed" % self.__estimator__)
             if (coefs.ndim > 1):
                 coefs = coefs.sum(axis=0)
 
