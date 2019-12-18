@@ -59,10 +59,10 @@ class SequentialForwardSelection:
         accuracy = 0
         current_features = np.array([])
 
-        for feature in X[0:1, :]:
+        for feature in X[0:1, :]: 
             old_features = current_features
             current_features = np.append(current_features, feature)
-            self.__estimator__.fit([X[i] for i in current_features], y)
+            self.__estimator__.fit([X[i] for i in current_features], y) # TODO: rewrite to correct matrix of shape (n_samples,n_features)
 
             current_accuracy = get_current_accuracy(X, current_features, test_x, test_y)
 

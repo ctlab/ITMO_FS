@@ -488,3 +488,4 @@ GLOB_CR = {"Best by value": _DefaultCuttingRules.select_best_by_value,
            "Worst by value": _DefaultCuttingRules.select_worst_by_value,
            "K best": _DefaultCuttingRules.select_k_best,
            "K worst": _DefaultCuttingRules.select_k_worst}
+

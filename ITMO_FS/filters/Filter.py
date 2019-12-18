@@ -1,4 +1,4 @@
-from .utils import *
+from .measures import *
 
 
 class Filter(object):  # TODO ADD LOGGING
