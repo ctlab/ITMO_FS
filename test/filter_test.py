@@ -34,12 +34,12 @@ class TestCases(unittest.TestCase):
     #     R.fit(x, y)
     #     print(R.feature_importances_)
 
-    # def test_filter(self):
-    #     data, target = load_iris(True)
-    #     res = Filter("SpearmanCorr", GLOB_CR["Best by value"](0.9999)).run(data, target)
-    #     print("SpearmanCorr:", data.shape, '--->', res.shape)
-    #
-    # ##----------Filters------------------------------
+    def test_filter(self):
+        data, target = load_iris(True)
+        res = Filter("SpearmanCorr", GLOB_CR["Best by value"](0.9999)).run(data, target)
+        print("SpearmanCorr:", data.shape, '--->', res.shape)
+
+    ##----------Filters------------------------------
     # def __compare_measure__(self, measure_name, data):
     #     data, target = data['X'], data['Y']
     #
