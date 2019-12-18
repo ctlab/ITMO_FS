@@ -1,3 +1,5 @@
 numpy
 utils
 scipy
+# for model testing
+scikit-learn
