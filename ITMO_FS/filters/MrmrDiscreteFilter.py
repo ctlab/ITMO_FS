@@ -119,11 +119,8 @@ class MrmrDiscreteFilter(object):
                 columns = np.array(X.columns)
             else:
                 pandas = reload(pandas)
-        except ModuleNotFoundError:
-            pass
         except ImportError:
             pass
-
 
         x = np.array(X)
         y = np.array(y).ravel()

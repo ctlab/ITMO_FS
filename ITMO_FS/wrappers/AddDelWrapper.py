@@ -191,9 +191,6 @@ class Add_del(object):
                 return_feature_names = True
             else:
                 pandas = reload(pandas)
-
-        except ModuleNotFoundError:
-            pass
         except ImportError:
             pass
 
