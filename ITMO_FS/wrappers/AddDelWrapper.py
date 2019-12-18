@@ -194,6 +194,8 @@ class Add_del(object):
 
         except ModuleNotFoundError:
             pass
+        except ImportError:
+            pass
 
         X = np.array(X)
         y = np.array(y).ravel()
