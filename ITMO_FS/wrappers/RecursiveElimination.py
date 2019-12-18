@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from utils import generate_features
+from ..utils import generate_features
 
 
 class RecursiveElimination:

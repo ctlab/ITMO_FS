@@ -3,6 +3,7 @@ from math import log
 
 import numpy as np
 from scipy import sparse as sp
+
 from ITMO_FS.utils import generate_features
 
 
@@ -407,7 +408,7 @@ class DefaultMeasures:
     def spearman_corr(X, y):
         n = X.shape[0]
         c = 6 / (n * (n - 1) * (n + 1))
-        dif = X - np.hstack(tuple([y] * X.shape[1]))
+        dif = X - np.repeat(y, X.shape[1]).reshape(y.shape[0], X.shape[1])
         return 1 - c * np.sum(dif * dif, axis=0)
 
     @staticmethod
@@ -418,7 +419,6 @@ class DefaultMeasures:
         sq_dev_x = x_dev * x_dev
         sq_dev_y = y_dev * y_dev
         return (sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))).reshape((-1,))
-
 
 
 # print(DefaultMeasures.SpearmanCorrelation)
@@ -485,4 +485,3 @@ GLOB_CR = {"Best by value": _DefaultCuttingRules.select_best_by_value,
            "Worst by value": _DefaultCuttingRules.select_worst_by_value,
            "K best": _DefaultCuttingRules.select_k_best,
            "K worst": _DefaultCuttingRules.select_k_worst}
-

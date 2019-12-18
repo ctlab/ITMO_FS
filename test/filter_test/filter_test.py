@@ -120,20 +120,20 @@ class MyTestCase(unittest.TestCase):
     #     features = GLOB_MEASURE["FRatio"](data.shape[-1])(data, target)
     #     print("ITMO time --- %s seconds ---" % (time.time() - start_time))
 
-    @classmethod
-    def __test_mrmr(cls, data, target):
-        n = data.shape[1] / 2
-        res = Filter(GLOB_MEASURE["MrmrDiscrete"](n), GLOB_CR["Best by value"](0.0)).run(data, target)
-        print("Mrmr:", data.shape, '--->', res.shape)
-
-    def test_mrmr_basehock(self):
-        MyTestCase.__test_mrmr(self.basehock['X'], self.basehock['Y'])
-
-    def test_mrmr_coil(self):
-        MyTestCase.__test_mrmr(self.coil['X'], self.coil['Y'])
-
-    def test_mrmr_orl(self):
-        MyTestCase.__test_mrmr(self.orl['X'], self.orl['Y'])
+    # @classmethod
+    # def __test_mrmr(cls, data, target):
+    #     n = data.shape[1] / 2
+    #     res = Filter(GLOB_MEASURE["MrmrDiscrete"](n), GLOB_CR["Best by value"](0.0)).run(data, target)
+    #     print("Mrmr:", data.shape, '--->', res.shape)
+    #
+    # def test_mrmr_basehock(self):
+    #     MyTestCase.__test_mrmr(self.basehock['X'], self.basehock['Y'])
+    #
+    # def test_mrmr_coil(self):
+    #     MyTestCase.__test_mrmr(self.coil['X'], self.coil['Y'])
+    #
+    # def test_mrmr_orl(self):
+    #     MyTestCase.__test_mrmr(self.orl['X'], self.orl['Y'])
 
 
 if __name__ == '__main__':
