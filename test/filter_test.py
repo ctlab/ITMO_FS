@@ -12,12 +12,16 @@ from ITMO_FS.filters.Filter import *
 from ITMO_FS.hybrid.Melif import Melif
 from ITMO_FS.wrappers.AddDelWrapper import *
 from ITMO_FS.wrappers.BackwardSelection import *
+import pytest
 
 
+@pytest.mark.parametrize("basehock", 'datasets/BASEHOCK.mat')
+@pytest.mark.parametrize("coil", 'datasets/COIL20.mat')
+@pytest.mark.parametrize("orlaws", 'datasets/orlraws10P.mat')
 class TestCases(unittest.TestCase):
-    basehock = scipy.io.loadmat('BASEHOCK.mat')
-    coil = scipy.io.loadmat('COIL20.mat')
-    orl = scipy.io.loadmat('orlraws10P.mat')
+    # basehock = scipy.io.loadmat("basehock")
+    # coil = scipy.io.loadmat(coil)
+    # orl = scipy.io.loadmat(orlaws)
 
     # def test_relief(self):
     #     n = 10
