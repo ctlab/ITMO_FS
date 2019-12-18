@@ -3,9 +3,7 @@ from math import log
 
 import numpy as np
 from scipy import sparse as sp
-
-import filters
-from utils import generate_features
+from ITMO_FS.utils import generate_features
 
 
 # from sklearn.feature_selection import mutual_info_classif as MI
@@ -421,7 +419,6 @@ class DefaultMeasures:
         sq_dev_y = y_dev * y_dev
         return (sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))).reshape((-1,))
 
-    VDM = filters.VDM()  # TODO: probably not a filter
 
 
 # print(DefaultMeasures.SpearmanCorrelation)
