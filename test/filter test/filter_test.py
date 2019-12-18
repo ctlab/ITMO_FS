@@ -2,19 +2,16 @@ import time
 import unittest
 
 import scipy.io
-from skfeature.function.statistical_based import gini_index, f_score
-from skfeature.function.information_theoretical_based import MRMR
 from sklearn.datasets import load_iris
 from sklearn.feature_selection import SelectKBest
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
 from sklearn.svm import SVC
-from skrebate import ReliefF
 
-from filters.Filter import *
-from hybrid.Melif import Melif
-from wrappers.AddDelWrapper import *
-from wrappers.BackwardSelection import *
+from ITMO_FS.filters.Filter import *
+from ITMO_FS.hybrid.Melif import Melif
+from ITMO_FS.wrappers.AddDelWrapper import *
+from ITMO_FS.wrappers.BackwardSelection import *
 
 
 class MyTestCase(unittest.TestCase):
@@ -22,16 +19,16 @@ class MyTestCase(unittest.TestCase):
     coil = scipy.io.loadmat('COIL20.mat')
     orl = scipy.io.loadmat('orlraws10P.mat')
 
-    def test_relief(self):
-        n = 10
-        x = np.random.randint(n, size=(n, 6))
-        y = np.random.randint(n, size=n)
-        # print(y)
-        print(DefaultMeasures.reliefF_measure(x, y, 6))
-        # skrebate
-        R = ReliefF()
-        R.fit(x, y)
-        print(R.feature_importances_)
+    # def test_relief(self):
+    #     n = 10
+    #     x = np.random.randint(n, size=(n, 6))
+    #     y = np.random.randint(n, size=n)
+    #     # print(y)
+    #     print(DefaultMeasures.reliefF_measure(x, y, 6))
+    #     # skrebate
+    #     R = ReliefF()
+    #     R.fit(x, y)
+    #     print(R.feature_importances_)
 
     def test_filter(self):
         data, target = load_iris(True)
@@ -105,23 +102,23 @@ class MyTestCase(unittest.TestCase):
         wrapper.run(data, target, silent=True)
         print(wrapper.best_score)
 
-    def test_arizona(self):
-        data, target = self.coil['X'], self.coil['Y']
-        start_time = time.time()
-        features = gini_index.gini_index(data, target)
-        print("ARIZONA time --- %s seconds ---" % (time.time() - start_time))
-
-        start_time = time.time()
-        features = GLOB_MEASURE["GiniIndex"](data, target)
-        print("ITMO time --- %s seconds ---" % (time.time() - start_time))
-
-        start_time = time.time()
-        features = f_score.f_score(data, target)
-        print("ARIZONA time --- %s seconds ---" % (time.time() - start_time))
-
-        start_time = time.time()
-        features = GLOB_MEASURE["FRatio"](data.shape[-1])(data, target)
-        print("ITMO time --- %s seconds ---" % (time.time() - start_time))
+    # def test_arizona(self):
+    #     data, target = self.coil['X'], self.coil['Y']
+    #     start_time = time.time()
+    #     features = gini_index.gini_index(data, target)
+    #     print("ARIZONA time --- %s seconds ---" % (time.time() - start_time))
+    #
+    #     start_time = time.time()
+    #     features = GLOB_MEASURE["GiniIndex"](data, target)
+    #     print("ITMO time --- %s seconds ---" % (time.time() - start_time))
+    #
+    #     start_time = time.time()
+    #     features = f_score.f_score(data, target)
+    #     print("ARIZONA time --- %s seconds ---" % (time.time() - start_time))
+    #
+    #     start_time = time.time()
+    #     features = GLOB_MEASURE["FRatio"](data.shape[-1])(data, target)
+    #     print("ITMO time --- %s seconds ---" % (time.time() - start_time))
 
     @classmethod
     def __test_mrmr(cls, data, target):
