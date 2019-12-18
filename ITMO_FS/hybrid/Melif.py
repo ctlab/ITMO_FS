@@ -3,7 +3,7 @@ import logging
 
 import numpy as np
 
-from utils.data_check import *
+from ITMO_FS.utils.data_check import *
 
 logging.basicConfig(level=logging.INFO)
 

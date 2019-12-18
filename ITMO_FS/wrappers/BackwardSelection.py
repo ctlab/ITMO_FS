@@ -4,8 +4,8 @@ from collections import OrderedDict
 
 import numpy as np
 
-from utils import generate_features
-from wrappers.wrapper_utils import get_current_cv_accuracy
+from ..utils import generate_features
+from .wrapper_utils import get_current_cv_accuracy
 
 
 class BackwardSelection:
