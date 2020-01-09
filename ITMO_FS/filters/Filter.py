@@ -1,15 +1,8 @@
-from .utils import *
+from .measures import *
 
 
-class Filter(object):####TODO add logging
+class Filter(object):  # TODO ADD LOGGING
     def __init__(self, measure, cutting_rule):
-        """
-        Basic univariate filter class with chosen(even custom) measure and cutting rule
-        :param measure:
-            Examples
-         --------
-        >>> f=Filter("PearsonCorr", GLOB_CR["K best"](6))
-        """
         if type(measure) is str:
             try:
                 self.measure = GLOB_MEASURE[measure]
@@ -28,7 +21,7 @@ class Filter(object):####TODO add logging
         self.feature_scores = None
         self.hash = None
 
-    def run(self, x, y, feature_names=None, store_scores=False, verbose=0):
+    def run(self, x, y, feature_names=None, store_scores=False):
         try:
             x = x.values
             y = y.values

@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils.functions import cartesian
+from ITMO_FS.utils.functions import cartesian
 
 
 ##TODO some optimization
