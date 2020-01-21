@@ -1,7 +1,7 @@
 from .measures import *
 
 
-class Filter(object):  # TODO ADD LOGGING
+class UnivariateFilter(object):  # TODO ADD LOGGING
     def __init__(self, measure, cutting_rule):
         if type(measure) is str:
             try:

@@ -8,7 +8,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
 from sklearn.svm import SVC
 
-from ITMO_FS.filters.Filter import *
+from ITMO_FS.filters.UnivariateFilter import *
 from ITMO_FS.hybrid.Melif import Melif
 from ITMO_FS.wrappers.AddDelWrapper import *
 from ITMO_FS.wrappers.BackwardSelection import *

@@ -25,9 +25,9 @@ Current available algorithms:
 To use basic filter:
     
     from sklearn.datasets import load_iris
-    from filters.Filter import * # provides you a filter class, basic measures and cutting rules
+    from filters.UnivariateFilter import * # provides you a filter class, basic measures and cutting rules
     
     data, target = load_iris(True)
-    res = Filter("SpearmanCorr", GLOB_CR["Best by value"](0.9999)).run(data, target)
+    res = UnivariateFilter("SpearmanCorr", GLOB_CR["Best by value"](0.9999)).run(data, target)
     print("SpearmanCorr:", data.shape, '--->', res.shape)
 
