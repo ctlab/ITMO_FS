@@ -7,7 +7,7 @@ Package information: ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.
 
 Install with 
 
-    pip install https://github.com/LastShekel/ITMO_FS/tarball/master
+    pip install ITMO_FS
     
 Current available algorithms:
 
