@@ -1,8 +1,9 @@
 from .measures import *
 
 
-class Filter(object):  # TODO ADD LOGGING
+class UnivariateFilter(object):  # TODO ADD LOGGING
     def __init__(self, measure, cutting_rule):
+        # TODO Check measure and cutting_rule
         if type(measure) is str:
             try:
                 self.measure = GLOB_MEASURE[measure]
@@ -22,6 +23,7 @@ class Filter(object):  # TODO ADD LOGGING
         self.hash = None
 
     def run(self, x, y, feature_names=None, store_scores=False):
+        # TODO Check input
         try:
             x = x.values
             y = y.values

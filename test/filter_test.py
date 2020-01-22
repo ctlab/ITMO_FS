@@ -8,7 +8,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
 from sklearn.svm import SVC
 
-from ITMO_FS.filters.Filter import *
+from ITMO_FS.filters.UnivariateFilter import *
 from ITMO_FS.hybrid.Melif import Melif
 from ITMO_FS.wrappers.AddDelWrapper import *
 from ITMO_FS.wrappers.BackwardSelection import *
@@ -36,7 +36,7 @@ class TestCases(unittest.TestCase):
 
     def test_filter(self):
         data, target = load_iris(True)
-        res = Filter("SpearmanCorr", GLOB_CR["Best by value"](0.9999)).run(data, target)
+        res = UnivariateFilter(spearman_corr, select_best_by_value(0.9999)).run(data, target)
         print("SpearmanCorr:", data.shape, '--->', res.shape)
 
     #----------Filters------------------------------
@@ -45,7 +45,7 @@ class TestCases(unittest.TestCase):
 
         start_time = time.time()
         custom = lambda x, y: np.sum(x + y, axis=1)
-        f = Filter(custom, GLOB_CR["K best"](6))
+        f = UnivariateFilter(custom, select_k_best(6))
         res = f.run(data, target)  # Filter(measure_name, GLOB_CR["K best"](6)).run(data, target)
         print("ITMO_FS time --- %s seconds ---" % (time.time() - start_time))
 
@@ -89,10 +89,10 @@ class TestCases(unittest.TestCase):
     ##----------Melif--------------------------------
     def test_melif(self):
         data, target = self.basehock['X'], self.basehock['Y']
-        _filters = [Filter('GiniIndex', cutting_rule=GLOB_CR["Best by value"](0.4)),
-                    # Filter('FitCriterion', cutting_rule=GLOB_CR["Best by value"](0.0)),
-                    Filter(GLOB_MEASURE["FRatio"](data.shape[1]), cutting_rule=GLOB_CR["Best by value"](0.6)),
-                    Filter('InformationGain', cutting_rule=GLOB_CR["Best by value"](-0.4))]
+        _filters = [UnivariateFilter('GiniIndex', cutting_rule=GLOB_CR["Best by value"](0.4)),
+                    # UnivariateFilter('FitCriterion', cutting_rule=GLOB_CR["Best by value"](0.0)),
+                    UnivariateFilter(GLOB_MEASURE["FRatio"](data.shape[1]), cutting_rule=GLOB_CR["Best by value"](0.6)),
+                    UnivariateFilter('InformationGain', cutting_rule=GLOB_CR["Best by value"](-0.4))]
         melif = Melif(_filters, f1_score)
         melif.fit(data, target)
         estimator = SVC()
@@ -127,7 +127,7 @@ class TestCases(unittest.TestCase):
     # @classmethod
     # def __test_mrmr(cls, data, target):
     #     n = data.shape[1] / 2
-    #     res = Filter(GLOB_MEASURE["MrmrDiscrete"](n), GLOB_CR["Best by value"](0.0)).run(data, target)
+    #     res = UnivariateFilter(GLOB_MEASURE["MrmrDiscrete"](n), GLOB_CR["Best by value"](0.0)).run(data, target)
     #     print("Mrmr:", data.shape, '--->', res.shape)
     #
     # def test_mrmr_basehock(self):
