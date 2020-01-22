@@ -9,7 +9,7 @@ setup(
     description='Python Feature Selection library from ITMO University',
     long_description_content_type="text/markdown",
     long_description=long_description,
-
+    keywords=['feature selection', 'machine learning'],
     author="Nikita Pilnenskiy",
     author_email="somacruz@bk.ru",
     install_requires=['numpy', 'utils', 'scipy']
