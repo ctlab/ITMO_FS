@@ -24,7 +24,7 @@ class MrmrDiscreteFilter(object):
         http://home.penglab.com/papersall/docpdf/2003_CSB_feasel.pdf
 
 
-        Examples
+        examples
         --------
         >>> mrmr_filter = MrmrDiscreteFilter(3)
         >>> features = mrmr_filter.run(X, y)
@@ -101,7 +101,7 @@ class MrmrDiscreteFilter(object):
           See Also
           --------
 
-          Examples
+          examples
           --------
 
       """

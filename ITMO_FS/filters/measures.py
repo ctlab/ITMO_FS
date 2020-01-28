@@ -4,7 +4,7 @@ from math import log
 import numpy as np
 from scipy import sparse as sp
 
-from ITMO_FS.utils import generate_features
+from ITMO_FS.utils.data_check import generate_features
 
 
 # from sklearn.feature_selection import mutual_info_classif as MI

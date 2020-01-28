@@ -28,7 +28,7 @@ class Add_del(object):
         --------
         Lecture about feature selection (ru), p.13 - http://www.ccas.ru/voron/download/Modeling.pdf
 
-        Examples
+        examples
         --------
         >>> from sklearn.metrics import accuracy_score
         >>> data = datasets.make_classification(n_samples=1000, n_features=20)
@@ -171,7 +171,7 @@ class Add_del(object):
            See Also
            --------
 
-           Examples
+           examples
            --------
            :param silent:
            :param y:
