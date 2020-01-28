@@ -20,7 +20,7 @@ class SequentialForwardSelection:
         --------
 
 
-        Examples
+        examples
         --------
 
         """
@@ -50,7 +50,7 @@ class SequentialForwardSelection:
 
             See Also
             --------
-            Examples
+            examples
             --------
 
         """

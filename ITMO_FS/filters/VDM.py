@@ -19,7 +19,7 @@ class VDM:
         See Also
         --------
 
-        Examples
+        examples
         --------
         >>> x = np.array([[0, 0, 0, 0],
         ...               [1, 0, 1, 1],

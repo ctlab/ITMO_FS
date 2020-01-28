@@ -1,7 +1,9 @@
-import numpy as np
 import random as rnd
 
+import numpy as np
+
 from .filter_utils import augmented_rvalue
+
 
 class MOSNS(object):
     """
@@ -16,7 +18,7 @@ class MOSNS(object):
         --------
         https://www.sciencedirect.com/science/article/pii/S0169743919306070
 
-        Examples
+        examples
         --------
         dataset = make_classification(n_samples=100, n_features=20)
         data, target = np.array(dataset[0]), np.array(dataset[1])
@@ -57,7 +59,7 @@ class MOSNS(object):
         for l in np.arange(0.0, 3.0, 0.1):  # TODO: do a little more research on the range of lambdas
             b = np.array([rnd.random() / 10 for i in range(X.shape[1])])
             b0 = rnd.random() / 10
-            for epoch in range(epochs):  
+            for epoch in range(epochs):
                 # TODO: should redo this as a proper SVM, this is probably not working as intended: 
                 # in random data, noise features usually have higher values of b while important features have close-to-zero values
                 oldB = b

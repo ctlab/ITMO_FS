@@ -24,7 +24,7 @@ class BackwardSelection:
         --------
 
 
-        Examples
+        examples
         --------
 
         """
@@ -58,7 +58,7 @@ class BackwardSelection:
 
             See Also
             --------
-            Examples
+            examples
             --------
 
         """

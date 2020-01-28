@@ -20,7 +20,7 @@ class RecursiveElimination:
         --------
 
 
-        Examples
+        examples
         --------
 
         """
@@ -53,7 +53,7 @@ class RecursiveElimination:
             Guyon, I., Weston, J., Barnhill, S., & Vapnik, V., “Gene selection for cancer classification using support vector machines”, Mach. Learn., 46(1-3), 389–422, 2002.
             https://link.springer.com/article/10.1023/A:1012487302797
 
-            Examples
+            examples
             --------
             from sklearn.datasets import make_classification
 			from wrappers import RecursiveElimination
