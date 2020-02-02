@@ -13,39 +13,36 @@ Install with
 
 Current available algorithms:
 
-+--------------------------------------+------------------------------+--------+
-| Filters                              | Wrappers                     | Hybrid |
-+======================================+==============================+========+
-| Spearman correlation                 | Add Del                      | MeLiF  |
-+--------------------------------------+------------------------------+--------+
-| Pearson correlation                  | Backward selection           |        |
-+--------------------------------------+------------------------------+--------+
-| Fit Criterion                        | Sequential Forward Selection |        |
-+--------------------------------------+------------------------------+--------+
-| F ratio                              |                              |        |
-+--------------------------------------+------------------------------+--------+
-| Gini index                           |                              |        |
-+--------------------------------------+------------------------------+--------+
-| Information Gain                     |                              |        |
-+--------------------------------------+------------------------------+--------+
-| Minimum Redundancy Maximum Relevance |                              |        |
-+--------------------------------------+------------------------------+--------+
-| VDM                                  |                              |        |
-+--------------------------------------+------------------------------+--------+
-| MOSNS                                |                              |        |
-+--------------------------------------+------------------------------+--------+
-| MOSS                                 |                              |        |
-+--------------------------------------+------------------------------+--------+
++--------------------------------------+------------------------------+--------+----------+
+| Filters                              | Wrappers                     | Hybrid | Embedded |
++======================================+==============================+========+==========+
+| Spearman correlation                 | Add Del                      | MeLiF  | MOSNS    |
++--------------------------------------+------------------------------+--------+----------+
+| Pearson correlation                  | Backward selection           |        | MOSS     |
++--------------------------------------+------------------------------+--------+----------+
+| Fit Criterion                        | Sequential Forward Selection |        |          |
++--------------------------------------+------------------------------+--------+----------+
+| F ratio                              |                              |        |          |
++--------------------------------------+------------------------------+--------+----------+
+| Gini index                           |                              |        |          |
++--------------------------------------+------------------------------+--------+----------+
+| Information Gain                     |                              |        |          |
++--------------------------------------+------------------------------+--------+----------+
+| Minimum Redundancy Maximum Relevance |                              |        |          |
++--------------------------------------+------------------------------+--------+----------+
+| VDM                                  |                              |        |          |
++--------------------------------------+------------------------------+--------+----------+
+
 
 To use basic filter:
 
 ::
 
    from sklearn.datasets import load_iris
-   from filters.UnivariateFilter import * # provides you a filter class, basic measures and cutting rules
+   from ITMO_FS.filters import UnivariateFilter, spearman_corr, select_best_by_value # provides you a filter class, basic measures and cutting rules
 
    data, target = load_iris(True)
-   res = UnivariateFilter("SpearmanCorr", GLOB_CR["Best by value"](0.9999)).run(data, target)
+   res = UnivariateFilter(spearman_corr, select_best_by_value(0.9999)).run(data, target)
    print("SpearmanCorr:", data.shape, '--->', res.shape)
 
 .. |Python 2.7| image:: https://img.shields.io/badge/python-2.7-blue.svg
