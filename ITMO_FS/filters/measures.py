@@ -54,13 +54,13 @@ def __calculate_F_ratio(row, y_data):
         n = np.sum(row[index_for_this_value])
         mu = np.mean(row[index_for_this_value])
         var = np.var(row[index_for_this_value])
-        inter_class += n * np.power((mu - mu), 2)
+        inter_class += n * np.power((mu - mu), 2)  # TODO: something went horribly wrong here
         intra_class += (n - 1) * var
     f_ratio = inter_class / intra_class
     return f_ratio
 
 
-def __f_ratio_measure(X, y, n):
+def __f_ratio_measure(X, y, n):  # TODO: add default value for n so that it is callable like other measures with (X, y) arguments
     assert not 1 < X.shape[1] < n, 'incorrect number of features'
     f_ratios = []
     for feature in X.T:
