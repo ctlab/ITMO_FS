@@ -31,5 +31,6 @@ jobs:
     - name: Test with pytest
       run: |
 #        will be later
-#        pip install pytest
-#        python -m pytest
+        pip install pytest
+        pip install pytest-filedata
+        python -m pytest

@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 DISTNAME = 'ITMO_FS'
 DESCRIPTION = 'Python Feature Selection library from ITMO University.'
-with codecs.open('README.rst', encoding='utf-8-sig') as f:
+with codecs.open('README.rst') as f:
     LONG_DESCRIPTION = f.read()
 MAINTAINER = 'N. Pilnenskiy'
 MAINTAINER_EMAIL = 'somacruz@bk.ru'
