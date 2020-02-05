@@ -14,6 +14,7 @@ from ITMO_FS.wrappers.AddDelWrapper import *
 from ITMO_FS.wrappers.BackwardSelection import *
 import pytest
 
+
 class TestCases(unittest.TestCase):
     basehock = scipy.io.loadmat('datasets/BASEHOCK.mat')
     coil = scipy.io.loadmat('datasets/COIL20.mat')
@@ -83,16 +84,16 @@ class TestCases(unittest.TestCase):
         print(wrapper.best_score)
 
     ##----------Melif--------------------------------
-    def test_melif(self):
-        data, target = self.basehock['X'], self.basehock['Y']
-        _filters = [UnivariateFilter('GiniIndex', cutting_rule=GLOB_CR["Best by value"](0.4)),
-                    # UnivariateFilter('FitCriterion', cutting_rule=GLOB_CR["Best by value"](0.0)),
-                    UnivariateFilter(GLOB_MEASURE["FRatio"](data.shape[1]), cutting_rule=GLOB_CR["Best by value"](0.6)),
-                    UnivariateFilter('InformationGain', cutting_rule=GLOB_CR["Best by value"](-0.4))]
-        melif = Melif(_filters, f1_score)
-        melif.fit(data, target)
-        estimator = SVC()
-        melif.run(GLOB_CR['K best'](50), estimator)
+    # def test_melif(self):
+    #     data, target = self.basehock['X'], self.basehock['Y']
+    #     _filters = [UnivariateFilter('GiniIndex', cutting_rule=GLOB_CR["Best by value"](0.4)),
+    #                 # UnivariateFilter('FitCriterion', cutting_rule=GLOB_CR["Best by value"](0.0)),
+    #                 UnivariateFilter(GLOB_MEASURE["FRatio"](data.shape[1]), cutting_rule=GLOB_CR["Best by value"](0.6)),
+    #                 UnivariateFilter('InformationGain', cutting_rule=GLOB_CR["Best by value"](-0.4))]
+    #     melif = Melif(_filters, f1_score)
+    #     melif.fit(data, target)
+    #     estimator = SVC()
+    #     melif.run(GLOB_CR['K best'](50), estimator)
 
     ##----------END----------------------------------
     def test_add_del(self):
