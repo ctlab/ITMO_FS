@@ -148,7 +148,7 @@ class Add_del(object):
 
         return features, res_score
 
-    def run(self, X, y, cv=3, silent=True):
+    def run(self, X, y, cv=3, silent=True): ##TODO with fit predict
         """
            Fits wrapper.
 

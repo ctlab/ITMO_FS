@@ -1,5 +1,7 @@
-import numpy as np
 import random as rnd
+
+import numpy as np
+
 
 def SMOTE(X, y, k=5, seed=42):
     """
@@ -32,6 +34,7 @@ def SMOTE(X, y, k=5, seed=42):
         newX.append(X[elem] + (X[neighbor] - X[elem]) * rnd.random())
         newY.append(1)
     return np.array(newX), np.array(newY)
+
 
 def augmented_rvalue(X, y, k=7, theta=3):
     """
@@ -69,6 +72,7 @@ def augmented_rvalue(X, y, k=7, theta=3):
     R1 /= len(indicesPositive)
     return (R0 * len(indicesPositive) + R1 * len(indicesNegative)) / len(X)
 
+
 def knn(X, y, index, k, allClasses=True):
     """
     Returns the indices of k nearest neighbors of X[index].
@@ -88,6 +92,7 @@ def knn(X, y, index, k, allClasses=True):
         ------
         array-like, shape(k) - the indices of the nearest neighbors
     """
-    distances = map(lambda x: (x[0], np.linalg.norm(X[index] - x[1])), [(i, x) for i, x in enumerate(X) if i != index and (allClasses or y[i] == y[index])])
+    distances = map(lambda x: (x[0], np.linalg.norm(X[index] - x[1])),
+                    [(i, x) for i, x in enumerate(X) if i != index and (allClasses or y[i] == y[index])])
     nearest = sorted(distances, key=lambda x: x[1])[:k]
     return np.array(list(map(lambda x: x[0], nearest)))
