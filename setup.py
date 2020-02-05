@@ -12,7 +12,7 @@ URL = 'https://github.com/LastShekel/ITMO_FS'
 LICENSE = 'new BSD'
 DOWNLOAD_URL = 'https://github.com/LastShekel/ITMO_FS'
 VERSION = '0.2.1'
-INSTALL_REQUIRES = ['numpy', 'scipy', 'scikit-learn']
+INSTALL_REQUIRES = ['numpy', 'scipy', 'scikit-learn', 'imblearn']
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Intended Audience :: Developers',
                'License :: OSI Approved',

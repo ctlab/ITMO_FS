@@ -1,3 +1,4 @@
+imblearn
 numpy
 scipy
 scikit-learn
