@@ -1,5 +1,7 @@
 from functools import partial
 from math import log
+from math import exp
+from math import sqrt
 
 import numpy as np
 from scipy import sparse as sp
@@ -383,6 +385,43 @@ def pearson_corr(X, y):
     sq_dev_x = x_dev * x_dev
     sq_dev_y = y_dev * y_dev
     return (sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))).reshape((-1,))
+
+
+def euclidean_distance(point1, point2):
+    sum_squared_distance = 0
+    for i in range(len(point1)):
+        sum_squared_distance += (point1[i] - point2[i]) * (point1[i] - point2[i])
+    return sqrt(sum_squared_distance)
+
+
+def laplacian_score(X, y, k_neighbors = 5, t = 1, 
+                    metric = euclidean_distance, **kwargs):
+    n, m = X.shape
+    k_neighbors = min(k_neighbors, n - 1)
+    if 'model' in kwargs.keys():
+        S = kwargs['model']
+    else:
+        S = np.zeros((n, n))
+        for i in range(n):
+            distances = []
+            for j in range(n):
+                if i == j:
+                    continue
+                d = metric(X[i], X[j])
+                distances.append((d, j))
+                if y[i] == y[j]:
+                    S[i, j] = exp(-d * d / t)
+            distances.sort()
+            for j in range(k_neighbors):
+                S[i, distances[j][1]] = S[distances[j][1], i] = exp(-distances[j][0] * distances[j][0] / t)
+    ONE = np.ones((n,))
+    D = np.diag(S.dot(ONE))
+    L = D - S
+    LS = []
+    for r in range(m):
+        f = X[:, r] - ONE * (X[:, r].dot(D.dot(ONE)) / ONE.dot(D.dot(ONE)))
+        LS.append(f.dot(L.dot(f)) / f.dot(D.dot(f)))
+    return LS
 
 
 # print(SpearmanCorrelation)
