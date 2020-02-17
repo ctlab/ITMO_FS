@@ -1,7 +1,6 @@
 from functools import partial
 from math import log
 from math import exp
-from math import sqrt
 
 import numpy as np
 from scipy import sparse as sp
@@ -387,15 +386,39 @@ def pearson_corr(X, y):
     return (sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))).reshape((-1,))
 
 
-def euclidean_distance(point1, point2):
-    sum_squared_distance = 0
-    for i in range(len(point1)):
-        sum_squared_distance += (point1[i] - point2[i]) * (point1[i] - point2[i])
-    return sqrt(sum_squared_distance)
-
-
 def laplacian_score(X, y, k_neighbors = 5, t = 1, 
-                    metric = euclidean_distance, **kwargs):
+                    metric = np.linalg.norm, **kwargs):
+    """
+    Calculates Laplacian Score for each feature.
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+    k_neighbors : int
+        The number of neighbors to construct a nearest neighbor graph.
+    t : float
+        Suitable constant for weight matrix S, 
+        where Sij = exp(-(|xi - xj| ^ 2) / t).
+    metric : callable
+        Norm function to compute distance between two points.
+        The default distance is euclidean.
+    model : numpy array, shape (n_samples, n_samples)
+        The weight matrix of the graph that models the local structure of the data space.
+        By default it is constructed using KNN algorithm.
+
+    Returns
+    -------
+    List of scores of each feature.
+    The smaller the laplacian score is, the more important the feature is.
+
+    See Also
+    --------
+    https://papers.nips.cc/paper/2909-laplacian-score-for-feature-selection.pdf
+
+    """
     n, m = X.shape
     k_neighbors = min(k_neighbors, n - 1)
     if 'model' in kwargs.keys():
@@ -407,7 +430,7 @@ def laplacian_score(X, y, k_neighbors = 5, t = 1,
             for j in range(n):
                 if i == j:
                     continue
-                d = metric(X[i], X[j])
+                d = metric(X[i] - X[j])
                 distances.append((d, j))
                 if y[i] == y[j]:
                     S[i, j] = exp(-d * d / t)
