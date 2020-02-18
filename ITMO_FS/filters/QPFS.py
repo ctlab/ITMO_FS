@@ -2,30 +2,16 @@ import numpy as np
 from scipy.linalg import sqrtm
 from sklearn.metrics import mutual_info_score
 from qpsolvers import solve_qp
+from ITMO_FS.filters.measures import pearson_corr
 import math
 
-"""
+
+def QPFS_filter(X, y, r = None, sigma = None, solv='quadprog', fn=pearson_corr):#TODO find the r and sigma values to be set as default
+	
+	"""
     Performs Quadratic Programming Feature Selection algorithm.
     Note that this realization requires labels to start from 0 and be numberical.
-    Parameters
-    ----------
-
-    See Also
-    --------
-	http://www.jmlr.org/papers/volume11/rodriguez-lujan10a/rodriguez-lujan10a.pdf
-	
-	Examples
-	--------
-	x = np.array([[1, 2, 3, 2, 2], [2, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-	y = np.array([1, 1, 2, 1, 2])
-	ranks = QPFS().run(x, y)
-	print(ranks)
-"""
-
-def QPFS_filter(X, y, r = None, sigma = None, solv='quadprog', fn=mutual_info_score):#TODO find the r and sigma values to be set as default
-	"""
-    Runs the QPFS algorithm on the specified dataset.
-    A different loss function is used here than in the paper due to using (-1, 1) labels.
+    
     Parameters
     ----------
     X : array-like, shape (n_samples,n_features)
@@ -45,6 +31,18 @@ def QPFS_filter(X, y, r = None, sigma = None, solv='quadprog', fn=mutual_info_sc
     Returns
     ------
     array-like, shape (n_features) : the ranks of features in dataset, with rank increase, feature relevance increases and redundancy decreases.
+    
+    See Also
+    --------
+	http://www.jmlr.org/papers/volume11/rodriguez-lujan10a/rodriguez-lujan10a.pdf
+	
+	Examples
+	--------
+	x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+	y = np.array([1, 3, 2, 1, 2])
+	ranks = QPFS_filter(x, y)
+	print(ranks)
+
     """
 
     #TODO understand why complex double appears 
@@ -54,18 +52,17 @@ def QPFS_filter(X, y, r = None, sigma = None, solv='quadprog', fn=mutual_info_sc
 		r = X.shape[1] - 1
 	if r >= X.shape[1]:
 		raise TypeError("r parameter should be less than the number of features")
-	F = np.zeros(X.shape[1]) # F vector represents of each variable with class(here it is intialized)
+	F = np.zeros(X.shape[1], dtype=np.double) # F vector represents of each variable with class(here it is intialized)
 	XT = X.T # Transposed matrix X 
-	class_size = max(y) + 1 # Count the number of classes, we assume that class labels would be numbers from 1 to max(y)
+	class_size = max(y) + 1# Count the number of classes, we assume that class labels would be numbers from 1 to max(y)
 	priors = __count_priors(y) # Count prior probabilities of classes
+	y = y.astype(np.double)
 	for i in range(class_size): # Loop through classes
+		if i == 0:
+			continue
 		Ck = __getCk(y, i) # Get array C(i) where C(k) is 1 when i = k and 0 otherwise
-		for j in range(XT.shape[0]): # Loop through features
-			F[j] = priors[i] * fn(XT[j], Ck) # Counting F vector
-	Q = np.zeros((X.shape[1], X.shape[1])) # Q represents dependency between variables(here it is initalized)
-	for i in range(XT.shape[0]): # Loop through features
-		for j in range(XT.shape[0]): # Loop through features
-			Q[i][j] = fn(XT[i], XT[j]) # Counting dependency, using normalized mutual info score
+		F += priors[i] * fn(XT, Ck) # Counting F vector
+	Q = fn(XT, XT).reshape(XT.shape[0], XT.shape[0]) # Counting dependency, using normalized mutual info score
 	indices = np.random.random_integers(0, Q.shape[0] - 1, r) # Taking random r indices according to Nystrom approximation
 	A = Q[indices][:, :r] # A matrix for Nystrom(matrix of real numbers with size of [r, r])
 	B = Q[indices][:, r:] # B matrix for Nystrom(matrix of real numbers with size of [r, M - r])
