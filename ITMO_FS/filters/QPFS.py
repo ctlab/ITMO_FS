@@ -57,9 +57,7 @@ def QPFS_filter(X, y, r = None, sigma = None, solv='quadprog', fn=pearson_corr):
 	class_size = max(y) + 1# Count the number of classes, we assume that class labels would be numbers from 1 to max(y)
 	priors = __count_priors(y) # Count prior probabilities of classes
 	y = y.astype(np.double)
-	for i in range(class_size): # Loop through classes
-		if i == 0:
-			continue
+	for i in range(1, class_size): # Loop through classes
 		Ck = __getCk(y, i) # Get array C(i) where C(k) is 1 when i = k and 0 otherwise
 		F += priors[i] * fn(XT, Ck) # Counting F vector
 	Q = fn(XT, XT).reshape(XT.shape[0], XT.shape[0]) # Counting dependency, using normalized mutual info score
