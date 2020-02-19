@@ -55,11 +55,10 @@ def QPFS_filter(X, y, r = None, sigma = None, solv='quadprog', fn=pearson_corr):
 	F = np.zeros(X.shape[1], dtype=np.double) # F vector represents of each variable with class(here it is intialized)
 	XT = X.T # Transposed matrix X 
 	class_size = max(y) + 1# Count the number of classes, we assume that class labels would be numbers from 1 to max(y)
-	priors = __count_priors(y) # Count prior probabilities of classes
-	y = y.astype(np.double)
+	priors = np.histogram(y, bins=max(y))[0] # Count prior probabilities of classes
 	for i in range(1, class_size): # Loop through classes
-		Ck = __getCk(y, i) # Get array C(i) where C(k) is 1 when i = k and 0 otherwise
-		F += priors[i] * fn(XT, Ck) # Counting F vector
+		Ck = np.where(y == i, 1, 0) # Get array C(i) where C(k) is 1 when i = k and 0 otherwise
+		F += priors[i - 1] * fn(XT, Ck) # Counting F vector
 	Q = fn(XT, XT).reshape(XT.shape[0], XT.shape[0]) # Counting dependency, using normalized mutual info score
 	indices = np.random.random_integers(0, Q.shape[0] - 1, r) # Taking random r indices according to Nystrom approximation
 	A = Q[indices][:, :r] # A matrix for Nystrom(matrix of real numbers with size of [r, r])
@@ -95,20 +94,6 @@ def __filterBy(sigma, eigvals, U):
 		if eigvals[i] > sigma:
 			y.append(i)
 	return (eigvals[y], U[:, y])
-
-def __count_priors(y):
-	class_size = max(y) + 1
-	priors = np.zeros(class_size)
-	for i in y:
-		priors[i] += 1
-	return list(map(lambda x: x / len(y), priors))
-
-
-def __getCk(y, k):
-	Ck = [x for x in range(len(y))]
-	for i in range(len(y)):
-		Ck[i] = (0, 1)[k == y[i]]
-	return Ck
 
 def __countAlpha(A, B, F):
 	sumQ = 0
