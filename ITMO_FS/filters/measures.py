@@ -405,7 +405,7 @@ def laplacian_score(X, y, k_neighbors = 5, t = 1,
     metric : callable
         Norm function to compute distance between two points.
         The default distance is euclidean.
-    model : numpy array, shape (n_samples, n_samples)
+    weights : numpy array, shape (n_samples, n_samples)
         The weight matrix of the graph that models the local structure of the data space.
         By default it is constructed using KNN algorithm.
 
@@ -418,11 +418,21 @@ def laplacian_score(X, y, k_neighbors = 5, t = 1,
     --------
     https://papers.nips.cc/paper/2909-laplacian-score-for-feature-selection.pdf
 
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    data = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    X = np.array(data[0])
+    y = np.array(data[1])
+    scores = laplacian_score(X, y)
+    features = sorted(range(len(scores)), key = lambda k: scores[k])
+    print(features)
+
     """
     n, m = X.shape
     k_neighbors = min(k_neighbors, n - 1)
-    if 'model' in kwargs.keys():
-        S = kwargs['model']
+    if 'weights' in kwargs.keys():
+        S = kwargs['weights']
     else:
         S = np.zeros((n, n))
         for i in range(n):
