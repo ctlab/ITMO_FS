@@ -26,9 +26,9 @@ class MrmrDiscreteFilter(object):
 
         examples
         --------
-        >>> mrmr_filter = MrmrDiscreteFilter(3)
-        >>> features = mrmr_filter.run(X, y)
-        >>> features
+        # >>> mrmr_filter = MrmrDiscreteFilter(3)
+        # >>> features = mrmr_filter.run(X, y)
+        # >>> features
         ['v4938', 'v8837', 'v4520']
 
     """

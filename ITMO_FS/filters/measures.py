@@ -60,7 +60,8 @@ def __calculate_F_ratio(row, y_data):
     return f_ratio
 
 
-def __f_ratio_measure(X, y, n):  # TODO: add default value for n so that it is callable like other measures with (X, y) arguments
+def __f_ratio_measure(X, y,
+                      n):  # TODO: add default value for n so that it is callable like other measures with (X, y) arguments
     assert not 1 < X.shape[1] < n, 'incorrect number of features'
     f_ratios = []
     for feature in X.T:
@@ -154,7 +155,7 @@ def su_measure(X, y):
     return f_ratios
 
 
-# TODO concordation coef
+# TODO concordation coef, kendal coef
 
 def fechner_corr(X, y):
     """
@@ -162,10 +163,17 @@ def fechner_corr(X, y):
     """
     y_mean = np.mean(y)
     n = X.shape[0]
-    f_ratios = np.zeros(X.shape[1])
-    for j in range(X.shape[1]):
+    try:
+        m = X.shape[1]
+    except IndexError:
+        m = 1
+    f_ratios = np.zeros(m)
+    for j in range(m):
         y_dev = y[j] - y_mean
-        x_j_mean = np.mean(X[:, j])
+        if m == 1:
+            x_j_mean = np.mean(X)
+        else:
+            x_j_mean = np.mean(X[:, j])
         for i in range(n):
             x_dev = X[i, j] - x_j_mean
             if x_dev >= 0 & y_dev >= 0:
@@ -372,17 +380,20 @@ def __mi(U, V):
 def spearman_corr(X, y):
     n = X.shape[0]
     c = 6 / (n * (n - 1) * (n + 1))
-    dif = X - np.repeat(y, X.shape[1]).reshape(y.shape[0], X.shape[1])
+    if y.shape == X.shape:
+        dif = X - y
+    else:
+        dif = X - np.repeat(y, X.shape[1]).reshape(y.shape[0], X.shape[1])
     return 1 - c * np.sum(dif * dif, axis=0)
 
 
 def pearson_corr(X, y):
     x_dev = X - np.mean(X, axis=0)
-    y_dev = y - np.mean(y)
+    y_dev = y - np.mean(y, axis=0)
     sum_dev = y_dev.T.dot(x_dev)
     sq_dev_x = x_dev * x_dev
     sq_dev_y = y_dev * y_dev
-    return (sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))).reshape((-1,))
+    return sum_dev / np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
 
 
 # print(SpearmanCorrelation)

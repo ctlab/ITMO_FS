@@ -31,14 +31,14 @@ class Add_del(object):
         examples
         --------
         >>> from sklearn.metrics import accuracy_score
+        >>> from sklearn import datasets,linear_model
+        >>> import pandas as pd
         >>> data = datasets.make_classification(n_samples=1000, n_features=20)
         >>> X = np.array(data[0])
         >>> y = np.array(data[1])
         >>> lg = linear_model.LogisticRegression(solver='lbfgs')
-        >>> add_del = Add_del(lg, accuracy)
+        >>> add_del = Add_del(lg, accuracy_score)
         >>> features = add_del.run(X, y)
-        >>> features
-        [5, 6, 8, 11, 16]
 
         >>> from sklearn.metrics import mean_absolute_error
         >>> boston = datasets.load_boston()
