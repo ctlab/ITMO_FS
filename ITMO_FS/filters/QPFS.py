@@ -98,18 +98,8 @@ def __filterBy(sigma, eigvals, U):
 def __countAlpha(A, B, F):
 	sumQ = 0
 	Comb = B.T.dot(np.linalg.pinv(A)).dot(B)
-	for i in range(A.shape[0]):
-		for j in range(A.shape[1]):
-			sumQ += A[i][j]
-	for i in range(B.shape[0]):
-		for j in range(B.shape[1]):
-			sumQ += 2 * B[i][j]
-	for i in range(Comb.shape[0]):
-		for j in range(Comb.shape[1]):
-			sumQ += Comb[i][j]
+	sumQ = np.sum(A) + 2 * np.sum(B) + np.sum(Comb)
 	sumQ /= (A.shape[1] + B.shape[1])**2
-	sumF = 0
-	for i in F:
-		sumF += i
+	sumF = np.sum(F)
 	sumF /= len(F)
 	return sumQ / (sumQ + sumF)
