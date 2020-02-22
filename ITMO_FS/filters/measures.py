@@ -450,11 +450,9 @@ def laplacian_score(X, y, k_neighbors = 5, t = 1,
     ONE = np.ones((n,))
     D = np.diag(S.dot(ONE))
     L = D - S
-    LS = []
-    for r in range(m):
-        f = X[:, r] - ONE * (X[:, r].dot(D.dot(ONE)) / ONE.dot(D.dot(ONE)))
-        LS.append(f.dot(L.dot(f)) / f.dot(D.dot(f)))
-    return LS
+    F = X - X.T.dot(D.dot(ONE)) / ONE.dot(D.dot(ONE))
+    F = F.T.dot(L.dot(F)) / F.T.dot(D.dot(F))
+    return np.diag(F)
 
 
 # print(SpearmanCorrelation)
