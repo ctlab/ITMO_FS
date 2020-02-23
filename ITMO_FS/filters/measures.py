@@ -1,5 +1,6 @@
 from functools import partial
 from math import log
+from math import exp
 
 import numpy as np
 from scipy import sparse as sp
@@ -394,6 +395,75 @@ def pearson_corr(X, y):
     sq_dev_x = x_dev * x_dev
     sq_dev_y = y_dev * y_dev
     return sum_dev / np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
+
+
+def laplacian_score(X, y, k_neighbors = 5, t = 1, 
+                    metric = np.linalg.norm, **kwargs):
+    """
+    Calculates Laplacian Score for each feature.
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+    k_neighbors : int
+        The number of neighbors to construct a nearest neighbor graph.
+    t : float
+        Suitable constant for weight matrix S, 
+        where Sij = exp(-(|xi - xj| ^ 2) / t).
+    metric : callable
+        Norm function to compute distance between two points.
+        The default distance is euclidean.
+    weights : numpy array, shape (n_samples, n_samples)
+        The weight matrix of the graph that models the local structure of the data space.
+        By default it is constructed using KNN algorithm.
+
+    Returns
+    -------
+    List of scores of each feature.
+    The smaller the laplacian score is, the more important the feature is.
+
+    See Also
+    --------
+    https://papers.nips.cc/paper/2909-laplacian-score-for-feature-selection.pdf
+
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    data = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    X = np.array(data[0])
+    y = np.array(data[1])
+    scores = laplacian_score(X, y)
+    features = sorted(range(len(scores)), key = lambda k: scores[k])
+    print(features)
+
+    """
+    n, m = X.shape
+    k_neighbors = min(k_neighbors, n - 1)
+    if 'weights' in kwargs.keys():
+        S = kwargs['weights']
+    else:
+        S = np.zeros((n, n))
+        for i in range(n):
+            distances = []
+            for j in range(n):
+                if i == j:
+                    continue
+                d = metric(X[i] - X[j])
+                distances.append((d, j))
+                if y[i] == y[j]:
+                    S[i, j] = exp(-d * d / t)
+            distances.sort()
+            for j in range(k_neighbors):
+                S[i, distances[j][1]] = S[distances[j][1], i] = exp(-distances[j][0] * distances[j][0] / t)
+    ONE = np.ones((n,))
+    D = np.diag(S.dot(ONE))
+    L = D - S
+    F = X - X.T.dot(D.dot(ONE)) / ONE.dot(D.dot(ONE))
+    F = F.T.dot(L.dot(F)) / F.T.dot(D.dot(F))
+    return np.diag(F)
 
 
 # print(SpearmanCorrelation)
