@@ -2,10 +2,9 @@ import numpy as np
 from scipy.linalg import sqrtm
 from sklearn.metrics import mutual_info_score
 from qpsolvers import solve_qp
-from ITMO_FS.filters.measures import pearson_corr
 import math    
 
-def qpfs_body(X, y, alpha = None, r = None, sigma = None, solv='quadprog', fn=pearson_corr):
+def qpfs_body(X, y, fn, alpha = None, r = None, sigma = None, solv='quadprog'):
     #TODO understand why complex double appears 
     #TODO find suitable r parameter value
     #TODO find suitable sigma parameter value

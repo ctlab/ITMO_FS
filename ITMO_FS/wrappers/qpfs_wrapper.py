@@ -42,4 +42,4 @@ def qpfs_wrapper(X, y, alpha, r = None, sigma = None, solv='quadprog', fn=pearso
 	print(ranks)
 
     """
-    return qpfs_body(X, y, alpha = alpha, r = r, sigma = sigma, solv=solv, fn=fn)
+	return qpfs_body(X, y, fn, alpha = alpha, r = r, sigma = sigma, solv=solv)
