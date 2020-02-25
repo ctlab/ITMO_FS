@@ -1,12 +1,13 @@
 from functools import partial
-from math import log
 from math import exp
+from math import log
 
 import numpy as np
 from scipy import sparse as sp
 
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.qpfs_body import qpfs_body
+
 
 # from sklearn.feature_selection import mutual_info_classif as MI
 
@@ -397,8 +398,8 @@ def pearson_corr(X, y):
     return sum_dev / np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
 
 
-def laplacian_score(X, y, k_neighbors = 5, t = 1, 
-                    metric = np.linalg.norm, **kwargs):
+def laplacian_score(X, y, k_neighbors=5, t=1,
+                    metric=np.linalg.norm, **kwargs):
     """
     Calculates Laplacian Score for each feature.
 
@@ -461,7 +462,8 @@ def laplacian_score(X, y, k_neighbors = 5, t = 1,
     ONE = np.ones((n,))
     D = np.diag(S.dot(ONE))
     L = D - S
-    F = X - X.T.dot(D.dot(ONE)) / ONE.dot(D.dot(ONE))
+    t=D.dot(ONE)
+    F = X - X.T.dot(t) / ONE.dot(t)
     F = F.T.dot(L.dot(F)) / F.T.dot(D.dot(F))
     return np.diag(F)
 
@@ -529,8 +531,8 @@ GLOB_CR = {"Best by value": select_best_by_value,
            "K best": select_k_best,
            "K worst": select_k_worst}
 
-def qpfs_filter(X, y, r = None, sigma = None, solv='quadprog', fn=pearson_corr):
-    
+
+def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
     """
     Performs Quadratic Programming Feature Selection algorithm.
     Note that this realization requires labels to start from 1 and be numberical.
@@ -568,5 +570,4 @@ def qpfs_filter(X, y, r = None, sigma = None, solv='quadprog', fn=pearson_corr):
 
     """
 
-    return qpfs_body(X, y, fn, r = r, sigma = sigma, solv = solv)
-
+    return qpfs_body(X, y, fn, r=r, sigma=sigma, solv=solv)

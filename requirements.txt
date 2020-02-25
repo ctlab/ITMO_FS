@@ -2,3 +2,4 @@ imblearn
 numpy
 scipy
 scikit-learn
+qpsolvers
