@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class BestSum:  ## TODO refactor
+class BestSum:  ## TODO refactor , not stable
 
     def _init_(self, models, cutting_rule):
         self.models = models
