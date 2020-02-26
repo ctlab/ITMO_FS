@@ -1,10 +1,12 @@
 from functools import partial
+from math import exp
 from math import log
 
 import numpy as np
 from scipy import sparse as sp
 
-from ITMO_FS.utils import generate_features
+from ITMO_FS.utils.data_check import generate_features
+from ITMO_FS.utils.qpfs_body import qpfs_body
 
 
 # from sklearn.feature_selection import mutual_info_classif as MI
@@ -54,13 +56,14 @@ def __calculate_F_ratio(row, y_data):
         n = np.sum(row[index_for_this_value])
         mu = np.mean(row[index_for_this_value])
         var = np.var(row[index_for_this_value])
-        inter_class += n * np.power((mu - mu), 2)
+        inter_class += n * np.power((mu - mu), 2)  # TODO: something went horribly wrong here
         intra_class += (n - 1) * var
     f_ratio = inter_class / intra_class
     return f_ratio
 
 
-def __f_ratio_measure(X, y, n):
+def __f_ratio_measure(X, y,
+                      n):  # TODO: add default value for n so that it is callable like other measures with (X, y) arguments
     assert not 1 < X.shape[1] < n, 'incorrect number of features'
     f_ratios = []
     for feature in X.T:
@@ -154,7 +157,7 @@ def su_measure(X, y):
     return f_ratios
 
 
-# TODO concordation coef
+# TODO concordation coef, kendal coef
 
 def fechner_corr(X, y):
     """
@@ -162,10 +165,17 @@ def fechner_corr(X, y):
     """
     y_mean = np.mean(y)
     n = X.shape[0]
-    f_ratios = np.zeros(X.shape[1])
-    for j in range(X.shape[1]):
+    try:
+        m = X.shape[1]
+    except IndexError:
+        m = 1
+    f_ratios = np.zeros(m)
+    for j in range(m):
         y_dev = y[j] - y_mean
-        x_j_mean = np.mean(X[:, j])
+        if m == 1:
+            x_j_mean = np.mean(X)
+        else:
+            x_j_mean = np.mean(X[:, j])
         for i in range(n):
             x_dev = X[i, j] - x_j_mean
             if x_dev >= 0 & y_dev >= 0:
@@ -372,17 +382,90 @@ def __mi(U, V):
 def spearman_corr(X, y):
     n = X.shape[0]
     c = 6 / (n * (n - 1) * (n + 1))
-    dif = X - np.repeat(y, X.shape[1]).reshape(y.shape[0], X.shape[1])
+    if y.shape == X.shape:
+        dif = X - y
+    else:
+        dif = X - np.repeat(y, X.shape[1]).reshape(y.shape[0], X.shape[1])
     return 1 - c * np.sum(dif * dif, axis=0)
 
 
 def pearson_corr(X, y):
     x_dev = X - np.mean(X, axis=0)
-    y_dev = y - np.mean(y)
+    y_dev = y - np.mean(y, axis=0)
     sum_dev = y_dev.T.dot(x_dev)
     sq_dev_x = x_dev * x_dev
     sq_dev_y = y_dev * y_dev
-    return (sum_dev / np.sqrt(np.sum(sq_dev_y) * np.sum(sq_dev_x))).reshape((-1,))
+    return sum_dev / np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
+
+
+def laplacian_score(X, y, k_neighbors=5, t=1,
+                    metric=np.linalg.norm, **kwargs):
+    """
+    Calculates Laplacian Score for each feature.
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+    k_neighbors : int
+        The number of neighbors to construct a nearest neighbor graph.
+    t : float
+        Suitable constant for weight matrix S, 
+        where Sij = exp(-(|xi - xj| ^ 2) / t).
+    metric : callable
+        Norm function to compute distance between two points.
+        The default distance is euclidean.
+    weights : numpy array, shape (n_samples, n_samples)
+        The weight matrix of the graph that models the local structure of the data space.
+        By default it is constructed using KNN algorithm.
+
+    Returns
+    -------
+    List of scores of each feature.
+    The smaller the laplacian score is, the more important the feature is.
+
+    See Also
+    --------
+    https://papers.nips.cc/paper/2909-laplacian-score-for-feature-selection.pdf
+
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    data = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    X = np.array(data[0])
+    y = np.array(data[1])
+    scores = laplacian_score(X, y)
+    features = sorted(range(len(scores)), key = lambda k: scores[k])
+    print(features)
+
+    """
+    n, m = X.shape
+    k_neighbors = min(k_neighbors, n - 1)
+    if 'weights' in kwargs.keys():
+        S = kwargs['weights']
+    else:
+        S = np.zeros((n, n))
+        for i in range(n):
+            distances = []
+            for j in range(n):
+                if i == j:
+                    continue
+                d = metric(X[i] - X[j])
+                distances.append((d, j))
+                if y[i] == y[j]:
+                    S[i, j] = exp(-d * d / t)
+            distances.sort()
+            for j in range(k_neighbors):
+                S[i, distances[j][1]] = S[distances[j][1], i] = exp(-distances[j][0] * distances[j][0] / t)
+    ONE = np.ones((n,))
+    D = np.diag(S.dot(ONE))
+    L = D - S
+    t=D.dot(ONE)
+    F = X - X.T.dot(t) / ONE.dot(t)
+    F = F.T.dot(L.dot(F)) / F.T.dot(D.dot(F))
+    return np.diag(F)
 
 
 # print(SpearmanCorrelation)
@@ -447,3 +530,44 @@ GLOB_CR = {"Best by value": select_best_by_value,
            "Worst by value": select_worst_by_value,
            "K best": select_k_best,
            "K worst": select_k_worst}
+
+
+def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
+    """
+    Performs Quadratic Programming Feature Selection algorithm.
+    Note that this realization requires labels to start from 1 and be numberical.
+    
+    Parameters
+    ----------
+    X : array-like, shape (n_samples,n_features)
+        The input samples.
+    y : array-like, shape (n_samples)
+        The classes for the samples.
+    r : int
+        The number of samples to be used in Nystrom optimization.
+    sigma : double
+        The threshold for eigenvalues to be used in solving QP optimization.
+    solv : string, default
+        The name of qp solver according to qpsolvers(https://pypi.org/project/qpsolvers/) naming.
+        Note quadprog is used by default.
+    fn : function(array, array), default
+        The function to count correlation, for example pierson correlation or  mutual information.
+        Note mutual information is used by default.
+    Returns
+    ------
+    array-like, shape (n_features) : the ranks of features in dataset, with rank increase, feature relevance increases and redundancy decreases.
+    
+    See Also
+    --------
+    http://www.jmlr.org/papers/volume11/rodriguez-lujan10a/rodriguez-lujan10a.pdf
+    
+    Examples
+    --------
+    x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    y = np.array([1, 3, 2, 1, 2])
+    ranks = qpfs_filter(x, y)
+    print(ranks)
+
+    """
+
+    return qpfs_body(X, y, fn, r=r, sigma=sigma, solv=solv)

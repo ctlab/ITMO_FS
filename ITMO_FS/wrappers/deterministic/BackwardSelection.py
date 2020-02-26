@@ -24,7 +24,7 @@ class BackwardSelection:
         --------
 
 
-        Examples
+        examples
         --------
 
         """
@@ -34,11 +34,11 @@ class BackwardSelection:
         if not hasattr(estimator, 'fit'):
             raise TypeError("estimator should be an estimator implementing "
                             "'fit' method, %r was passed" % estimator)
-        self.__estimator__ = estimator
+        self._estimator = estimator
         self.__n_features__ = n_features
         self.features__ = []
         self.__measure = measure
-        self.best_score = 0
+        self.best_score = None
 
     def fit(self, X, y, cv=3):
         """
@@ -58,7 +58,7 @@ class BackwardSelection:
 
             See Also
             --------
-            Examples
+            examples
             --------
 
         """
@@ -67,15 +67,15 @@ class BackwardSelection:
         selected_features = np.array([feature for feature in sorted_features_ranks])
         number_of_features_left_to_remove = self.__n_features__
 
-        self.__estimator__.fit(X[:, selected_features], y)
-        accuracy = get_current_cv_accuracy(self.__estimator__, X, y, selected_features, cv)
+        self._estimator.fit(X[:, selected_features], y)
+        accuracy = get_current_cv_accuracy(self._estimator, X, y, selected_features, cv)
         i = 0
         self.best_score = accuracy
         while len(sorted_features_ranks) != i and i < len(selected_features):
             iteration_features = np.delete(selected_features, i)
-            self.__estimator__.fit(X[:, iteration_features], y)
+            self._estimator.fit(X[:, iteration_features], y)
 
-            iteration_accuracy = get_current_cv_accuracy(self.__estimator__, X, y, iteration_features, cv)
+            iteration_accuracy = get_current_cv_accuracy(self._estimator, X, y, iteration_features, cv)
             if iteration_accuracy > self.best_score:
                 selected_features = iteration_features
                 number_of_features_left_to_remove -= 1
@@ -88,4 +88,4 @@ class BackwardSelection:
         self.features__ = selected_features
 
     def predict(self, X):
-        self.__estimator__.predict(X[:, self.features__])
+        self._estimator.predict(X[:, self.features__])
