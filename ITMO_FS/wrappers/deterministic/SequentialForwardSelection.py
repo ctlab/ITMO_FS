@@ -25,12 +25,12 @@ class SequentialForwardSelection:
 
         """
 
-    def __init__(self, estimator, n_features):
+    def __init__(self, estimator, n_features): #TODO add metric
         self.__estimator__ = estimator
         self.__n_features__ = n_features
         self.__features__ = []
 
-    def fit(self, X, y, test_x, test_y):
+    def fit(self, X, y, test_x, test_y): #TODO test must not EXIST
         """
             Fits wrapper.
 

@@ -56,7 +56,7 @@ class Add_del(object):
         if not hasattr(estimator, 'fit'):
             raise TypeError("estimator should be an estimator implementing "
                             "'fit' method, %r was passed" % estimator)
-        self.estimator = estimator
+        self._estimator = estimator
         self.score = score
         self.maximize = maximize
         rnd.seed(seed)
@@ -75,7 +75,7 @@ class Add_del(object):
 
             appended.append(feature)
 
-            current_score = abs(np.mean(cross_val_score(self.estimator, X[:, appended], y,
+            current_score = abs(np.mean(cross_val_score(self._estimator, X[:, appended], y,
                                                         scoring=make_scorer(self.score,
                                                                             greater_is_better=self.maximize),
                                                         cv=cv)))
@@ -102,7 +102,7 @@ class Add_del(object):
 
     def __del(self, X, y, features, cv=3, silent=True):
 
-        prev_score = abs(np.mean(cross_val_score(self.estimator, X[:, features], y,
+        prev_score = abs(np.mean(cross_val_score(self._estimator, X[:, features], y,
                                                  scoring=make_scorer(self.score, greater_is_better=self.maximize),
                                                  cv=cv)))
         current_score = 0
@@ -117,7 +117,7 @@ class Add_del(object):
 
             features.remove(feature)
 
-            current_score = abs(np.mean(cross_val_score(self.estimator, X[:, features], y,
+            current_score = abs(np.mean(cross_val_score(self._estimator, X[:, features], y,
                                                         scoring=make_scorer(self.score,
                                                                             greater_is_better=self.maximize),
                                                         cv=cv)))
@@ -148,7 +148,7 @@ class Add_del(object):
 
         return features, res_score
 
-    def run(self, X, y, cv=3, silent=True): ##TODO with fit predict
+    def fit(self, X, y, cv=3, silent=True):  ##TODO with fit predict
         """
            Fits wrapper.
 
@@ -208,6 +208,9 @@ class Add_del(object):
         self.best_score = score
 
         if return_feature_names:
-            return list(columns[features])
+            features = list(columns[features])
 
-        return features
+        self._estimator.fit(X[:, features], y)
+
+    def predict(self, X):
+        return self._estimator.predict(X)

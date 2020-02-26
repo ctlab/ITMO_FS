@@ -1,4 +1,4 @@
-from ITMO_FS.filters.measures import pearson_corr
+from ITMO_FS.filters.univariate.measures import pearson_corr
 from ITMO_FS.utils.qpfs_body import qpfs_body
 
 

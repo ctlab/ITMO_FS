@@ -1,6 +1,6 @@
 import random
 
-from ITMO_FS.filters.measures import select_k_best
+from ITMO_FS.filters.univariate.measures import select_k_best
 
 
 class Mixed:
@@ -16,7 +16,7 @@ class Mixed:
 
     Examples
     --------
-    from ITMO_FS.filters.measures import spearman_corr,pearson_corr
+    from ITMO_FS.filters.univariate.measures import spearman_corr,pearson_corr
     from ITMO_FS.hybrid.Mixed import Mixed
     from sklearn.datasets import make_classification
     x, y = make_classification(1000, 50, n_informative = 5, n_redundant = 3, n_repeated = 2, shuffle = True)
@@ -50,14 +50,14 @@ class Mixed:
 
     def run(self, X, y, k):
         result = []
-        filterResults = list(map(lambda fn: select_k_best(k)(dict(zip(list(range(X.shape[1])), fn(X, y)))),
-                                 self.__filters))  # call every filter on input data, then select k best for each of them
+        filter_results = list(map(lambda fn: select_k_best(k)(dict(zip(list(range(X.shape[1])), fn(X, y)))),
+                                  self.__filters))  # call every filter on input data, then select k best for each of them
 
         place = 0
         while (len(result) < k) and (place < k):
-            placedFeatures = list(map(list, zip(*filterResults)))[
+            placed_features = list(map(list, zip(*filter_results)))[
                 place]  # take only features at index=place in filter array
-            random.shuffle(placedFeatures)
-            [result.append(z) for z in list(set(placedFeatures)) if z not in result]
+            random.shuffle(placed_features)
+            [result.append(z) for z in list(set(placed_features)) if z not in result]
             place += 1
         return result[0:k]

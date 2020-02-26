@@ -65,8 +65,8 @@ def get_current_cv_accuracy(__estimator__, X, y, current_features, cv=3):
 def cross_validate(X, y, random=False, k=3):
     x_t, y_t = X, y
     if random:
-        x_t = shuffle(x_t)  # REDO THAT THING
-        y_t = shuffle(y_t)
+        shuffle(x_t)
+        shuffle(y_t)
     x_y_pairs = []
     n = int(X.shape[0] / k)
     for i in range(k):

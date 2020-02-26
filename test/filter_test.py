@@ -3,7 +3,7 @@ import unittest
 from sklearn.datasets import load_iris
 from sklearn.datasets import make_classification, make_regression
 
-from ITMO_FS.filters.UnivariateFilter import *
+from ITMO_FS.filters.univariate.UnivariateFilter import *
 
 
 class TestCases(unittest.TestCase):
