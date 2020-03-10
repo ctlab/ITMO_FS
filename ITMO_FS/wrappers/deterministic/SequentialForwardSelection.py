@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+from sklearn.model_selection import cross_val_score
+
 import numpy as np
 
-from ..wrapper_utils import get_current_accuracy
+from ...utils import generate_features
 
 
 class SequentialForwardSelection:
@@ -15,7 +17,9 @@ class SequentialForwardSelection:
             through a coef_ attribute or through a feature_importances_ attribute.
         n_features : int
             Number of features to select.
-
+        measure : string or callable
+            A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable object / function with signature 
+            measure(estimator, X, y) which should return only a single value.
         See Also
         --------
 
@@ -25,12 +29,12 @@ class SequentialForwardSelection:
 
         """
 
-    def __init__(self, estimator, n_features): #TODO add metric
-        self.__estimator__ = estimator
-        self.__n_features__ = n_features
-        self.__features__ = []
+    def __init__(self, estimator, n_features, measure):
+        self.__estimator = estimator
+        self.__n_features = n_features
+        self.__measure = measure
 
-    def fit(self, X, y, test_x, test_y): #TODO test must not EXIST
+    def fit(self, X, y, cv=3):
         """
             Fits wrapper.
 
@@ -39,38 +43,46 @@ class SequentialForwardSelection:
             X : array-like, shape (n_features,n_samples)
                 The training input samples.
             y : array-like, shape (n_features,n_samples)
-                the target values.
-            test_x : array-like, shape (n_features, n_samples)
-                Testing Set
-            test_y : array-like , shape(n_samples)
-                Labels
+                The target values.
+            cv : int
+                Number of folds in cross-validation.
             Returns
             ------
             None
 
             See Also
             --------
+
             examples
             --------
+            from ITMO_FS.wrappers import SequentialForwardSelection
+            from sklearn.linear_model import LogisticRegression
+            from sklearn.datasets import make_classification
+
+            import numpy as np
+
+            dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
+            data, target = np.array(dataset[0]), np.array(dataset[1])
+            model = SequentialForwardSelection(LogisticRegression(), 5, 'f1_macro')
+            model.fit(data, target)
+            print(model.selected_features)
+
 
         """
-        accuracy = 0
-        current_features = np.array([])
+        self.selected_features = np.array([], dtype=int)
+        features_left = generate_features(X)
 
-        for feature in X[0:1, :]: 
-            old_features = current_features
-            current_features = np.append(current_features, feature)
-            self.__estimator__.fit([X[i] for i in current_features], y) # TODO: rewrite to correct matrix of shape (n_samples,n_features)
-
-            current_accuracy = get_current_accuracy(X, current_features, test_x, test_y)
-
-            if current_accuracy > accuracy:
-                self.__features__ = current_features
-                accuracy = current_accuracy
-                if len(self.__features__) == self.__n_features__:
-                    break
-            else:
-                current_features = old_features
+        while len(self.selected_features) != self.__n_features:
+            max_measure = 0
+            to_add = 0
+            for i in range(len(features_left)):
+                iteration_features = np.append(self.selected_features, features_left[i])
+                iteration_measure = cross_val_score(self.__estimator, X[:, iteration_features], y, cv=cv, scoring=self.__measure).mean()
+                if iteration_measure > max_measure:
+                    max_measure = iteration_measure
+                    to_add = i
+            self.selected_features = np.append(self.selected_features, features_left[to_add])
+            features_left = np.delete(features_left, to_add)
 
     def predict(self, X):
-        self.__estimator__.predict([X[i] for i in self.__features__])
+        self.__estimator.predict(X[:, self.selected_features])
