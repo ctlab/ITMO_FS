@@ -18,7 +18,7 @@ class SequentialForwardSelection:
         n_features : int
             Number of features to select.
         measure : string or callable
-            A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable object / function with signature 
+            A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable object / function with signature
             measure(estimator, X, y) which should return only a single value.
         See Also
         --------

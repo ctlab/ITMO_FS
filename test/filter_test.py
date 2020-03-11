@@ -1,9 +1,10 @@
 import unittest
 
+import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.datasets import make_classification, make_regression
 
-from ITMO_FS.filters.univariate.UnivariateFilter import *
+from ITMO_FS.filters.univariate import *
 
 
 class TestCases(unittest.TestCase):
@@ -14,13 +15,13 @@ class TestCases(unittest.TestCase):
 
     def test_filter(self):
         data, target = load_iris(True)
-        res = UnivariateFilter(spearman_corr, select_best_by_value(0.9999)).run(data, target)
+        res = UnivariateFilter(spearman_corr, select_best_by_value(0.9999)).fit_transform(data, target)
         print("SpearmanCorr:", data.shape, '--->', res.shape)
 
     def test_k_best(self):
         data, target = self.wide_classification[0], self.wide_classification[1]
         for i in [5, 10, 20]:
-            res = UnivariateFilter(spearman_corr, select_k_best(i)).run(data, target)
+            res = UnivariateFilter(spearman_corr, select_k_best(i)).fit_transform(data, target)
             assert i == res.shape[1]
 
     def test_corr(self):
@@ -28,4 +29,4 @@ class TestCases(unittest.TestCase):
         for f, answer in zip([spearman_corr, pearson_corr, fechner_corr],
                              [np.ones((data.shape[1],)), np.ones((data.shape[1],)), np.nan]):
             assert (f(data[0], data[0]) == answer).all()
-            res = UnivariateFilter(f, select_k_best(5)).run(data, target)
+            res = UnivariateFilter(f, select_k_best(5)).fit_transform(data, target)

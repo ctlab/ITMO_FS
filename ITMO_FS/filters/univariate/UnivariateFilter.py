@@ -1,7 +1,9 @@
-from .measures import *
+from sklearn.base import TransformerMixin
+
+from .measures import GLOB_CR, GLOB_MEASURE
 
 
-class UnivariateFilter(object):  # TODO ADD LOGGING
+class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
     def __init__(self, measure, cutting_rule):
         # TODO Check measure and cutting_rule
         if type(measure) is str:
@@ -24,29 +26,29 @@ class UnivariateFilter(object):  # TODO ADD LOGGING
         self.selected_features = None
 
     def _check_input(self, x, y, feature_names):
-        try:
+        if hasattr(x, 'values'):
             x = x.values
+        if hasattr(y, 'values'):
             y = y.values
-        except AttributeError:
-            x = x
         self.feature_scores = None
-        try:
+
+        if hasattr(x, 'columns'):
             feature_names = x.columns
-        except AttributeError:
+        else:
             if feature_names is None:
                 feature_names = list(range(x.shape[1]))
+
         return x, y, feature_names
 
     def get_scores(self, x, y, feature_names=None):
         x, y, feature_names = self._check_input(x, y, feature_names)
         return dict(zip(feature_names, self.measure(x, y)))
 
-    def fit_transform(self, x, y, feature_names=None, store_scores=False):
-        self.fit(x, y, feature_names, store_scores)
-        return self.transform(x)
+    def fit_transform(self, X, y=None, feature_names=None, store_scores=False, **fit_params):
+        self.fit(X, y, feature_names, store_scores)
+        return self.transform(X)
 
     def fit(self, x, y, feature_names=None, store_scores=False):
-        # TODO Check input
         x, y, feature_names = self._check_input(x, y, feature_names)
         feature_scores = None
         if not (self.hash == hash(self.measure)):
