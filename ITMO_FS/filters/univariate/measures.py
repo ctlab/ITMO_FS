@@ -7,6 +7,8 @@ from scipy import sparse as sp
 
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.qpfs_body import qpfs_body
+from ITMO_FS.utils.information_theory import __calc_entropy
+from ITMO_FS.utils.information_theory import __calc_conditional_entropy
 
 
 # from sklearn.feature_selection import mutual_info_classif as MI
@@ -85,67 +87,74 @@ def gini_index(X, y):
     return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
 
 
-def __calc_entropy(y):
-    dict_label = dict()
-    for label in y:
-        if label not in dict_label:
-            dict_label.update({label: 1})
-        else:
-            dict_label[label] += 1
-    entropy = 0.0
-    for i in dict_label.values():
-        entropy += -i / len(y) * log(i / len(y), 2)
-    return entropy
+def __mutual_information_single(x_j, y):
+    return __calc_entropy(y) - __calc_conditional_entropy(x_j, y)
 
-
-def __calc_conditional_entropy(x_j, y):
-    dict_i = dict()
-    for i in range(x_j.shape[0]):
-        if x_j[i] not in dict_i:
-            dict_i.update({x_j[i]: [i]})
-        else:
-            dict_i[x_j[i]].append(i)
-    # Conditional entropy of a feature.
-    con_entropy = 0.0
-    # get corresponding values in y.
-    for f in dict_i.values():
-        # Probability of each class in a feature.
-        p = len(f) / len(x_j)
-        # Dictionary of corresponding probability in labels.
-        dict_y = dict()
-        for i in f:
-            if y[i] not in dict_y:
-                dict_y.update({y[i]: 1})
-            else:
-                dict_y[y[i]] += 1
-        # calculate the probability of corresponding label.
-        sub_entropy = 0.0
-        for value in dict_y.values():
-            sub_entropy += -value / sum(dict_y.values()) * log(value / sum(dict_y.values()), 2)
-        con_entropy += sub_entropy * p
-    return con_entropy
-
-
-def ig_measure(X, y):
-    entropy = __calc_entropy(y)
+def mutual_information(X, y):
+    if X.ndim == 1:
+        return __mutual_information_single(X, y)
     f_ratios = np.empty(X.shape[1])
     for index in range(X.shape[1]):
-        f_ratios[index] = entropy - __calc_conditional_entropy(X[:, index], y)
+        f_ratios[index] = __mutual_information_single(X[:, index], y)
     return f_ratios
 
 
-##TODO redo sklearn stuff
-# def __mrmr_measure(cls, X, y, n):
-#     assert not 1 < X.shape[1] < n, 'incorrect number of features'
-#     x = np.array(X)
-#     y = np.array(y).ravel()
-#     # print([__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
-#     return [MI(x[:, j].reshape(-1, 1), y) for j in range(x.shape[1])]
-#
+def mrmr_measure(X, y):
+    #initialization step
+    freeXPool = list(range(0, X.shape[1]))
+    takenXPool = []
+    max_inf = 0.0
+    max_index = 0
+    for i in range(X.shape[1]):
+        temp_inf = __mutual_information_single(X[:, i], y)
+        if temp_inf > max_inf:
+            max_inf = temp_inf
+            max_index = i
+    freeXPool.remove(max_index)
+    takenXPool.append(max_index)
+    #main part of algorithm
+    changed = True
+    while(changed):
+        changed = False
+        max_dif_inf = -1
+        max_dif_index = 0
+        for i in freeXPool:
+            relevance = mutual_information(X[:, i], y)
+            redundancy = np.mean(np.array(list(map(lambda j: mutual_information(X[:, i], X[:, j]), takenXPool))))
+            if relevance - redundancy > max_dif_inf:
+                max_dif_inf = relevance - redundancy
+                max_dif_index = i
+        if max_dif_inf > 0.0:
+            changed = True
+            freeXPool.remove(max_dif_index)
+            takenXPool.append(max_dif_index)
+    return np.array(takenXPool)
 
-# def mrmr_measure(n):
-#     return partial(__mrmr_measure, n=n)
 
+def FCBF(X, y):
+    freeXPool = list(range(0, X.shape[1]))
+    takenXPool = []
+    while(freeXPool == []):
+        max_inf = 0.0
+        max_index = 0
+        for i in range(X.shape[1]):
+            temp_inf = __mutual_information_single(X[:, i], y)
+            if temp_inf > max_inf:
+                max_inf = temp_inf
+                max_index = i
+        freeXPool.remove(max_index)
+        takenXPool.append(max_index)
+        poolCopy = freeXPool.copy()
+        for i in freeXPool:
+            relevance = mutual_information(X[:, i], y)
+            redundancy = mutual_information(X[:, i], X[:, max_index])
+            if redundancy > relevance:
+                poolCopy.remove(i)
+        freeXPool = poolCopy
+    return takenXPool
+
+def conditional_mutual_information(x, y, z):
+    return __calc_entropy(list(zip(x, z))) + __calc_entropy(list(zip(y, z))) - __calc_entropy(list(zip(x, y, z))) - __calc_entropy(z)
 
 def su_measure(X, y):
     entropy = __calc_entropy(y)
