@@ -3,16 +3,6 @@ from math import exp
 from math import log
 
 
-def __calc_entropy(y):
-    dict_label = dict()
-    for label in y:
-        dict_label.update({label : dict_label.get(label, 0) + 1})
-    entropy = 0.0
-    for i in dict_label.values():
-        entropy += -i / len(y) * log(i / len(y), 2)
-    return entropy
-
-
 def __calc_conditional_entropy(x_j, y):
     Kx = max(x_j)
     countX = np.zeros(Kx + 1)
@@ -31,7 +21,7 @@ def __calc_conditional_entropy(x_j, y):
         partEntropy = 0.0
         curDict = dictYByX[i]
         for inClass in curDict.values():
-            partEntropy += inClass / countX[i] * log(inClass / countX[i])
+            partEntropy += elog(inClass / countX[i])
         entropy += countX[i] / len(y) * partEntropy
     return -entropy
 
@@ -41,10 +31,10 @@ def elog(x):
     else:
         return x*log(x)
 
-def __calc_entropy_joint(zipped_x):
+def __calc_entropy(X):
 	d = dict()
-	for x in zipped_x:
+	for x in X:
 		d[x] = d.get(x, 0) + 1
 	print(d)
-	probs = map(lambda z: float(z)/len(zipped_x), d.values())
+	probs = map(lambda z: float(z)/len(X), d.values())
 	return -sum(map(elog, probs))    
