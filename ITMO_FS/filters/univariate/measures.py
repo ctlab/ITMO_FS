@@ -7,8 +7,7 @@ from scipy import sparse as sp
 
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.qpfs_body import qpfs_body
-from ITMO_FS.utils.information_theory import __calc_entropy
-from ITMO_FS.utils.information_theory import __calc_conditional_entropy
+from ITMO_FS.utils.information_theory import __calc_entropy, __calc_conditional_entropy, __mutual_information_single
 
 
 # from sklearn.feature_selection import mutual_info_classif as MI
@@ -87,9 +86,6 @@ def gini_index(X, y):
     return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
 
 
-def __mutual_information_single(x_j, y):
-    return __calc_entropy(y) - __calc_conditional_entropy(x_j, y)
-
 def mutual_information(X, y):
     if X.ndim == 1:
         return __mutual_information_single(X, y)
@@ -152,9 +148,6 @@ def FCBF(X, y):
                 poolCopy.remove(i)
         freeXPool = poolCopy
     return takenXPool
-
-def conditional_mutual_information(x, y, z):
-    return __calc_entropy(list(zip(x, z))) + __calc_entropy(list(zip(y, z))) - __calc_entropy(list(zip(x, y, z))) - __calc_entropy(z)
 
 def su_measure(X, y):
     entropy = __calc_entropy(y)
