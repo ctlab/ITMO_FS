@@ -7,10 +7,6 @@ from scipy import sparse as sp
 
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.qpfs_body import qpfs_body
-from ITMO_FS.utils.information_theory import __calc_entropy, __calc_conditional_entropy, __mutual_information_single
-
-
-# from sklearn.feature_selection import mutual_info_classif as MI
 
 
 def fit_criterion_measure(X, y):
@@ -84,70 +80,6 @@ def gini_index(X, y):
     diff_x = (cum_x[1:] - cum_x[:-1])
     diff_y = (cum_y[1:] + cum_y[:-1])
     return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
-
-
-def mutual_information(X, y):
-    if X.ndim == 1:
-        return __mutual_information_single(X, y)
-    f_ratios = np.empty(X.shape[1])
-    for index in range(X.shape[1]):
-        f_ratios[index] = __mutual_information_single(X[:, index], y)
-    return f_ratios
-
-
-def mrmr_measure(X, y):
-    #initialization step
-    freeXPool = list(range(0, X.shape[1]))
-    takenXPool = []
-    max_inf = 0.0
-    max_index = 0
-    for i in range(X.shape[1]):
-        temp_inf = __mutual_information_single(X[:, i], y)
-        if temp_inf > max_inf:
-            max_inf = temp_inf
-            max_index = i
-    freeXPool.remove(max_index)
-    takenXPool.append(max_index)
-    #main part of algorithm
-    changed = True
-    while(changed):
-        changed = False
-        max_dif_inf = -1
-        max_dif_index = 0
-        for i in freeXPool:
-            relevance = mutual_information(X[:, i], y)
-            redundancy = np.mean(np.array(list(map(lambda j: mutual_information(X[:, i], X[:, j]), takenXPool))))
-            if relevance - redundancy > max_dif_inf:
-                max_dif_inf = relevance - redundancy
-                max_dif_index = i
-        if max_dif_inf > 0.0:
-            changed = True
-            freeXPool.remove(max_dif_index)
-            takenXPool.append(max_dif_index)
-    return np.array(takenXPool)
-
-
-def FCBF(X, y):
-    freeXPool = list(range(0, X.shape[1]))
-    takenXPool = []
-    while(freeXPool == []):
-        max_inf = 0.0
-        max_index = 0
-        for i in range(X.shape[1]):
-            temp_inf = __mutual_information_single(X[:, i], y)
-            if temp_inf > max_inf:
-                max_inf = temp_inf
-                max_index = i
-        freeXPool.remove(max_index)
-        takenXPool.append(max_index)
-        poolCopy = freeXPool.copy()
-        for i in freeXPool:
-            relevance = mutual_information(X[:, i], y)
-            redundancy = mutual_information(X[:, i], X[:, max_index])
-            if redundancy > relevance:
-                poolCopy.remove(i)
-        freeXPool = poolCopy
-    return takenXPool
 
 def su_measure(X, y):
     entropy = __calc_entropy(y)
@@ -469,22 +401,9 @@ def laplacian_score(X, y, k_neighbors=5, t=1,
     F = F.T.dot(L.dot(F)) / F.T.dot(D.dot(F))
     return np.diag(F)
 
-
-# print(SpearmanCorrelation)
-
-# GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
-#                 "FRatio": f_ratio_measure,
-#                 "GiniIndex": gini_index,
-#                 "InformationGain": ig_measure,
-#                 "MrmrDiscrete": mrmr_measure,
-#                 "SpearmanCorr": spearman_corr,
-#                 "PearsonCorr": pearson_corr}
-
-
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
                 "GiniIndex": gini_index,
-                "InformationGain": ig_measure,
                 # "MrmrDiscrete": mrmr_measure,
                 "SymmetricUncertainty": su_measure,
                 "SpearmanCorr": spearman_corr,

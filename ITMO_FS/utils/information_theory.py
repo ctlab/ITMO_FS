@@ -25,17 +25,17 @@ def __calc_conditional_entropy(x_j, y):
         entropy += countX[i] / len(y) * partEntropy
     return -entropy
 
-def __mutual_information_single(x_j, y):
-    return __calc_entropy(y) - __calc_conditional_entropy(x_j, y)
+def __mutual_information(x, y):
+    return __calc_entropy(y) - __calc_conditional_entropy(x, y)
 
 def __calc_conditional_mutual_information(x, y, z):
     return __calc_entropy(list(zip(x, z))) + __calc_entropy(list(zip(y, z))) - __calc_entropy(list(zip(x, y, z))) - __calc_entropy(z)
 
 def __calc_joint_mutual_information(x, y, z):
-    return __mutual_information_single(x, z) + __calc_mutual_conditional_information(y, z, x)
+    return __mutual_information(x, z) + __calc_mutual_conditional_information(y, z, x)
 
 def __calc_interaction_information(x, y, z):
-    return __mutual_information_single(x, z) + __mutual_information_single(y, z) - __calc_joint_mutual_information(x, y, z)
+    return __mutual_information(x, z) + __mutual_information(y, z) - __calc_joint_mutual_information(x, y, z)
 
 def elog(x):
     if x <= 0. or x >= 1.:
@@ -47,6 +47,5 @@ def __calc_entropy(x):
 	d = dict()
 	for obj in x:
 		d[obj] = d.get(obj, 0) + 1
-	print(d)
 	probs = map(lambda z: float(z)/len(x), d.values())
 	return -sum(map(elog, probs))    
