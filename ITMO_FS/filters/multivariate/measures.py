@@ -9,18 +9,13 @@ from ...utils.information_theory import __calc_interaction_information
 
 
 def calc_mutual_information(X, y):
-	if X.ndim == 1:
-		return __mutual_information(X, y)
-	values = np.empty(X.shape[1])
-	for index in range(X.shape[1]):
-		values[index] = __mutual_information(X[:, index], y)
-	return values
+	return np.apply_along_axis(__mutual_information, 0, X, y)
 
 def MRMR(selected_features, free_features, X, y):
 	if(selected_features.size == 0):
 		return calc_mutual_information(X, y)
 	relevance = np.apply_along_axis(__mutual_information, 0, X[:, free_features], y)
-	redundancy = np.vectorize(lambda i: np.mean(np.apply_along_axis(__mutual_information, 0, X[:, selected_features], X[:, i])))(free_features)
+	redundancy = np.vectorize(lambda i: np.mean(calc_mutual_information(X[:, selected_features], X[:, i])))(free_features)
 	return relevance - redundancy
 
 def CMIM(selected_features, free_features, X, y):
