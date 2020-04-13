@@ -7,12 +7,12 @@ import random
 
 class TPhMGWO:
 	"""
-        Performs Grey Wolf optimization with Two-Phase Mutation
+		Performs Grey Wolf optimization with Two-Phase Mutation
 
-        Parameters
-        ----------
-        wolfNumber : integer
-        	Number of search agents used to find solution for features selection problem
+		Parameters
+		----------
+		wolfNumber : integer
+			Number of search agents used to find solution for features selection problem
 		seed : integer
 			Random seed used to initialize np.random.seed()
 		alpha : float
@@ -27,20 +27,20 @@ class TPhMGWO:
 			number of iterations of algorithm
 		Mp : float
 			probability of mutation
-        See Also
-        --------
+		See Also
+		--------
 		https://www.sciencedirect.com/science/article/pii/S0957417419305263
 
-        examples
-        --------
-        from ITMO_FS.wrappers.randomized import TPhMGWO
+		examples
+		--------
+		from ITMO_FS.wrappers.randomized import TPhMGWO
 		import numpy as np
 
-        tphmgwo = TPhMGWO()
+		tphmgwo = TPhMGWO()
 		x, y = make_classification(5000, 50, n_informative = 10, n_redundant = 30, n_repeated = 10, shuffle = True)
 		result = tphmgwo.run(x, y)
 		print(np.where(result == 1))
-    """
+	"""
 	def __init__(self, wolfNumber=10, seed = 1, alpha = 0.01, classifier=KNeighborsClassifier(n_neighbors = 10), foldNumber = 5, iterations = 30, Mp=0.5, errorRate = mean_squared_error):
 		self.wolfNumber = wolfNumber
 		self.seed = seed
@@ -98,16 +98,16 @@ class TPhMGWO:
 
 	def run(self, X, y):
 		"""
-        Runs the TPhGWO algorithm on the specified dataset.
-        Parameters
-        ----------
-        X : array-like, shape (n_samples,n_features)
-            The input samples.
-        y : array-like, shape (n_samples)
-            The classes for the samples.
-       ------
-        array-like, shape (n_samples,n_selected_features) : 0-1 array where 1 means feature is selected and 0 not
-        """
+		Runs the TPhGWO algorithm on the specified dataset.
+		Parameters
+		----------
+		X : array-like, shape (n_samples,n_features)
+			The input samples.
+		y : array-like, shape (n_samples)
+			The classes for the samples.
+		------
+		array-like, shape (n_samples,n_selected_features) : 0-1 array where 1 means feature is selected and 0 not
+		"""
 
 		featureNumber = X.shape[1]
 		np.random.seed(self.seed)
