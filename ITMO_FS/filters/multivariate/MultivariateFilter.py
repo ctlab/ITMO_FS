@@ -14,6 +14,10 @@ class MultivariateFilter(object):
             which should return a list of metric values for each feature in the dataset.
         n_features : int
             Number of features to select.
+        beta : float, optional
+        	Initialize only in case you run MIFS or generalizedCriteria metrics
+        gamma : float, optional
+        	Initialize only in case you run eneralizedCriteria metric
 
         See Also
         --------
@@ -23,7 +27,7 @@ class MultivariateFilter(object):
         --------
 
     """
-	def __init__(self, measure, n_features):
+	def __init__(self, measure, n_features, beta = None, gamma = None):
         
 		if type(measure) is str:
 			try:
@@ -33,7 +37,9 @@ class MultivariateFilter(object):
 		else:
 			self.measure = measure
 		self.__n_features = n_features
-		self.selected_features = []
+		self.selected_features = np.array([], dtype = np.integer)
+		self.beta = beta
+		self.gamma = gamma
 
 	def fit(self, X, y):
 		"""
@@ -67,10 +73,17 @@ class MultivariateFilter(object):
 			print(model.selected_features)
 
 
-        """
+		"""
+		values = np.array([])
 		free_features = generate_features(X)
 		while len(self.selected_features) != self.__n_features:
-			values = self.measure(self.selected_features, free_features, X, y)
+			if self.beta == None:
+				values = self.measure(self.selected_features, free_features, X, y)
+			else:
+				if self.gamma != None:
+					values = self.measure(self.selected_features, free_features, X, y, self.beta, self.gamma)
+				else:
+					values = self.measure(self.selected_features, free_features, X, y, self.beta)
 			to_add = np.argmax(values)
 			self.selected_features = np.append(self.selected_features, free_features[to_add])
 			free_features = np.delete(free_features, to_add)

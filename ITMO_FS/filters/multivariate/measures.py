@@ -59,8 +59,13 @@ def generalizedCriteria(selected_features, free_features, X, y, beta, gamma):
 		np.sum(np.apply_along_axis(calc_conditional_mutual_information, 0, X[:, selected_features], X[:, free_feature], y)))(free_features)
 	return relevance - beta * redundancy + gamma * cond_dependancy
 	
-GLOB_MEASURE = {"MRMR" : MRMR,
+GLOB_MEASURE = {"MIM" : MIM,
+				"MRMR" : MRMR,
+				"JMI" : JMI,
+				"CIFE" : CIFE,
+				"MIFS" : MIFS,
 				"CMIM" : CMIM,
+				"ICAP" : ICAP,
 				"generalizedCriteria": generalizedCriteria}
 
 
