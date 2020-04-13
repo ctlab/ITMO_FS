@@ -33,13 +33,7 @@ class TPhMGWO:
 
 		examples
 		--------
-		from ITMO_FS.wrappers.randomized import TPhMGWO
-		import numpy as np
-
-		tphmgwo = TPhMGWO()
-		x, y = make_classification(5000, 50, n_informative = 10, n_redundant = 30, n_repeated = 10, shuffle = True)
-		result = tphmgwo.run(x, y)
-		print(np.where(result == 1))
+		
 	"""
 	def __init__(self, wolfNumber=10, seed = 1, alpha = 0.01, classifier=KNeighborsClassifier(n_neighbors = 10), foldNumber = 5, iterations = 30, Mp=0.5, errorRate = mean_squared_error):
 		self.wolfNumber = wolfNumber
@@ -157,4 +151,6 @@ class TPhMGWO:
 						alphaWolf = mutatedAlphaZero
 				# mutatedAlphaZero = np.copy(wolves[alphaIndex])
 			wolves[alphaIndex] = alphaWolf
-		return alphaWolf		
+		self.vector_representation = alphaWolf
+		self.solution = np.where(self.vector_representation == 1)[0]
+		return self.solution		

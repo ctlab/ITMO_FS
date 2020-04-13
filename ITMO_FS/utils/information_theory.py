@@ -25,6 +25,9 @@ def calc_conditional_entropy(x_j, y):
         entropy += countX[i] / len(y) * partEntropy
     return -entropy
 
+def matrix_mutual_information(X, y):
+    return np.apply_along_axis(mutual_information, 0, X, y)
+
 def mutual_information(x, y):
     return calc_entropy(y) - calc_conditional_entropy(x, y)
 

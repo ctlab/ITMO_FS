@@ -2,7 +2,8 @@ import random as rnd
 from importlib import reload
 
 import numpy as np
-from .measures import calc_mutual_information
+from ...utils.information_theory import matrix_mutual_information
+
 
 class FCBFDiscreteFilter(object):
 	"""
@@ -52,14 +53,12 @@ class FCBFDiscreteFilter(object):
 		"""
 
 		free_features = np.arange(0, X.shape[1], dtype = np.integer)
-		print(X)
-		print(X[:, free_features])
 		self.selected_features = np.array([], dtype = np.integer)
 		while(free_features.size != 0):
-			max_index = np.argmax(calc_mutual_information(X[:, free_features], y))
+			max_index = np.argmax(matrix_mutual_information(X[:, free_features], y))
 			self.selected_features = np.append(self.selected_features, max_index)
-			relevance = calc_mutual_information(X[:, free_features], y)
-			redundancy = calc_mutual_information(X[:, free_features], X[:, max_index])
+			relevance = matrix_mutual_information(X[:, free_features], y)
+			redundancy = matrix_mutual_information(X[:, free_features], X[:, max_index])
 			difference = relevance - redundancy
 			free_features = np.delete(free_features, np.where(difference <= 0.)[0])
 		return self.selected_features
