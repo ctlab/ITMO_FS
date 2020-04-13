@@ -18,8 +18,9 @@ class TPhMGWO:
 		alpha : float
 			weight of importance of classification accuracy
 			Note alpha is used in equation that counts fitness as fitness = alpha * score + beta * |selected_features| / |features| where alpha = 1 - beta
-		knn : KNeighborsClassifier
-			sklearn.neighbors.KNeighborsClassifier
+		classifier : classifier used for training and testing on provided dataset
+			Note that algorithm implementation assumes that classifier has fit, predict methods 
+			Default algorithm uses sklearn.neighbors.KNeighborsClassifier
 		foldNumber : integer
 			fold number to train and test classifier
 		iterations : integer
@@ -32,22 +33,27 @@ class TPhMGWO:
 
         examples
         --------
+        from ITMO_FS.wrappers.randomized import TPhMGWO
+		import numpy as np
 
         tphmgwo = TPhMGWO()
 		x, y = make_classification(5000, 50, n_informative = 10, n_redundant = 30, n_repeated = 10, shuffle = True)
 		result = tphmgwo.run(x, y)
 		print(np.where(result == 1))
     """
-	def __init__(self, wolfNumber=10, seed = 1, alpha = 0.01, knn=KNeighborsClassifier(n_neighbors = 10), foldNumber = 5, iterations = 30, Mp=0.5, errorRate = mean_squared_error):
+	def __init__(self, wolfNumber=10, seed = 1, alpha = 0.01, classifier=KNeighborsClassifier(n_neighbors = 10), foldNumber = 5, iterations = 30, Mp=0.5, errorRate = mean_squared_error):
 		self.wolfNumber = wolfNumber
 		self.seed = seed
 		self.alpha = alpha
 		self.beta = 1 - alpha
-		self.knn = knn
+		self.classifier = classifier
 		self.foldNumber = foldNumber
 		self.iterations = iterations
 		self.errorRate = errorRate
 		self.Mp = Mp
+
+	class ClassifierMethodsException(Exception):
+		pass
 
 	def __sigmoid(self, x):
 		random.seed(seed)
@@ -78,8 +84,14 @@ class TPhMGWO:
 			kf = KFold(self.foldNumber, shuffle = True)
 			score = 0.0
 			for train_indices, test_indices in kf.split(X):
-				self.knn.fit(XFilt[train_indices], y[train_indices])
-				score += self.errorRate(y[test_indices], self.knn.predict(XFilt[test_indices]), squared=False)
+				try:
+					self.classifier.fit(XFilt[train_indices], y[train_indices])
+				except AttributeError:
+					raise self.ClassifierMethodsException("The classifier " + type(self.classifier).__name__ + " doesn't have expected method fit")
+				try:
+					score += self.errorRate(y[test_indices], self.classifier.predict(XFilt[test_indices]), squared=False)
+				except AttributeError:
+					raise self.ClassifierMethodsException("The classifier " + type(self.classifier).__name__ + " doesn't have expected method predict")
 			score /= self.foldNumber
 			fitnessFunc[index] = self.alpha * score + self.beta * np.count_nonzero(wolf) / featureNumber
 		return fitnessFunc
@@ -110,7 +122,6 @@ class TPhMGWO:
 		deltaIndex, betaIndex, alphaIndex = np.argpartition(fitnessFunc, -3)[-3:]
 		best3Wolves = [wolves[deltaIndex], wolves[betaIndex], wolves[alphaIndex]]
 		for t in range(self.iterations):
-			print('iteration = ' + str(t))
 			for index in range(len(wolves)):
 				Darray = abs(C * best3Wolves - wolves[index])
 				wolfAprox = best3Wolves - A * Darray

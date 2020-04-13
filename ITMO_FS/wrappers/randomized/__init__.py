@@ -1,2 +1,2 @@
 from .TPhMGWO import TPhMGWO
-from .HillClimbing import HillClimbing
+from .HillClimbing import HillClimbingWrapper

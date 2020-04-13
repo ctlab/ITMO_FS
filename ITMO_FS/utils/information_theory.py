@@ -3,7 +3,7 @@ from math import exp
 from math import log
 
 
-def __calc_conditional_entropy(x_j, y):
+def calc_conditional_entropy(x_j, y):
     Kx = max(x_j)
     countX = np.zeros(Kx + 1)
     dictYByX = {}
@@ -25,17 +25,17 @@ def __calc_conditional_entropy(x_j, y):
         entropy += countX[i] / len(y) * partEntropy
     return -entropy
 
-def __mutual_information(x, y):
-    return __calc_entropy(y) - __calc_conditional_entropy(x, y)
+def mutual_information(x, y):
+    return calc_entropy(y) - calc_conditional_entropy(x, y)
 
-def __calc_conditional_mutual_information(x, y, z):
-    return __calc_entropy(list(zip(x, z))) + __calc_entropy(list(zip(y, z))) - __calc_entropy(list(zip(x, y, z))) - __calc_entropy(z)
+def calc_conditional_mutual_information(x, y, z):
+    return calc_entropy(list(zip(x, z))) + calc_entropy(list(zip(y, z))) - calc_entropy(list(zip(x, y, z))) - calc_entropy(z)
 
-def __calc_joint_mutual_information(x, y, z):
-    return __mutual_information(x, z) + __calc_mutual_conditional_information(y, z, x)
+def calc_joint_mutual_information(x, y, z):
+    return mutual_information(x, z) + calc_mutual_conditional_information(y, z, x)
 
-def __calc_interaction_information(x, y, z):
-    return __mutual_information(x, z) + __mutual_information(y, z) - __calc_joint_mutual_information(x, y, z)
+def calc_interaction_information(x, y, z):
+    return mutual_information(x, z) + mutual_information(y, z) - calc_joint_mutual_information(x, y, z)
 
 def elog(x):
     if x <= 0. or x >= 1.:
@@ -43,7 +43,7 @@ def elog(x):
     else:
         return x*log(x)
 
-def __calc_entropy(x):
+def calc_entropy(x):
 	d = dict()
 	for obj in x:
 		d[obj] = d.get(obj, 0) + 1
