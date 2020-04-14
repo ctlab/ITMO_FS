@@ -5,11 +5,10 @@ from math import log
 import numpy as np
 from scipy import sparse as sp
 
+from ITMO_FS.utils.information_theory import calc_entropy
+from ITMO_FS.utils.information_theory import calc_conditional_entropy
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.qpfs_body import qpfs_body
-
-
-# from sklearn.feature_selection import mutual_info_classif as MI
 
 
 def fit_criterion_measure(X, y):
@@ -83,69 +82,6 @@ def gini_index(X, y):
     diff_x = (cum_x[1:] - cum_x[:-1])
     diff_y = (cum_y[1:] + cum_y[:-1])
     return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
-
-
-def __calc_entropy(y):
-    dict_label = dict()
-    for label in y:
-        if label not in dict_label:
-            dict_label.update({label: 1})
-        else:
-            dict_label[label] += 1
-    entropy = 0.0
-    for i in dict_label.values():
-        entropy += -i / len(y) * log(i / len(y), 2)
-    return entropy
-
-
-def __calc_conditional_entropy(x_j, y):
-    dict_i = dict()
-    for i in range(x_j.shape[0]):
-        if x_j[i] not in dict_i:
-            dict_i.update({x_j[i]: [i]})
-        else:
-            dict_i[x_j[i]].append(i)
-    # Conditional entropy of a feature.
-    con_entropy = 0.0
-    # get corresponding values in y.
-    for f in dict_i.values():
-        # Probability of each class in a feature.
-        p = len(f) / len(x_j)
-        # Dictionary of corresponding probability in labels.
-        dict_y = dict()
-        for i in f:
-            if y[i] not in dict_y:
-                dict_y.update({y[i]: 1})
-            else:
-                dict_y[y[i]] += 1
-        # calculate the probability of corresponding label.
-        sub_entropy = 0.0
-        for value in dict_y.values():
-            sub_entropy += -value / sum(dict_y.values()) * log(value / sum(dict_y.values()), 2)
-        con_entropy += sub_entropy * p
-    return con_entropy
-
-
-def ig_measure(X, y):
-    entropy = __calc_entropy(y)
-    f_ratios = np.empty(X.shape[1])
-    for index in range(X.shape[1]):
-        f_ratios[index] = entropy - __calc_conditional_entropy(X[:, index], y)
-    return f_ratios
-
-
-##TODO redo sklearn stuff
-# def __mrmr_measure(cls, X, y, n):
-#     assert not 1 < X.shape[1] < n, 'incorrect number of features'
-#     x = np.array(X)
-#     y = np.array(y).ravel()
-#     # print([__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
-#     return [MI(x[:, j].reshape(-1, 1), y) for j in range(x.shape[1])]
-#
-
-# def mrmr_measure(n):
-#     return partial(__mrmr_measure, n=n)
-
 
 def su_measure(X, y):
     entropy = __calc_entropy(y)
@@ -467,22 +403,16 @@ def laplacian_score(X, y, k_neighbors=5, t=1,
     F = F.T.dot(L.dot(F)) / F.T.dot(D.dot(F))
     return np.diag(F)
 
-
-# print(SpearmanCorrelation)
-
-# GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
-#                 "FRatio": f_ratio_measure,
-#                 "GiniIndex": gini_index,
-#                 "InformationGain": ig_measure,
-#                 "MrmrDiscrete": mrmr_measure,
-#                 "SpearmanCorr": spearman_corr,
-#                 "PearsonCorr": pearson_corr}
-
+def information_gain(X, y):
+    entropy = calc_entropy(y)
+    f_ratios = np.empty(X.shape[1])
+    entropy = np.apply_along_axis(calc_entropy, 0, X)
+    conditional_entropy =  np.apply_along_axis(calc_conditional_entropy, 0, X, y)
+    return entropy - conditional_entropy
 
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
                 "GiniIndex": gini_index,
-                "InformationGain": ig_measure,
                 # "MrmrDiscrete": mrmr_measure,
                 "SymmetricUncertainty": su_measure,
                 "SpearmanCorr": spearman_corr,
