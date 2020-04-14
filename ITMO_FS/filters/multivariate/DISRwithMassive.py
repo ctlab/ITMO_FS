@@ -46,11 +46,7 @@ class DISRWithMassive(object):
 		return mutual_information(x_i, y) + mutual_information(x_j, y) + self.__complementarity(x_i, x_j, y)
 
 	def __count_weight(self, i):
-		temp_difference = 0
-		for j in range(self.n_features):
-			temp_difference += self.edges[i][j] * self.vertices[i] * self.vertices[j]
-			temp_difference += self.edges[j][i] * self.vertices[i] * self.vertices[j]
-		return temp_difference
+		return 2 * self.vertices[i] * np.multiply(self.edges[i], self.vertices)
 
 	def run(self, X, y):
 		"""
@@ -80,10 +76,8 @@ class DISRWithMassive(object):
 		for i in range(self.n_features):
 			for j in range(self.n_features):
 				entropy = calc_entropy(list(zip(X[:, i], X[:, j])))
-				if entropy == 0.:
-					self.edges[i][j] = 0.
-				else:
-					self.edges[i][j] = self.__chained_information(X[:, i], X[:, j], y)
+				if entropy != 0.:
+					self.edges[i][j] = self.__chained_information(X[:, i], X[:, j], y) / entropy
 
 		while(self.selected_features.size != self.expected_size):
 			min_index = np.argmin(np.vectorize(lambda i: self.__count_weight(i))(np.arange(self.n_features)))

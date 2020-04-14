@@ -6,9 +6,7 @@ from math import log
 def calc_conditional_entropy(x_j, y):
     Kx = max(x_j)
     countX = np.zeros(Kx + 1)
-    dictYByX = {}
-    for i in range(Kx):
-        dictYByX.update({i + 1: {}})
+    dictYByX={i+1:{} for i in range(Kx)}
     for i in range(len(y)):
         x_val = x_j[i]
         y_val = y[i]
@@ -20,8 +18,7 @@ def calc_conditional_entropy(x_j, y):
             continue
         partEntropy = 0.0
         curDict = dictYByX[i]
-        for inClass in curDict.values():
-            partEntropy += elog(inClass / countX[i])
+        partEntropy = sum(map(lambda inClass : elog(inClass / countX[i]), curDict.values()))
         entropy += countX[i] / len(y) * partEntropy
     return -entropy
 

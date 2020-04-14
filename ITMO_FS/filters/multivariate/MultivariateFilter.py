@@ -3,6 +3,7 @@ from ...utils import generate_features
 
 import numpy as np
 
+#TODO Test interface!!!!
 class MultivariateFilter(object):
 	"""
         Provides basic functionality for multivariate filters.
