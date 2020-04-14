@@ -5,6 +5,8 @@ from math import log
 import numpy as np
 from scipy import sparse as sp
 
+from ITMO_FS.utils.information_theory import calc_entropy
+from ITMO_FS.utils.information_theory import calc_conditional_entropy
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.qpfs_body import qpfs_body
 
@@ -400,6 +402,13 @@ def laplacian_score(X, y, k_neighbors=5, t=1,
     F = X - X.T.dot(t) / ONE.dot(t)
     F = F.T.dot(L.dot(F)) / F.T.dot(D.dot(F))
     return np.diag(F)
+
+def information_gain(X, y):
+    entropy = calc_entropy(y)
+    f_ratios = np.empty(X.shape[1])
+    entropy = np.apply_along_axis(calc_entropy, 0, X)
+    conditional_entropy =  np.apply_along_axis(calc_conditional_entropy, 0, X, y)
+    return entropy - conditional_entropy
 
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
