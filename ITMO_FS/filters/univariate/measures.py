@@ -5,8 +5,8 @@ from math import log
 import numpy as np
 from scipy import sparse as sp
 
-from ITMO_FS.utils.information_theory import calc_entropy
-from ITMO_FS.utils.information_theory import calc_conditional_entropy
+from ITMO_FS.utils.information_theory import entropy
+from ITMO_FS.utils.information_theory import conditional_entropy
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.qpfs_body import qpfs_body
 
@@ -84,12 +84,12 @@ def gini_index(X, y):
     return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
 
 def su_measure(X, y):
-    entropy = __calc_entropy(y)
+    entropy_y = entropy(y)
     f_ratios = np.empty(X.shape[1])
     for index in range(X.shape[1]):
-        entropy_x = __calc_entropy(X[:, index])
-        con_entropy = __calc_conditional_entropy(X[:, index], y)
-        f_ratios[index] = 2 * (entropy - con_entropy) / (entropy_x + entropy)
+        entropy_x = entropy(X[:, index])
+        cond_entropy = conditional_entropy(X[:, index], y)
+        f_ratios[index] = 2 * (entropy_y - cond_entropy) / (entropy_x + entropy_y)
     return f_ratios
 
 
@@ -404,11 +404,9 @@ def laplacian_score(X, y, k_neighbors=5, t=1,
     return np.diag(F)
 
 def information_gain(X, y):
-    entropy = calc_entropy(y)
-    f_ratios = np.empty(X.shape[1])
-    entropy = np.apply_along_axis(calc_entropy, 0, X)
-    conditional_entropy =  np.apply_along_axis(calc_conditional_entropy, 0, X, y)
-    return entropy - conditional_entropy
+    entropy_x = np.apply_along_axis(entropy, 0, X)
+    cond_entropy = np.apply_along_axis(conditional_entropy, 0, X, y)
+    return entropy_x - cond_entropy
 
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
@@ -419,7 +417,8 @@ GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "PearsonCorr": pearson_corr,
                 "FechnerCorr": fechner_corr,
                 "ReliefF": reliefF_measure,
-                "Chi2": chi2_measure}
+                "Chi2": chi2_measure,
+                "InformationGain": information_gain}
 
 
 def select_best_by_value(value):

@@ -1,6 +1,6 @@
 import numpy as np
 from ITMO_FS.utils.information_theory import mutual_information
-from ITMO_FS.utils.information_theory import calc_entropy
+from ITMO_FS.utils.information_theory import entropy
 
 class DISRWithMassive(object):
 
@@ -39,8 +39,8 @@ class DISRWithMassive(object):
 		self.expected_size = expected_size
 
 	def __complementarity(self, x_i, x_j, y):
-		return calc_entropy(x_i) + calc_entropy(x_j) + calc_entropy(y) - calc_entropy(list(zip(x_i, x_j))) - \
-			calc_entropy(list(zip(x_i, y))) - calc_entropy(list(zip(x_j, y))) + calc_entropy(list(zip(x_i, x_j, y)))
+		return entropy(x_i) + entropy(x_j) + entropy(y) - entropy(list(zip(x_i, x_j))) - \
+			entropy(list(zip(x_i, y))) - entropy(list(zip(x_j, y))) + entropy(list(zip(x_i, x_j, y)))
 
 	def __chained_information(self, x_i, x_j, y):
 		return mutual_information(x_i, y) + mutual_information(x_j, y) + self.__complementarity(x_i, x_j, y)
@@ -75,9 +75,9 @@ class DISRWithMassive(object):
 		self.edges = np.zeros((self.n_features, self.n_features))
 		for i in range(self.n_features):
 			for j in range(self.n_features):
-				entropy = calc_entropy(list(zip(X[:, i], X[:, j])))
-				if entropy != 0.:
-					self.edges[i][j] = self.__chained_information(X[:, i], X[:, j], y) / entropy
+				entropy_pair = entropy(list(zip(X[:, i], X[:, j])))
+				if entropy_pair != 0.:
+					self.edges[i][j] = self.__chained_information(X[:, i], X[:, j], y) / entropy_pair
 
 		while(self.selected_features.size != self.expected_size):
 			min_index = np.argmin(np.vectorize(lambda i: self.__count_weight(i))(np.arange(self.n_features)))

@@ -11,14 +11,14 @@ class MultivariateFilter(object):
         Parameters
         ----------
         measure : string or callable
-            A metric name defined in GLOB_MEASURE or a callable with signature measure(selected_features, dataset_with_features_left, labels)
+            A metric name defined in GLOB_MEASURE or a callable with signature measure(selected_features, free_features, dataset, labels)
             which should return a list of metric values for each feature in the dataset.
         n_features : int
             Number of features to select.
         beta : float, optional
-        	Initialize only in case you run MIFS or generalizedCriteria metrics
+            Initialize only in case you run MIFS or generalizedCriteria metrics.
         gamma : float, optional
-        	Initialize only in case you run eneralizedCriteria metric
+            Initialize only in case you run generalizedCriteria metric.
 
         See Also
         --------
@@ -28,8 +28,7 @@ class MultivariateFilter(object):
         --------
 
     """
-	def __init__(self, measure, n_features, beta = None, gamma = None):
-        
+	def __init__(self, measure, n_features, beta=None, gamma=None):
 		if type(measure) is str:
 			try:
 				self.measure = GLOB_MEASURE[measure]
@@ -62,19 +61,24 @@ class MultivariateFilter(object):
 
 			examples
 			--------
-			from ITMO_FS.wrappers import SequentialForwardSelection
+			from ITMO_FS.filters.multivariate import MultivariateFilter
 			from sklearn.datasets import make_classification
+			from sklearn.preprocessing import KBinsDiscretizer
 
 			import numpy as np
 
 			dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
+			est = KBinsDiscretizer(n_bins=10, encode='ordinal')
 			data, target = np.array(dataset[0]), np.array(dataset[1])
-			model = MultivariateFilter('MIM', 5)
+			est.fit(data)
+			data = est.transform(data)
+			model = MultivariateFilter('MRMR', 8)
 			model.fit(data, target)
 			print(model.selected_features)
 
-
 		"""
+		if self.__n_features > X.shape[1]:
+			raise ValueError("Cannot select %d features out of %d" % (__n_features, X.shape[1]))
 		values = np.array([])
 		free_features = generate_features(X)
 		while len(self.selected_features) != self.__n_features:
