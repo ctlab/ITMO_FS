@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-from sklearn.model_selection import cross_val_score
-
 import numpy as np
+from sklearn.model_selection import cross_val_score
 
 from ...utils import generate_features
 
@@ -33,6 +32,7 @@ class SequentialForwardSelection:
         self.__estimator = estimator
         self.__n_features = n_features
         self.__measure = measure
+        self.selected_features = None
 
     def fit(self, X, y, cv=3):
         """
@@ -77,7 +77,8 @@ class SequentialForwardSelection:
             to_add = 0
             for i in range(len(features_left)):
                 iteration_features = np.append(self.selected_features, features_left[i])
-                iteration_measure = cross_val_score(self.__estimator, X[:, iteration_features], y, cv=cv, scoring=self.__measure).mean()
+                iteration_measure = cross_val_score(self.__estimator, X[:, iteration_features], y, cv=cv,
+                                                    scoring=self.__measure).mean()
                 if iteration_measure > max_measure:
                     max_measure = iteration_measure
                     to_add = i

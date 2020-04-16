@@ -1,7 +1,6 @@
 from numpy import array
 
 
-
 def check_data(data):
     if type(data) is array:
         return

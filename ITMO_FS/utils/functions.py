@@ -1,5 +1,6 @@
-from numpy import array, abs
 import numpy as np
+from numpy import array, abs
+
 
 def normalize(x):
     x = abs(array(x))
@@ -7,9 +8,11 @@ def normalize(x):
     min_ = max(x)
     return (x - min_) / (max_ - min_)
 
+
 def cartesian(rw, cl):  # returns cartesian product for passed numpy arrays as two paired numpy array
     tmp = np.array(np.meshgrid(rw, cl)).T.reshape(len(rw) * len(cl), 2)
     return tmp.T[0], tmp.T[1]
+
 
 def augmented_rvalue(X, y, k=7, theta=3):
     """
@@ -47,6 +50,7 @@ def augmented_rvalue(X, y, k=7, theta=3):
     R1 /= len(indicesPositive)
     return (R0 * len(indicesPositive) + R1 * len(indicesNegative)) / len(X)
 
+
 def knn(X, y, index, k, allClasses=True):
     """
     Returns the indices of k nearest neighbors of X[index].
@@ -66,6 +70,7 @@ def knn(X, y, index, k, allClasses=True):
         ------
         array-like, shape(k) - the indices of the nearest neighbors
     """
-    distances = map(lambda x: (x[0], np.linalg.norm(X[index] - x[1])), [(i, x) for i, x in enumerate(X) if i != index and (allClasses or y[i] == y[index])])
+    distances = map(lambda x: (x[0], np.linalg.norm(X[index] - x[1])),
+                    [(i, x) for i, x in enumerate(X) if i != index and (allClasses or y[i] == y[index])])
     nearest = sorted(distances, key=lambda x: x[1])[:k]
     return np.array(list(map(lambda x: x[0], nearest)))

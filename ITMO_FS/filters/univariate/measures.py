@@ -5,17 +5,20 @@ from math import log
 import numpy as np
 from scipy import sparse as sp
 
-from ITMO_FS.utils.information_theory import entropy
-from ITMO_FS.utils.information_theory import conditional_entropy
 from ITMO_FS.utils.data_check import generate_features
+from ITMO_FS.utils.information_theory import conditional_entropy
+from ITMO_FS.utils.information_theory import entropy
 from ITMO_FS.utils.qpfs_body import qpfs_body
 
 
 def fit_criterion_measure(X, y):
     x = np.asarray(X)  # Converting input data to numpy array
     y = np.asarray(y.reshape((-1,)))
-    fc = np.zeros(x.shape[1])  # Array with amounts of correct predictions for each feature
-    tokens_n = np.max(y) + 1  # Number of different class tokens
+    if len(x.shape) == 2:
+        fc = np.zeros(x.shape[1])  # Array with amounts of correct predictions for each feature
+    else:
+        fc = np.zeros(len(x))
+    tokens_n = np.unique(y)  # Number of different class tokens
     centers = np.empty(tokens_n)  # Array with centers of sets of feature values for each class token
     variances = np.empty(tokens_n)  # Array with variances of sets of feature values for each class token
     # Each of arrays above will be separately calculated for each feature
@@ -62,7 +65,8 @@ def __calculate_F_ratio(row, y_data):
 
 
 def __f_ratio_measure(X, y,
-                      n):  # TODO: add default value for n so that it is callable like other measures with (X, y) arguments
+                      n):  # TODO: add default value for n so that it is callable like other measures with (X,
+    # y) arguments
     assert not 1 < X.shape[1] < n, 'incorrect number of features'
     f_ratios = []
     for feature in X.T:
@@ -83,6 +87,7 @@ def gini_index(X, y):
     diff_y = (cum_y[1:] + cum_y[:-1])
     return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
 
+
 def su_measure(X, y):
     entropy_y = entropy(y)
     f_ratios = np.empty(X.shape[1])
@@ -93,6 +98,47 @@ def su_measure(X, y):
     return f_ratios
 
 
+def __calc_entropy(y):
+    dict_label = dict()
+    for label in y:
+        if label not in dict_label:
+            dict_label.update({label: 1})
+        else:
+            dict_label[label] += 1
+    entropy = 0.0
+    for i in dict_label.values():
+        entropy += -i / len(y) * log(i / len(y), 2)
+    return entropy
+
+
+def __calc_conditional_entropy(x_j, y):
+    dict_i = dict()
+    for i in range(x_j.shape[0]):
+        if x_j[i] not in dict_i:
+            dict_i.update({x_j[i]: [i]})
+        else:
+            dict_i[x_j[i]].append(i)
+    # Conditional entropy of a feature.
+    con_entropy = 0.0
+    # get corresponding values in y.
+    for f in dict_i.values():
+        # Probability of each class in a feature.
+        p = len(f) / len(x_j)
+        # Dictionary of corresponding probability in labels.
+        dict_y = dict()
+        for i in f:
+            if y[i] not in dict_y:
+                dict_y.update({y[i]: 1})
+            else:
+                dict_y[y[i]] += 1
+        # calculate the probability of corresponding label.
+        sub_entropy = 0.0
+        for value in dict_y.values():
+            sub_entropy += -value / sum(dict_y.values()) * log(value / sum(dict_y.values()), 2)
+        con_entropy += sub_entropy * p
+    return con_entropy
+
+
 # TODO concordation coef, kendal coef
 
 def fechner_corr(X, y):
@@ -100,25 +146,23 @@ def fechner_corr(X, y):
     Sample sign correlation (also known as Fechner correlation)
     """
     y_mean = np.mean(y)
-    n = X.shape[0]
-    try:
-        m = X.shape[1]
-    except IndexError:
+    if len(X.shape) == 1:
         m = 1
-    f_ratios = np.zeros(m)
-    for j in range(m):
-        y_dev = y[j] - y_mean
-        if m == 1:
-            x_j_mean = np.mean(X)
-        else:
-            x_j_mean = np.mean(X[:, j])
-        for i in range(n):
-            x_dev = X[i, j] - x_j_mean
-            if x_dev >= 0 & y_dev >= 0:
-                f_ratios[j] += 1
-            else:
-                f_ratios[j] -= 1
-        f_ratios[j] /= n
+        n = X.shape[0]
+    else:
+        n, m = X.shape
+    y_dev = y - y_mean
+    if m == 1:
+        x_col_mean = np.mean(X)
+    else:
+        x_col_mean = np.mean(X, axis=0)
+    x_dev = X - x_col_mean
+    if m == 1:
+        f_ratios = np.array(
+            [np.sum((x_dev >= 0) & (y_dev >= 0), axis=0) + np.sum((x_dev <= 0) & (y_dev <= 0), axis=0)]).astype(float)
+    else:
+        f_ratios = np.sum((x_dev >= 0) & (y_dev >= 0), axis=0) + np.sum((x_dev <= 0) & (y_dev <= 0), axis=0)
+    f_ratios /= n
     return f_ratios
 
 
@@ -398,15 +442,17 @@ def laplacian_score(X, y, k_neighbors=5, t=1,
     ONE = np.ones((n,))
     D = np.diag(S.dot(ONE))
     L = D - S
-    t=D.dot(ONE)
+    t = D.dot(ONE)
     F = X - X.T.dot(t) / ONE.dot(t)
     F = F.T.dot(L.dot(F)) / F.T.dot(D.dot(F))
     return np.diag(F)
+
 
 def information_gain(X, y):
     entropy_x = np.apply_along_axis(entropy, 0, X)
     cond_entropy = np.apply_along_axis(conditional_entropy, 0, X, y)
     return entropy_x - cond_entropy
+
 
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,

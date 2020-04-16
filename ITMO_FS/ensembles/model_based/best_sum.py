@@ -3,7 +3,7 @@ import numpy as np
 
 class BestSum:  ## TODO refactor , not stable
 
-    def _init_(self, models, cutting_rule):
+    def __init__(self, models, cutting_rule):
         self.models = models
         self.cutting_rule = cutting_rule
         self.features = None

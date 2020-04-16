@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-from sklearn.model_selection import cross_val_score
-
 import numpy as np
+from sklearn.model_selection import cross_val_score
 
 from ...utils import generate_features
 
@@ -37,6 +36,7 @@ class BackwardSelection:
         self.__estimator = estimator
         self.__n_features = n_features
         self.__measure = measure
+        self.selected_features = None
 
     def fit(self, X, y, cv=3):
         """
@@ -80,7 +80,8 @@ class BackwardSelection:
             to_delete = 0
             for i in range(len(self.selected_features)):
                 iteration_features = np.delete(self.selected_features, i)
-                iteration_measure = cross_val_score(self.__estimator, X[:, iteration_features], y, cv=cv, scoring=self.__measure).mean()
+                iteration_measure = cross_val_score(self.__estimator, X[:, iteration_features], y, cv=cv,
+                                                    scoring=self.__measure).mean()
                 if iteration_measure > max_measure:
                     max_measure = iteration_measure
                     to_delete = i

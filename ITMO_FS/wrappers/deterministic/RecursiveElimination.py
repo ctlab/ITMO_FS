@@ -80,7 +80,7 @@ class RecursiveElimination:
             else:
                 raise TypeError("estimator should be an estimator with a "
                                 "'coef_' or 'feature_importances_' attribute, %r was passed" % self.__estimator__)
-            if (coefs.ndim > 1):
+            if coefs.ndim > 1:
                 coefs = coefs.sum(axis=0)
 
             least_important = self.__features__[np.argmin(coefs)]

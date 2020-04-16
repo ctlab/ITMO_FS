@@ -48,12 +48,9 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
         self.fit(X, y, feature_names, store_scores)
         return self.transform(X)
 
-    def fit(self, x, y, feature_names=None, store_scores=False):
+    def fit(self, x, y, feature_names=None, store_scores=True):
         x, y, feature_names = self._check_input(x, y, feature_names)
-        feature_scores = None
-        if not (self.hash == hash(self.measure)):
-            feature_scores = dict(zip(feature_names, self.measure(x, y)))
-            self.hash = hash(self.measure)
+        feature_scores = self.get_scores(x, y, feature_names)
 
         if store_scores:
             self.feature_scores = feature_scores

@@ -3,6 +3,7 @@ import random as rnd
 import numpy as np
 from imblearn.over_sampling import SMOTE
 from sklearn.linear_model import SGDClassifier
+
 from ITMO_FS.utils import augmented_rvalue
 
 
@@ -34,12 +35,14 @@ class MOS(object):
         print(MOS().runMOSS(data, target))
     """
 
-    def __init__(self, model=SGDClassifier, loss='log', seed=42):
+    def __init__(self, model=SGDClassifier, loss='log',
+                 seed=42):  # TODO Add wrapper function which will take weights from module
         if loss not in ['hinge', 'log']:
             raise KeyError("Loss should be 'hinge' or 'log', %r was passed" % loss)
         self.model = model
         self.loss = loss
         rnd.seed = seed
+        self.selected_features = None
 
     def runMOSS(self, X, y, l1_ratio=0.5, threshold=10e-4, epochs=1000, alphas=np.arange(0.0002, 0.02, 0.0002)):
         """
@@ -93,8 +96,8 @@ class MOS(object):
         min_rvalue = 1
         min_b = []
         for a in alphas:  # TODO: do a little more research on the range of lambdas
-            model = self.model(loss=self.loss, random_state=rnd.seed, penalty='elasticnet', 
-                alpha=a, l1_ratio=l1_ratio, max_iter=epochs)
+            model = self.model(loss=self.loss, random_state=rnd.seed, penalty='elasticnet',
+                               alpha=a, l1_ratio=l1_ratio, max_iter=epochs)
             model.fit(X, y)
             b = model.coef_[0]
             rvalue = augmented_rvalue(X[:, [i for i in range(X.shape[1]) if np.abs(b[i]) > threshold]], y)
