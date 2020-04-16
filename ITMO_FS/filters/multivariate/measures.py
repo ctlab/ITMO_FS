@@ -52,7 +52,7 @@ def ICAP(selected_features, free_features, X, y):
 
 def DCSF(selected_features, free_features, X, y):
     if selected_features.size == 0:
-        return np.zeros(free_features.shape[0])
+        return np.zeros(len(free_features))
     vectorized_function = lambda free_feature: np.sum(
         np.apply_along_axis(lambda z, x, y: conditional_mutual_information(x, y, z), 0, X[:, selected_features],
                             X[:, free_feature], y) +
@@ -63,7 +63,7 @@ def DCSF(selected_features, free_features, X, y):
 
 def CFR(selected_features, free_features, X, y):
     if selected_features.size == 0:
-        return np.zeros(free_features.shape[0])
+        return np.zeros(len(free_features))
     vectorized_function = lambda free_feature: np.sum(
         np.apply_along_axis(lambda z, x, y: conditional_mutual_information(x, y, z), 0, X[:, selected_features],
                             X[:, free_feature], y) +
@@ -88,7 +88,7 @@ def __SU(Xk, Xj):
 
 def IWFS(selected_features, free_features, X, y):
     if selected_features.size == 0:
-        return np.zeros(free_features.shape[0])
+        return np.zeros(len(free_features))
     vectorized_function = lambda free_feature: np.prod(
         np.apply_along_axis(lambda Xj, Xk, y: __information_weight(Xk, Xj, y), 0, X[:, selected_features],
                             X[:, free_feature], y) *
