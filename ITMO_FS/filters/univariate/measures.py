@@ -6,17 +6,19 @@ import numpy as np
 from scipy import sparse as sp
 
 from ITMO_FS.utils.data_check import generate_features
+from ITMO_FS.utils.information_theory import conditional_entropy
+from ITMO_FS.utils.information_theory import entropy
 from ITMO_FS.utils.qpfs_body import qpfs_body
-
-
-# from sklearn.feature_selection import mutual_info_classif as MI
 
 
 def fit_criterion_measure(X, y):
     x = np.asarray(X)  # Converting input data to numpy array
     y = np.asarray(y.reshape((-1,)))
-    fc = np.zeros(x.shape[1])  # Array with amounts of correct predictions for each feature
-    tokens_n = np.max(y) + 1  # Number of different class tokens
+    if len(x.shape) == 2:
+        fc = np.zeros(x.shape[1])  # Array with amounts of correct predictions for each feature
+    else:
+        fc = np.zeros(len(x))
+    tokens_n = np.unique(y)  # Number of different class tokens
     centers = np.empty(tokens_n)  # Array with centers of sets of feature values for each class token
     variances = np.empty(tokens_n)  # Array with variances of sets of feature values for each class token
     # Each of arrays above will be separately calculated for each feature
@@ -63,7 +65,8 @@ def __calculate_F_ratio(row, y_data):
 
 
 def __f_ratio_measure(X, y,
-                      n):  # TODO: add default value for n so that it is callable like other measures with (X, y) arguments
+                      n):  # TODO: add default value for n so that it is callable like other measures with (X,
+    # y) arguments
     assert not 1 < X.shape[1] < n, 'incorrect number of features'
     f_ratios = []
     for feature in X.T:
@@ -83,6 +86,16 @@ def gini_index(X, y):
     diff_x = (cum_x[1:] - cum_x[:-1])
     diff_y = (cum_y[1:] + cum_y[:-1])
     return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
+
+
+def su_measure(X, y):
+    entropy_y = entropy(y)
+    f_ratios = np.empty(X.shape[1])
+    for index in range(X.shape[1]):
+        entropy_x = entropy(X[:, index])
+        cond_entropy = conditional_entropy(X[:, index], y)
+        f_ratios[index] = 2 * (entropy_y - cond_entropy) / (entropy_x + entropy_y)
+    return f_ratios
 
 
 def __calc_entropy(y):
@@ -126,37 +139,6 @@ def __calc_conditional_entropy(x_j, y):
     return con_entropy
 
 
-def ig_measure(X, y):
-    entropy = __calc_entropy(y)
-    f_ratios = np.empty(X.shape[1])
-    for index in range(X.shape[1]):
-        f_ratios[index] = entropy - __calc_conditional_entropy(X[:, index], y)
-    return f_ratios
-
-
-##TODO redo sklearn stuff
-# def __mrmr_measure(cls, X, y, n):
-#     assert not 1 < X.shape[1] < n, 'incorrect number of features'
-#     x = np.array(X)
-#     y = np.array(y).ravel()
-#     # print([__mi(X[:, j].reshape(-1, 1), y) for j in range(X.shape[1])])
-#     return [MI(x[:, j].reshape(-1, 1), y) for j in range(x.shape[1])]
-#
-
-# def mrmr_measure(n):
-#     return partial(__mrmr_measure, n=n)
-
-
-def su_measure(X, y):
-    entropy = __calc_entropy(y)
-    f_ratios = np.empty(X.shape[1])
-    for index in range(X.shape[1]):
-        entropy_x = __calc_entropy(X[:, index])
-        con_entropy = __calc_conditional_entropy(X[:, index], y)
-        f_ratios[index] = 2 * (entropy - con_entropy) / (entropy_x + entropy)
-    return f_ratios
-
-
 # TODO concordation coef, kendal coef
 
 def fechner_corr(X, y):
@@ -164,25 +146,23 @@ def fechner_corr(X, y):
     Sample sign correlation (also known as Fechner correlation)
     """
     y_mean = np.mean(y)
-    n = X.shape[0]
-    try:
-        m = X.shape[1]
-    except IndexError:
+    if len(X.shape) == 1:
         m = 1
-    f_ratios = np.zeros(m)
-    for j in range(m):
-        y_dev = y[j] - y_mean
-        if m == 1:
-            x_j_mean = np.mean(X)
-        else:
-            x_j_mean = np.mean(X[:, j])
-        for i in range(n):
-            x_dev = X[i, j] - x_j_mean
-            if x_dev >= 0 & y_dev >= 0:
-                f_ratios[j] += 1
-            else:
-                f_ratios[j] -= 1
-        f_ratios[j] /= n
+        n = X.shape[0]
+    else:
+        n, m = X.shape
+    y_dev = y - y_mean
+    if m == 1:
+        x_col_mean = np.mean(X)
+    else:
+        x_col_mean = np.mean(X, axis=0)
+    x_dev = X - x_col_mean
+    if m == 1:
+        f_ratios = np.array(
+            [np.sum((x_dev >= 0) & (y_dev >= 0), axis=0) + np.sum((x_dev <= 0) & (y_dev <= 0), axis=0)]).astype(float)
+    else:
+        f_ratios = np.sum((x_dev >= 0) & (y_dev >= 0), axis=0) + np.sum((x_dev <= 0) & (y_dev <= 0), axis=0)
+    f_ratios /= n
     return f_ratios
 
 
@@ -462,34 +442,29 @@ def laplacian_score(X, y, k_neighbors=5, t=1,
     ONE = np.ones((n,))
     D = np.diag(S.dot(ONE))
     L = D - S
-    t=D.dot(ONE)
+    t = D.dot(ONE)
     F = X - X.T.dot(t) / ONE.dot(t)
     F = F.T.dot(L.dot(F)) / F.T.dot(D.dot(F))
     return np.diag(F)
 
 
-# print(SpearmanCorrelation)
-
-# GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
-#                 "FRatio": f_ratio_measure,
-#                 "GiniIndex": gini_index,
-#                 "InformationGain": ig_measure,
-#                 "MrmrDiscrete": mrmr_measure,
-#                 "SpearmanCorr": spearman_corr,
-#                 "PearsonCorr": pearson_corr}
+def information_gain(X, y):
+    entropy_x = np.apply_along_axis(entropy, 0, X)
+    cond_entropy = np.apply_along_axis(conditional_entropy, 0, X, y)
+    return entropy_x - cond_entropy
 
 
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
                 "GiniIndex": gini_index,
-                "InformationGain": ig_measure,
                 # "MrmrDiscrete": mrmr_measure,
                 "SymmetricUncertainty": su_measure,
                 "SpearmanCorr": spearman_corr,
                 "PearsonCorr": pearson_corr,
                 "FechnerCorr": fechner_corr,
                 "ReliefF": reliefF_measure,
-                "Chi2": chi2_measure}
+                "Chi2": chi2_measure,
+                "InformationGain": information_gain}
 
 
 def select_best_by_value(value):

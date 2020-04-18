@@ -51,7 +51,8 @@ class Mixed:
     def run(self, X, y, k):
         result = []
         filter_results = list(map(lambda fn: select_k_best(k)(dict(zip(list(range(X.shape[1])), fn(X, y)))),
-                                  self.__filters))  # call every filter on input data, then select k best for each of them
+                                  self.__filters))  # call every filter on input data, then select k best for each of
+        # them
 
         place = 0
         while (len(result) < k) and (place < k):

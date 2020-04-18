@@ -27,7 +27,8 @@ def get_current_accuracy(__estimator__, X, current_features, test_x, test_y):
 
     correct = 0
     for i in range(test_x.length):
-        predict = __estimator__.predict([test_x[j] for j in current_features]) # TODO: rewrite to correct matrix of shape (n_samples,n_features) 
+        predict = __estimator__.predict(
+            [test_x[j] for j in current_features])  # TODO: rewrite to correct matrix of shape (n_samples,n_features)
         if predict == test_y[i]:
             correct += 1
     current_accuracy = correct / test_x.length
@@ -55,7 +56,8 @@ def get_current_cv_accuracy(__estimator__, X, y, current_features, cv=3):
 
     accuracies = []
     for data, target in cross_validate(X, y, k=cv):
-        predict = __estimator__.predict(data[:, current_features]).reshape(target.shape) # TODO: rewrite to correct matrix of shape (n_samples,n_features) or change docs
+        predict = __estimator__.predict(data[:, current_features]).reshape(
+            target.shape)  # TODO: rewrite to correct matrix of shape (n_samples,n_features) or change docs
         correct = sum(predict == target)
         accuracies.append(correct / len(data))
 
