@@ -7,7 +7,7 @@ from sklearn.metrics import make_scorer
 from sklearn.model_selection import cross_val_score
 
 
-class Add_del(object):
+class AddDelWrapper(object):
     """
         Creates add-del feature wrapper
 
@@ -32,22 +32,20 @@ class Add_del(object):
         --------
         >>> from sklearn.metrics import accuracy_score
         >>> from sklearn import datasets,linear_model
-        >>> import pandas as pd
         >>> data = datasets.make_classification(n_samples=1000, n_features=20)
         >>> X = np.array(data[0])
         >>> y = np.array(data[1])
         >>> lg = linear_model.LogisticRegression(solver='lbfgs')
-        >>> add_del = Add_del(lg, accuracy_score)
-        >>> features = add_del.run(X, y)
+        >>> add_del = AddDelWrapper(lg, accuracy_score)
+        >>> add_del.fit(X, y)
 
         >>> from sklearn.metrics import mean_absolute_error
         >>> boston = datasets.load_boston()
-        >>> X = pd.DataFrame(boston['data'], columns=boston['feature_names'])
-        >>> y = pd.DataFrame(boston['target'])
+        >>> X = boston['data']
+        >>> y = boston['target']
         >>> lasso = linear_model.Lasso()
-        >>> add_del = Add_del(lasso, mean_absolute_error, maximize=False)
-        >>> features = add_del.run(X, y)
-        >>> features
+        >>> add_del = AddDelWrapper(lasso, mean_absolute_error, maximize=False)
+        >>> add_del.fit(X, y)
         ['ZN', 'INDUS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B']
 
     """
@@ -60,7 +58,7 @@ class Add_del(object):
         self.score = score
         self.maximize = maximize
         rnd.seed(seed)
-        self.best_score = None
+        self.best_score = 0.0
 
     def __add(self, X, y, cv=3, silent=True):
 
@@ -107,7 +105,7 @@ class Add_del(object):
                                                  cv=cv)))
         current_score = 0
         scores = [prev_score]
-
+        res_score = 0
         if not silent:
             print('score: {}'.format(prev_score))
 

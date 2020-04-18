@@ -1,6 +1,4 @@
-import random
-
-from ITMO_FS.filters.univariate.measures import select_k_best
+from .fusion_functions import *
 
 
 class Mixed:
@@ -25,39 +23,18 @@ class Mixed:
     
     """
 
-    __filters = []
+    _filters = []
 
     def __init__(self, filters):
-        self.__filters = filters
+        self._filters = filters
+        self._selected_features = []
+        self._filter_results = []
 
-    """
-    Runs mixed hybrid method
+    def fit(self, X, y, bagging=False):
+        self._filter_results = list(
+            map(lambda fn: sorted(dict(enumerate(fn(X, y))).items(), key=lambda kv: kv[1], reverse=True),
+                self._filters))  # call every filter on input data, then select k best for each of them
 
-    Parameters
-    ----------
-    X : array-like, shape (n_samples,n_features)
-        The input samples.
-    y : array-like, shape (n_samples)
-        The classes for the samples.
-    k : int
-        The number of features to select.
-    
-    Returns
-    ------
-    array-like k selected features
-    
-    """
-
-    def run(self, X, y, k):
-        result = []
-        filter_results = list(map(lambda fn: select_k_best(k)(dict(zip(list(range(X.shape[1])), fn(X, y)))),
-                                  self.__filters))  # call every filter on input data, then select k best for each of them
-
-        place = 0
-        while (len(result) < k) and (place < k):
-            placed_features = list(map(list, zip(*filter_results)))[
-                place]  # take only features at index=place in filter array
-            random.shuffle(placed_features)
-            [result.append(z) for z in list(set(placed_features)) if z not in result]
-            place += 1
-        return result[0:k]
+    def transform(self, X, k, fusion_function=best_goes_first_fusion):
+        self._selected_features = fusion_function(self._filter_results, k)
+        return X[:, self._selected_features]

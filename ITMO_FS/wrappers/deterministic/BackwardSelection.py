@@ -1,25 +1,24 @@
 #!/usr/bin/env python
-
-from collections import OrderedDict
-
 import numpy as np
+from sklearn.model_selection import cross_val_score
 
-from ..utils import generate_features
-from .wrapper_utils import get_current_cv_accuracy
+from ...utils import generate_features
 
 
 class BackwardSelection:
     """
-        Backward Selection removes one feature at a time until the number of features to be removed are used. Which ever
-        feature has the least rank it is removed one by one.
+        Backward Selection removes one feature at a time until the number of features to be removed is reached. On each step,
+        the best n-1 features out of n are chosen (according to some estimator metric) and the last one is removed.
+
         Parameters
         ----------
-        estimator: object
-            A supervised learning estimator with a fit method that provides information about feature importance either
-            through a coef_ attribute or through a feature_importances_ attribute.
+        estimator : object
+            A supervised learning estimator with a fit method.
         n_features : int
             Number of features to be removed.
-
+        measure : string or callable
+            A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable object / function with signature 
+            measure(estimator, X, y) which should return only a single value.
         See Also
         --------
 
@@ -34,11 +33,10 @@ class BackwardSelection:
         if not hasattr(estimator, 'fit'):
             raise TypeError("estimator should be an estimator implementing "
                             "'fit' method, %r was passed" % estimator)
-        self._estimator = estimator
-        self.__n_features__ = n_features
-        self.features__ = []
+        self.__estimator = estimator
+        self.__n_features = n_features
         self.__measure = measure
-        self.best_score = None
+        self.selected_features = None
 
     def fit(self, X, y, cv=3):
         """
@@ -49,43 +47,45 @@ class BackwardSelection:
             X : array-like, shape (n_samples,n_features)
                 The training input samples.
             y : array-like, shape (n_samples,)
-                the target values.
+                The target values.
             cv : int
-                Number of folds in cross-validation
+                Number of folds in cross-validation.
             Returns
             ------
             None
 
             See Also
             --------
+
             examples
             --------
+            from ITMO_FS.wrappers import BackwardSelection
+            from sklearn.linear_model import LogisticRegression
+            from sklearn.datasets import make_classification
+
+            import numpy as np
+
+            dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
+            data, target = np.array(dataset[0]), np.array(dataset[1])
+            model = BackwardSelection(LogisticRegression(), 15, 'f1_macro')
+            model.fit(data, target)
+            print(model.selected_features)
 
         """
-        features_ranks = dict(zip(generate_features(X), self.__measure(X, y)))
-        sorted_features_ranks = OrderedDict(sorted(features_ranks.items(), key=lambda x: x[1]))
-        selected_features = np.array([feature for feature in sorted_features_ranks])
-        number_of_features_left_to_remove = self.__n_features__
+        self.selected_features = generate_features(X)
+        target_size = len(self.selected_features) - self.__n_features
 
-        self._estimator.fit(X[:, selected_features], y)
-        accuracy = get_current_cv_accuracy(self._estimator, X, y, selected_features, cv)
-        i = 0
-        self.best_score = accuracy
-        while len(sorted_features_ranks) != i and i < len(selected_features):
-            iteration_features = np.delete(selected_features, i)
-            self._estimator.fit(X[:, iteration_features], y)
-
-            iteration_accuracy = get_current_cv_accuracy(self._estimator, X, y, iteration_features, cv)
-            if iteration_accuracy > self.best_score:
-                selected_features = iteration_features
-                number_of_features_left_to_remove -= 1
-                self.best_score = iteration_accuracy
-                if not number_of_features_left_to_remove:
-                    break
-            else:
-                i += 1
-
-        self.features__ = selected_features
+        while len(self.selected_features) != target_size:
+            max_measure = 0
+            to_delete = 0
+            for i in range(len(self.selected_features)):
+                iteration_features = np.delete(self.selected_features, i)
+                iteration_measure = cross_val_score(self.__estimator, X[:, iteration_features], y, cv=cv,
+                                                    scoring=self.__measure).mean()
+                if iteration_measure > max_measure:
+                    max_measure = iteration_measure
+                    to_delete = i
+            self.selected_features = np.delete(self.selected_features, to_delete)
 
     def predict(self, X):
-        self._estimator.predict(X[:, self.features__])
+        self.__estimator.predict(X[:, self.selected_features])
