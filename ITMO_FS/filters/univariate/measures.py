@@ -53,12 +53,13 @@ def __calculate_F_ratio(row, y_data):
     """
     inter_class = 0.0
     intra_class = 0.0
+    mean_feature = np.mean(row)
     for value in np.unique(y_data):
         index_for_this_value = np.where(y_data == value)[0]
         n = np.sum(row[index_for_this_value])
         mu = np.mean(row[index_for_this_value])
         var = np.var(row[index_for_this_value])
-        inter_class += n * np.power((mu - mu), 2)  # TODO: something went horribly wrong here
+        inter_class += n * np.power((mu - mean_feature), 2)  # TODO: something went horribly wrong here
         intra_class += (n - 1) * var
     f_ratio = inter_class / intra_class
     return f_ratio
