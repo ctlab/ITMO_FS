@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.metrics.pairwise import pairwise_distances
 from scipy.sparse import *
 
+#TODO requests changes for MultivariateFilter to be used there
 class TraceRatio(object):
 	"""
 		Creates TraceRatio(similarity based) feature selection filter
