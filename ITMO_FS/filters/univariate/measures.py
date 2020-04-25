@@ -53,31 +53,19 @@ def __calculate_F_ratio(row, y_data):
     """
     inter_class = 0.0
     intra_class = 0.0
+    mean_feature = np.mean(row)
     for value in np.unique(y_data):
         index_for_this_value = np.where(y_data == value)[0]
         n = np.sum(row[index_for_this_value])
         mu = np.mean(row[index_for_this_value])
         var = np.var(row[index_for_this_value])
-        inter_class += n * np.power((mu - mu), 2)  # TODO: something went horribly wrong here
+        inter_class += n * np.power((mu - mean_feature), 2)  # TODO: something went horribly wrong here
         intra_class += (n - 1) * var
     f_ratio = inter_class / intra_class
     return f_ratio
 
-
-def __f_ratio_measure(X, y,
-                      n):  # TODO: add default value for n so that it is callable like other measures with (X, y) arguments
-    assert not 1 < X.shape[1] < n, 'incorrect number of features'
-    f_ratios = []
-    for feature in X.T:
-        f_ratio = __calculate_F_ratio(feature, y.T)
-        f_ratios.append(f_ratio)
-    f_ratios = np.array(f_ratios)
-    return np.argpartition(f_ratios, -n)[-n:]
-
-
-def f_ratio_measure(n):
-    return partial(__f_ratio_measure, n=n)
-
+def f_ratio_measure(X, y):
+    return np.apply_along_axis(__calculate_F_ratio, 0, X, y)
 
 def gini_index(X, y):
     cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
@@ -95,48 +83,6 @@ def su_measure(X, y):
         cond_entropy = conditional_entropy(X[:, index], y)
         f_ratios[index] = 2 * (entropy_y - cond_entropy) / (entropy_x + entropy_y)
     return f_ratios
-
-
-def __calc_entropy(y):
-    dict_label = dict()
-    for label in y:
-        if label not in dict_label:
-            dict_label.update({label: 1})
-        else:
-            dict_label[label] += 1
-    entropy = 0.0
-    for i in dict_label.values():
-        entropy += -i / len(y) * log(i / len(y), 2)
-    return entropy
-
-
-def __calc_conditional_entropy(x_j, y):
-    dict_i = dict()
-    for i in range(x_j.shape[0]):
-        if x_j[i] not in dict_i:
-            dict_i.update({x_j[i]: [i]})
-        else:
-            dict_i[x_j[i]].append(i)
-    # Conditional entropy of a feature.
-    con_entropy = 0.0
-    # get corresponding values in y.
-    for f in dict_i.values():
-        # Probability of each class in a feature.
-        p = len(f) / len(x_j)
-        # Dictionary of corresponding probability in labels.
-        dict_y = dict()
-        for i in f:
-            if y[i] not in dict_y:
-                dict_y.update({y[i]: 1})
-            else:
-                dict_y[y[i]] += 1
-        # calculate the probability of corresponding label.
-        sub_entropy = 0.0
-        for value in dict_y.values():
-            sub_entropy += -value / sum(dict_y.values()) * log(value / sum(dict_y.values()), 2)
-        con_entropy += sub_entropy * p
-    return con_entropy
-
 
 # TODO concordation coef, kendal coef
 
