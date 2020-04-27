@@ -4,6 +4,7 @@ from math import log
 
 import numpy as np
 from scipy import sparse as sp
+from scipy import special
 
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.information_theory import conditional_entropy
@@ -322,7 +323,8 @@ def pearson_corr(X, y):
     sq_dev_y = y_dev * y_dev
     return sum_dev / np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
 
-
+# TODO need to implement unsupervised way
+# TODO add sparse functionality
 def laplacian_score(X, y, k_neighbors=5, t=1,
                     metric=np.linalg.norm, **kwargs):
     """
@@ -358,6 +360,8 @@ def laplacian_score(X, y, k_neighbors=5, t=1,
     Examples
     --------
     import sklearn.datasets as datasets
+    from ITMO_FS.filters.univariate import laplacian_score
+
     data = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
     X = np.array(data[0])
     y = np.array(data[1])
@@ -398,6 +402,64 @@ def information_gain(X, y):
     cond_entropy = np.apply_along_axis(conditional_entropy, 0, X, y)
     return entropy_x - cond_entropy
 
+def anova(X, y):
+    """
+    Calculates Laplacian Score for each feature.
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+
+    Returns
+    -------
+    List of scores of each feature.
+
+    See Also
+    --------
+    Lowry, Richard.  "Concepts and Applications of Inferential
+    Statistics". Chapter 14.
+    http://vassarstats.net/textbook/
+
+    Note:
+    The Anova score is counted for checking hypothesis if variances of two samples are similar,
+    this measure only returns you counted F-score.
+    For understanding whether samples' variances are similar you should compare recieved result with 
+    value of F-distribution function, for example use: 
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.fdtrc.html#scipy.special.fdtrc
+
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    from ITMO_FS.filters.univariate import anova
+
+    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    scores = anova(X, y)
+    print(scores)
+
+    """
+    split_by_class = [X[y == k] for k in np.unique(y)]
+    num_classes = len(np.unique(y))
+    num_samples = X.shape[0]
+    num_samples_by_class = [s.shape[0] for s in split_by_class]
+    sq_sum_all = sum((s ** 2).sum(axis=0) for s in split_by_class)
+    sum_group = [np.asarray(s.sum(axis=0)) for s in split_by_class]
+    sq_sum_combined = sum(sum_group) ** 2
+    sum_sq_group = [np.asarray((s ** 2).sum(axis=0)) for s in split_by_class]
+    sq_sum_group = [s ** 2 for s in sum_group]
+    sq_sum_total = sq_sum_all - sq_sum_combined / float(num_samples)
+    sq_sum_within = 0.0
+    for i in range(num_classes):
+        sq_sum_within += sum_sq_group[i] - sq_sum_group[i] / num_samples_by_class[i]
+    sq_sum_between = sq_sum_total - sq_sum_within
+    deg_free_between = num_classes - 1
+    deg_free_within = num_samples - num_classes
+    ms_between = sq_sum_between / float(deg_free_between)
+    ms_within = sq_sum_within / float(deg_free_within)
+    f = ms_between / ms_within
+    return f
 
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
@@ -450,7 +512,6 @@ GLOB_CR = {"Best by value": select_best_by_value,
            "Worst by value": select_worst_by_value,
            "K best": select_k_best,
            "K worst": select_k_worst}
-
 
 def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
     """
