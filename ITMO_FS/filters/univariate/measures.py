@@ -321,7 +321,9 @@ def pearson_corr(X, y):
     sum_dev = y_dev.T.dot(x_dev)
     sq_dev_x = x_dev * x_dev
     sq_dev_y = y_dev * y_dev
-    return sum_dev / np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
+    denominators = np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
+    results = np.array([(sum_dev[i] / denominators[i]) if denominators[i] > 0.0 else 0 for i in range(len(denominators))])
+    return results
 
 # TODO need to implement unsupervised way
 # TODO add sparse functionality
@@ -450,9 +452,7 @@ def anova(X, y):
     sum_sq_group = [np.asarray((s ** 2).sum(axis=0)) for s in split_by_class]
     sq_sum_group = [s ** 2 for s in sum_group]
     sq_sum_total = sq_sum_all - sq_sum_combined / float(num_samples)
-    sq_sum_within = 0.0
-    for i in range(num_classes):
-        sq_sum_within += sum_sq_group[i] - sq_sum_group[i] / num_samples_by_class[i]
+    sq_sum_within = sum([sum_sq_group[i] - sq_sum_group[i] / num_samples_by_class[i] for i in range(num_classes)])
     sq_sum_between = sq_sum_total - sq_sum_within
     deg_free_between = num_classes - 1
     deg_free_within = num_samples - num_classes
