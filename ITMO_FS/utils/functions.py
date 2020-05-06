@@ -1,7 +1,6 @@
 import numpy as np
 from numpy import array, abs
 
-
 def normalize(x):
     x = abs(array(x))
     max_ = max(x)
@@ -74,3 +73,42 @@ def knn(X, y, index, k, allClasses=True):
                     [(i, x) for i, x in enumerate(X) if i != index and (allClasses or y[i] == y[index])])
     nearest = sorted(distances, key=lambda x: x[1])[:k]
     return np.array(list(map(lambda x: x[0], nearest)))
+
+def matrix_norm(M):
+    """
+    Calculates the norm of all rows in the matrix.
+        Parameters
+        ----------
+        M : array-like, shape (n, m)
+            The matrix.
+        Returns
+        -------
+        array-like, shape (n) - the norms for each row in the matrix
+    """
+    return np.sqrt((M * M).sum(axis=1))
+
+def l21_norm(M):
+    """
+    Calculates the L2,1 norm of a matrix.
+        Parameters
+        ----------
+        M : array-like, shape (n, m)
+            The matrix.
+        Returns
+        -------
+        float - the L2,1 norm of this matrix
+    """
+    return matrix_norm(M).sum()
+
+def power_neg_half(M):
+    """
+    Calculates M ^ (-1/2).
+        Parameters
+        ----------
+        M : array-like, shape (n, m)
+            The matrix.
+        Returns
+        -------
+        array-like, shape (n, m) - M ^ (-1/2)
+    """
+    return np.sqrt(np.linalg.inv(M))

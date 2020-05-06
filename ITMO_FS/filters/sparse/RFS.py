@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
+from ...utils import l21_norm, matrix_norm
 
 class RFS(object):
 	"""
@@ -62,12 +63,6 @@ class RFS(object):
 
 		"""
 
-		def matrix_norm(M):
-			return np.sqrt((M * M).sum(axis=1))
-
-		def l21_norm(M):
-			return matrix_norm(M).sum()
-
 		if len(y.shape) == 2:
 			Y = y
 		else:
@@ -82,7 +77,7 @@ class RFS(object):
 			D_inv = np.linalg.inv(D)
 			U = D_inv.dot(A.T).dot(np.linalg.inv(A.dot(D_inv).dot(A.T))).dot(Y)
 			U = np.dot(np.dot(np.dot(D_inv, A.T), np.linalg.inv(np.dot(np.dot(A, D_inv), A.T))), Y)
-			diag = matrix_norm(U)
+			diag = 2 * matrix_norm(U)
 			diag[diag < 1e-10] = 1e-10  # prevents division by zero
 			D = np.diag(1 / diag)
 

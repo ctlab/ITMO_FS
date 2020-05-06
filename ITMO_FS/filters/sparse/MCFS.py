@@ -1,5 +1,4 @@
 import numpy as np
-from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.neighbors import NearestNeighbors
 from sklearn.linear_model import Lars
 from scipy.linalg import eigh
@@ -27,12 +26,6 @@ class MCFS(object):
 
 		examples
 		--------
-		from ITMO_FS.filters.unsupervised.trace_ratio_laplacian import TraceRatioLaplacian
-		from sklearn.datasets import make_classification
-
-		x, y = make_classification(1000, 100, n_informative = 10, n_redundant = 30, n_repeated = 10, shuffle = False)
-		tracer = TraceRatioLaplacian(10)
-		print(tracer.run(x, y)[0])
 
 	"""
 
@@ -66,13 +59,13 @@ class MCFS(object):
 			Parameters
 			----------
 			X : numpy array, shape (n_samples, n_features)
-			  The training input samples.
+				The training input samples.
 			y : numpy array, shape (n_samples)
-			  The target values.
+				The target values (ignored).
 
 			Returns
 			----------
-			W : array-like, shape (n_features, n_classes)
+			W : array-like, shape (n_features, k)
 				Feature weight matrix.
 
 			See Also
@@ -118,12 +111,12 @@ class MCFS(object):
 
 			Parameters
 			----------
-			W : array-like, shape (n_features, n_classes)
+			W : array-like, shape (n_features, k)
 				Feature weight matrix.
 
 			Returns
 			-------
-			indices : array-like, shape(d)
+			indices : array-like, shape (d)
 				Indices of d selected features.
 		"""
 		mcfs_score = W.max(axis=1)
