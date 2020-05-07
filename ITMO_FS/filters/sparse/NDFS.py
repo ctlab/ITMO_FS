@@ -90,9 +90,8 @@ class NDFS(object):
 
 		n_samples, n_features = X.shape
 		graph = NearestNeighbors(n_neighbors=self.p + 1, algorithm='ball_tree').fit(X).kneighbors_graph(X).toarray()
-		graph = np.sign(graph + graph.T)
+		graph = graph + graph.T
 
-		np.fill_diagonal(graph, 0)
 		indices = [[(i, j) for j in range(n_samples)] for i in range(n_samples)]
 		func = np.vectorize(lambda xy: graph[xy[0]][xy[1]] * self.scheme(X[xy[0]], X[xy[1]]), signature='(1)->()')
 		S = func(indices)

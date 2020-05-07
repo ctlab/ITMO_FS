@@ -52,7 +52,7 @@ class MCFS(object):
 		self.p = p
 		self.sigma = sigma
 
-	def run(self, X, y):
+	def run(self, X, y=None):
 		"""
 			Fits filter
 
@@ -60,7 +60,7 @@ class MCFS(object):
 			----------
 			X : numpy array, shape (n_samples, n_features)
 				The training input samples.
-			y : numpy array, shape (n_samples)
+			y : numpy array, optional
 				The target values (ignored).
 
 			Returns
@@ -88,14 +88,13 @@ class MCFS(object):
 		graph = NearestNeighbors(n_neighbors=self.p + 1, algorithm='ball_tree').fit(X).kneighbors_graph(X).toarray()
 		graph = graph + graph.T
 
-		np.fill_diagonal(graph, 0)
 		indices = [[(i, j) for j in range(n_samples)] for i in range(n_samples)]
 		func = np.vectorize(lambda xy: graph[xy[0]][xy[1]] * self.scheme(X[xy[0]], X[xy[1]]), signature='(1)->()')
 		W = func(indices)
 
 		D = np.diag(W.sum(axis=0))
 		L = D - W
-		eigvals, Y = eigh(type=1, a=L, b=D, eigvals=(0, self.k))
+		eigvals, Y = eigh(type=1, a=L, b=D, eigvals=(0, self.k - 1))
 
 		weights = np.zeros((n_features, self.k))
 		for i in range(self.k):
