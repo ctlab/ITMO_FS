@@ -2,7 +2,6 @@ import math
 import random
 
 import numpy as np
-from sklearn.neighbors import KNeighborsClassifier
 
 class SimulatedAnnealing(object):
 
@@ -23,6 +22,7 @@ class SimulatedAnnealing(object):
         init_number_of_features : float
             number of features to initialize start features subset,
             Note: by default (5-10) percents of number of features is used
+        
         See Also
         --------
         http://www.feat.engineering/simulated-annealing.html
@@ -43,35 +43,35 @@ class SimulatedAnnealing(object):
         
     """
 
-    def __init__(self, seed=1, iteration_number=100, classifier=KNeighborsClassifier(n_neighbors=10), c=1, init_number_of_features=None):
+    def __init__(self, classifier, score=None, seed=1, iteration_number=100, c=1, init_number_of_features=None):
         self.seed = seed
         self.iteration_number = iteration_number
         self.classifier = classifier
+        self.score = score
         self.c = c
         self.init_number_of_features = init_number_of_features
 
     def __acceptance(self, i, prev_score, cur_score):
         return math.exp(-i / self.c * (prev_score - cur_score) / prev_score)
 
-    def run(self, train_x, train_y, test_x, test_y):
+    def fit(self, train_x, train_y, test_x, test_y):
         """
+        Runs the Simulated Annealing algorithm on the specified dataset and fits the classifier.
         
-        Runs the Simulated Annealing algorithm on the specified dataset.
         Parameters
         ----------
-        train_x : array-like, shape (n_samples,n_features)
+        train_x : array-like, shape (n_samples, n_features)
             The input training samples.
         train_y : array-like, shape (n_samples)
             The classes for training samples.
-        test_x : array-like, shape (n_samples,n_features)
+        test_x : array-like, shape (n_samples, n_features)
             The input testing samples.
         test_y : array-like, shape (n_samples)
             The classes for testing samples.
 
         Return
         ------
-        array-like, shape (n_samples,n_selected_features) : array of feature numbers
-        
+        None
         """
         np.random.seed(self.seed)
         random.seed(self.seed)
@@ -81,10 +81,14 @@ class SimulatedAnnealing(object):
             self.init_number_of_features = int(feature_number * percentage / 100)
         feature_subset = np.unique((np.random.randint(0, feature_number, self.init_number_of_features)))
         self.classifier.fit(train_x[:, feature_subset], train_y)
-        prev_score = self.classifier.score(test_x[:, feature_subset], test_y)
+        if self.score==None:
+            prev_score = self.classifier.score(test_x[:, feature_subset], test_y)
+        else:
+            pred_labels = self.classifier.predict(test_x[:, feature_subset])
+            prev_score = self.score(pred_labels, test_y)
         for i in range(self.iteration_number):
             operation = random.randint(0, 1)
-            percentage = random.randint(1, 5) 
+            percentage = random.randint(1, 5)
             if operation == 1:
                 #inc
                 include_number = int(feature_number * (percentage / 100))
@@ -95,7 +99,11 @@ class SimulatedAnnealing(object):
                 exclude_number = int(feature_number * (percentage / 100))
                 cur_subset = np.delete(feature_subset, np.random.choice(feature_subset, size=exclude_number, replace=False))
             self.classifier.fit(train_x[:, cur_subset], train_y)
-            cur_score = self.classifier.score(test_x[:, cur_subset], test_y)
+            if self.score==None:
+                cur_score = self.classifier.score(test_x[:, cur_subset], test_y)
+            else:
+                pred_labels = self.classifier.predict(test_x[:, cur_subset])
+                cur_score = self.score(pred_labels, test_y)
             if cur_score > prev_score:
                 feature_subset = cur_subset
                 prev_score = cur_score
@@ -105,4 +113,25 @@ class SimulatedAnnealing(object):
                     feature_subset = cur_subset
                     prev_score = cur_score
         self.selected_features = feature_subset
-        return self.selected_features
+        
+
+    def predict(self, test_x):
+        """
+        Predicts labels on test dataset
+
+        Parameters
+        ----------
+        test_x : array-like, shape (n_samples, n_features)
+            The input testing samples.
+        
+        Return
+        ------
+        array-like, shape (n_samples,n_selected_features) : array of feature numbers
+        
+        """
+        return classifier.predict(test_x[:, self.selected_features])
+
+
+
+
+
