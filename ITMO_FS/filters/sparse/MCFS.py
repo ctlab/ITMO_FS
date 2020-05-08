@@ -5,7 +5,7 @@ from scipy.linalg import eigh
 
 class MCFS(object):
 	"""
-		Performs Unsupervised Feature Selection for Multi-Cluster Data algorithm.
+		Performs the Unsupervised Feature Selection for Multi-Cluster Data algorithm.
 
 		Parameters
 		----------
@@ -29,24 +29,24 @@ class MCFS(object):
 
 	"""
 
-	def scheme_01(self, x1, x2):
+	def __scheme_01(self, x1, x2):
 		return 1
 
-	def scheme_heat(self, x1, x2):
-		return np.exp(-np.linalg.norm(x1 - x2) ** 2 / self.sigma)
+	def __scheme_heat(self, x1, x2):
+		return np.exp(-np.linalg.norm(x1 - x2) ** 2 / (self.sigma ** 2))
 
-	def scheme_dot(self, x1, x2):
+	def ___scheme_dot(self, x1, x2):
 		return (x1 / np.linalg.norm(x1)).dot(x2 / np.linalg.norm(x2))
 
 	def __init__(self, d, k=5, p=5, scheme='dot', sigma=1):
 		if scheme not in ['0-1', 'heat', 'dot']:
 			raise KeyError('scheme should be either 0-1, heat or dot; %r passed' % scheme)
 		if scheme == '0-1':
-			self.scheme = self.scheme_01
+			self.scheme = self.__scheme_01
 		elif scheme == 'heat':
-			self.scheme = self.scheme_heat
+			self.scheme = self.__scheme_heat
 		else:
-			self.scheme = self.scheme_dot
+			self.scheme = self.__scheme_dot
 		self.d = d
 		self.k = k
 		self.p = p
@@ -106,7 +106,7 @@ class MCFS(object):
 
 	def feature_ranking(self, W):
 		"""
-			Calculate MCFS score for feature weight matrix.
+			Calculate the MCFS score for a feature weight matrix.
 
 			Parameters
 			----------

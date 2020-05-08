@@ -4,10 +4,12 @@ from ...utils import l21_norm, matrix_norm
 
 class RFS(object):
 	"""
-		Performs Robust Feature Selection via Joint L2,1-Norms Minimization algorithm.
+		Performs the Robust Feature Selection via Joint L2,1-Norms Minimization algorithm.
 
 		Parameters
 		----------
+		p : int
+			Number of features to select.
 		gamma : float, optional
 			Regularization parameter.
 		max_iterations : int, optional
@@ -32,7 +34,8 @@ class RFS(object):
 		print(model.run(data, target))
 	"""
 
-	def __init__(self, gamma=1, max_iterations=1000, epsilon=1e-5):
+	def __init__(self, p, gamma=1, max_iterations=1000, epsilon=1e-5):
+		self.p = p
 		self.gamma = gamma
 		self.max_iterations = max_iterations
 		if epsilon < 0:
@@ -87,3 +90,22 @@ class RFS(object):
 			previous_target = target
 
 		return U[:n_features]
+
+
+	def feature_ranking(self, W):
+		"""
+			Calculate the RFS score for a feature weight matrix.
+
+			Parameters
+			----------
+			W : array-like, shape (n_features, c)
+				Feature weight matrix.
+
+			Returns
+			-------
+			indices : array-like, shape(p)
+				Indices of p selected features.
+		"""
+		ndfs_score = matrix_norm(W)
+		ranking = np.argsort(ndfs_score)[::-1]
+		return ranking[:self.p]

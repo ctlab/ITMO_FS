@@ -6,7 +6,7 @@ from ...utils import l21_norm, matrix_norm, power_neg_half
 
 class NDFS(object):
 	"""
-		Performs Nonnegative Discriminative Feature Selection algorithm.
+		Performs the Nonnegative Discriminative Feature Selection algorithm.
 
 		Parameters
 		----------
@@ -22,13 +22,13 @@ class NDFS(object):
 			Regularization parameter in the objective function.
 		gamma : float, optional
 			Parameter in the objective function that controls the orthogonality condition.
+		sigma : float, optional
+			Parameter for the weighting scheme.
 		max_iterations : int, optional
 			Maximum amount of iterations to perform.
 		epsilon : positive float, optional
 			Specifies the needed residual between the target functions from consecutive iterations. If the residual
 			is smaller than epsilon, the algorithm is considered to have converged.
-		sigma : float, optional
-			Parameter for the weighting scheme.
 		
 		See Also
 		--------
@@ -39,21 +39,21 @@ class NDFS(object):
 
 	"""
 
-	def __init__(self, p, c=5, k=5, alpha=1, beta=1, gamma=10e8, max_iterations=1000, epsilon=1e-5, sigma=1):
+	def __init__(self, p, c=5, k=5, alpha=1, beta=1, gamma=10e8, sigma=1, max_iterations=1000, epsilon=1e-5):
 		self.p = p
 		self.c = c
 		self.k = k
 		self.alpha = alpha
 		self.beta = beta
 		self.gamma = gamma
+		self.sigma = sigma
 		self.max_iterations = max_iterations
 		if epsilon < 0:
 			raise ValueError("Epsilon should be positive, %d passed" % epsilon)
 		self.epsilon = epsilon
-		self.sigma = sigma
 
-	def scheme(self, x1, x2):
-		return np.exp(-np.linalg.norm(x1 - x2) ** 2 / self.sigma)
+	def __scheme(self, x1, x2):
+		return np.exp(-np.linalg.norm(x1 - x2) ** 2 / (self.sigma ** 2))
 
 	def run(self, X, y=None):
 		"""
@@ -93,7 +93,7 @@ class NDFS(object):
 		graph = graph + graph.T
 
 		indices = [[(i, j) for j in range(n_samples)] for i in range(n_samples)]
-		func = np.vectorize(lambda xy: graph[xy[0]][xy[1]] * self.scheme(X[xy[0]], X[xy[1]]), signature='(1)->()')
+		func = np.vectorize(lambda xy: graph[xy[0]][xy[1]] * self.__scheme(X[xy[0]], X[xy[1]]), signature='(1)->()')
 		S = func(indices)
 
 		A = np.diag(S.sum(axis=0))
@@ -128,7 +128,7 @@ class NDFS(object):
 
 	def feature_ranking(self, W):
 		"""
-			Calculate NDFS score for feature weight matrix.
+			Calculate the NDFS score for a feature weight matrix.
 
 			Parameters
 			----------

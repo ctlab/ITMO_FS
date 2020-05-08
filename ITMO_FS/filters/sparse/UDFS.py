@@ -4,7 +4,7 @@ from ...utils import knn, l21_norm, matrix_norm
 
 class UDFS(object):
 	"""
-		Performs Unsupervised Discriminative Feature Selection algorithm.
+		Performs the Unsupervised Discriminative Feature Selection algorithm.
 
 		Parameters
 		----------
@@ -111,7 +111,7 @@ class UDFS(object):
 
 	def feature_ranking(self, W):
 		"""
-			Calculate NDFS score for feature weight matrix.
+			Calculate the UDFS score for a feature weight matrix.
 
 			Parameters
 			----------
