@@ -7,7 +7,7 @@ from sklearn.model_selection import KFold
 from sklearn.neighbors import KNeighborsClassifier
 
 
-class TPhMGWO:
+class TPhMGWO(object):
     """
         Performs Grey Wolf optimization with Two-Phase Mutation
 
@@ -50,14 +50,14 @@ class TPhMGWO:
     def __init__(self, wolfNumber=10, seed=1, alpha=0.01, classifier=KNeighborsClassifier(n_neighbors=10), foldNumber=5,
                  iteration_number=30, Mp=0.5, errorRate=mean_squared_error):
         self.wolfNumber = wolfNumber
-        self.seed = seed
+        self._seed = seed
         self.alpha = alpha
         self.beta = 1 - alpha
         self.classifier = classifier
         self.foldNumber = foldNumber
         self.iteration_number = iteration_number
         self.errorRate = errorRate
-        self.Mp = Mp
+        self._Mp = Mp
         self.solution = None
 
     class ClassifierMethodsException(Exception):
@@ -125,7 +125,7 @@ class TPhMGWO:
         """
 
         featureNumber = X.shape[1]
-        np.random.seed(self.seed)
+        np.random.seed(self._seed)
         wolves = []
         for i in range(self.wolfNumber):
             wolves.append(np.random.randint(0, 2, featureNumber, dtype = np.integer))
@@ -154,7 +154,7 @@ class TPhMGWO:
             mutatedAlphaOne = np.copy(alphaWolf)
             for one_pos in one_positions:
                 r = random.random()
-                if r < self.Mp:
+                if r < self._Mp:
                     mutatedAlphaOne[one_pos] = 0
                     mutatedFitnessAlpha = self.__calcFitness(np.array([mutatedAlphaOne]), X, y)[0]
                     if (mutatedFitnessAlpha < fitnessFuncAlpha):
@@ -165,7 +165,7 @@ class TPhMGWO:
             mutatedAlphaZero = np.copy(alphaWolf)
             for zero_pos in zero_positions:
                 r = random.random()
-                if r < self.Mp:
+                if r < self._Mp:
                     mutatedAlphaZero[zero_pos] = 1
                     mutatedFitnessAlpha = self.__calcFitness(np.array([mutatedAlphaZero]), X, y)[0]
                     if (mutatedFitnessAlpha < fitnessFuncAlpha):
