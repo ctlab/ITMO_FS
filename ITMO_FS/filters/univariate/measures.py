@@ -104,6 +104,8 @@ def fechner_corr(X, y):
         x_col_mean = np.mean(X, axis=0)
     x_dev = X - x_col_mean
     if m == 1:
+        # TODO fix m == 1 case (The sum tries to go over 0 columns raising an error.
+        #  It needs to be transformed to a two-dimensional array)
         f_ratios = np.array(
             [np.sum((x_dev >= 0).T & (y_dev >= 0), axis=1) + np.sum((x_dev <= 0).T & (y_dev <= 0), axis=1)]).astype(
             float)
