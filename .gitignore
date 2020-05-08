@@ -3,4 +3,4 @@ ITMO_FS.egg-info
 dist
 build
 common
-test/hybrid test
+test
