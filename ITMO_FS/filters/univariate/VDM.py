@@ -3,8 +3,7 @@ import numpy as np
 from ITMO_FS.utils.functions import cartesian
 
 
-##TODO some optimization
-
+#  TODO some optimization and sklearn-like API
 class VDM:
     """
         Creates Value Difference Metric builder
@@ -98,6 +97,7 @@ class VDM:
                 # the class
                 amounts = np.array(list(entries_c_x[c].values()))  # Corresponding amounts
                 non_entries = np.arange(n_values)  # Feature values which are not presented in pairs for the class
+                # TODO get rid of error if entries are empty, example in test
                 non_entries[entries] = -1
                 non_entries = non_entries[non_entries != -1]
 
