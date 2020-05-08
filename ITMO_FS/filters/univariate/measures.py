@@ -11,6 +11,8 @@ from ITMO_FS.utils.information_theory import conditional_entropy
 from ITMO_FS.utils.information_theory import entropy
 from ITMO_FS.utils.qpfs_body import qpfs_body
 
+from scipy.sparse import csc_matrix, lil_matrix
+
 
 def fit_criterion_measure(X, y):
     x = np.asarray(X)  # Converting input data to numpy array
@@ -46,12 +48,6 @@ def fit_criterion_measure(X, y):
 
 
 def __calculate_F_ratio(row, y_data):
-    """
-    Calculates the Fisher ratio of the row passed to the data
-    :param row: ndarray, feature
-    :param y_data: ndarray, labels
-    :return: int, fisher_ratio
-    """
     inter_class = 0.0
     intra_class = 0.0
     mean_feature = np.mean(row)
@@ -66,9 +62,63 @@ def __calculate_F_ratio(row, y_data):
     return f_ratio
 
 def f_ratio_measure(X, y):
+    """
+    Calculates Fisher score for features.
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, )
+
+    See Also
+    --------
+    https://papers.nips.cc/paper/2909-laplacian-score-for-feature-selection.pdf
+
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    from ITMO_FS.filters.univariate import f_ratio_measure
+
+    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    scores = f_ratio_measure(X, y)
+    print(scores)
+    """
     return np.apply_along_axis(__calculate_F_ratio, 0, X, y)
 
 def gini_index(X, y):
+    """
+    Gini index is a measure of statistical dispersion.
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, )
+
+    See Also
+    --------
+    https://en.wikipedia.org/wiki/Gini_coefficient
+    
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    from ITMO_FS.filters.univariate import gini_index
+
+    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    scores = gini_index(X, y)
+    print(scores)
+    """
     cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
     cum_y = np.cumsum(y / np.linalg.norm(y, 1))
     diff_x = (cum_x[1:] - cum_x[:-1])
@@ -77,6 +127,35 @@ def gini_index(X, y):
 
 
 def su_measure(X, y):
+    """
+    SU is a correlation measure between the features and the class
+    calculated, via formula SU(X,Y) = 2 * I(X|Y) / (H(X) + H(Y))
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, )
+
+    See Also
+    --------
+    https://www.matec-conferences.org/articles/matecconf/pdf/2016/05/matecconf_iccma2016_06002.pdf
+
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    from ITMO_FS.filters.univariate import su_measure
+
+    X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+    y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+    scores = su_measure(X, y)
+    print(scores)
+    """
     entropy_y = entropy(y)
     f_ratios = np.empty(X.shape[1])
     for index in range(X.shape[1]):
@@ -89,7 +168,32 @@ def su_measure(X, y):
 
 def fechner_corr(X, y):
     """
-    Sample sign correlation (also known as Fechner correlation)
+    Calculates Sample sign correlation (Fechner correlation) for each feature.
+    
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, )
+
+    See Also
+    --------
+    https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient
+
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    from ITMO_FS.filters.univariate import fechner_corr
+
+    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    scores = fechner_corr(X, y)
+    print(scores)
     """
     y_mean = np.mean(y)
     if len(X.shape) == 1:
@@ -143,25 +247,50 @@ def __take_k(dm_i, k, r_index, choice_func):
 
 def reliefF_measure(X, y, k_neighbors=1):
     """
-    Based on the ReliefF algorithm as introduced in:
-    R.J. Urbanowicz et al. Relief-based feature selection: Introduction and review
-    Journal of Biomedical Informatics 85 (2018) 189–203
-    Differs with skrebate.ReliefF
+    Counts ReliefF measure for each feature
+
+    Note:
     Only for complete X
     Rather than repeating the algorithm m(TODO Ask Nikita about user defined) times,
     implement it exhaustively (i.e. n times, once for each instance)
     for relatively small n (up to one thousand).
-    :param X: array-like {n_samples, n_features}
-        Training instances to compute the feature importance scores from
-    :param y: array-like {n_samples}
-        Training labels
-    :param k_neighbors: int (default: 1)
+    
+    Calculates spearman correlation for each feature.
+    Spearman's correlation assesses monotonic relationships (whether linear or not).
+    If there are no repeated data values, a perfect Spearman correlation of +1 or −1
+    occurs when each of the variables is a perfect monotone function of the other.
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+    k_neighbors : int, optional = 1,
         The number of neighbors to consider when assigning feature importance scores.
         More neighbors results in more accurate scores, but takes longer.
         Selection of k hits and misses is the basic difference to Relief
         and ensures greater robustness of the algorithm concerning noise.
-    :return: array-like {n_features}
-        Feature importances
+    
+
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, )
+
+    See Also
+    --------
+    R.J. Urbanowicz et al. Relief-based feature selection: Introduction and review
+    Journal of Biomedical Informatics 85 (2018) 189–203
+
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    from ITMO_FS.filters.univariate import realiefF_measure
+
+    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    scores = reliefF_measure(X, y)
+    print(scores)
+
     """
     f_ratios = np.zeros(X.shape[1])
     classes, counts = np.unique(y, return_counts=True)
@@ -236,11 +365,34 @@ def __chisquare(f_obs, f_exp):
 
 def chi2_measure(X, y):
     """
-    This score can be used to select the n_features features with the highest values
-    for the test chi-squared statistic from X,
-    which must contain only non-negative features such as booleans or frequencies
-    (e.g., term counts in document classification), relative to the classes.
+    Calculates score for the test chi-squared statistic from X.
+    Chi-squared test is a statistical hypothesis test that
+    is valid to perform when the test statistic is chi-squared 
+    distributed under the null hypothesis
+
+    Note: Input data must contain only non-negative features such
+    as booleans or frequencies (e.g., term counts in document classification),
+    relative to the classes.
+    
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, )
+
+    See Also
+    --------
+    https://en.wikipedia.org/wiki/Chi-squared_test
+
+    Examples
+    --------
     """
+
     if np.any(X < 0):
         raise ValueError("Input X must be non-negative.")
     y = __label_binarize(y)
@@ -251,8 +403,6 @@ def chi2_measure(X, y):
     class_prob = y.mean(axis=0).reshape(1, -1)
     expected = np.dot(class_prob.T, feature_count)
     return __chisquare(observed, expected)
-
-    # Calculate the entropy of y.
 
 
 def __contingency_matrix(labels_true, labels_pred):
@@ -306,6 +456,37 @@ def __mi(U, V):
 
 
 def spearman_corr(X, y):
+    """
+    Calculates spearman correlation for each feature.
+    Spearman's correlation assesses monotonic relationships (whether linear or not).
+    If there are no repeated data values, a perfect Spearman correlation of +1 or −1
+    occurs when each of the variables is a perfect monotone function of the other.
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, )
+
+    See Also
+    --------
+    https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient
+
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    from ITMO_FS.filters.univariate import spearman_corr
+
+    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    scores = spearman_corr(X, y)
+    print(scores)
+
+    """
     n = X.shape[0]
     c = 6 / (n * (n - 1) * (n + 1))
     if y.shape == X.shape:
@@ -316,6 +497,38 @@ def spearman_corr(X, y):
 
 
 def pearson_corr(X, y):
+    """
+    Calculates pearson correlation for each feature.
+    Pearson correleation coeficient is a statistic
+    that measures linear correlation between two variables X and Y.
+    It has a value in interval [-1, +1], where 1 is total positive linear correlation,
+    0 is no linear correlation, and −1 is total negative linear correlation
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, )
+
+    See Also
+    --------
+    https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
+
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    from ITMO_FS.filters.univariate import pearson_corr
+
+    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    scores = pearson_corr(X, y)
+    print(scores)
+
+    """
     x_dev = X - np.mean(X, axis=0)
     y_dev = y - np.mean(y, axis=0)
     sum_dev = y_dev.T.dot(x_dev)
@@ -338,12 +551,12 @@ def laplacian_score(X, y, k_neighbors=5, t=1,
         The input samples.
     y : numpy array, shape (n_samples, )
         The classes for the samples.
-    k_neighbors : int
+    k_neighbors : int, optional (by default k_neighbors=5)
         The number of neighbors to construct a nearest neighbor graph.
-    t : float
+    t : float, optional (by default t=1)
         Suitable constant for weight matrix S, 
         where Sij = exp(-(|xi - xj| ^ 2) / t).
-    metric : callable
+    metric : callable, optional (by default metric=np.linalg.norm)
         Norm function to compute distance between two points.
         The default distance is euclidean.
     weights : numpy array, shape (n_samples, n_samples)
@@ -377,7 +590,10 @@ def laplacian_score(X, y, k_neighbors=5, t=1,
     if 'weights' in kwargs.keys():
         S = kwargs['weights']
     else:
-        S = np.zeros((n, n))
+        if n > 100000:
+            S = lil_matrix((n, n))
+        else:
+            S = np.zeros((n, n))
         for i in range(n):
             distances = []
             for j in range(n):
@@ -400,13 +616,9 @@ def laplacian_score(X, y, k_neighbors=5, t=1,
 
 
 def information_gain(X, y):
-    entropy_x = np.apply_along_axis(entropy, 0, X)
-    cond_entropy = np.apply_along_axis(conditional_entropy, 0, X, y)
-    return entropy_x - cond_entropy
-
-def anova(X, y):
     """
-    Calculates Laplacian Score for each feature.
+    Calculates mutual information for each feature by formula,
+    I(X,Y) = H(X) - H(X|Y)
 
     Parameters
     ----------
@@ -417,7 +629,40 @@ def anova(X, y):
 
     Returns
     -------
-    List of scores of each feature.
+    Score for each feature as a numpy array, shape (n_features, )
+
+    See Also
+    --------
+    
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    from ITMO_FS.filters.univariate import information_gain
+
+    X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+    y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+    scores = information_gain(X, y)
+    print(scores)
+
+    """
+    entropy_x = np.apply_along_axis(entropy, 0, X)
+    cond_entropy = np.apply_along_axis(conditional_entropy, 0, X, y)
+    return entropy_x - cond_entropy
+
+def anova(X, y):
+    """
+    Calculates anova measure for each feature.
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, )
 
     See Also
     --------
@@ -459,12 +704,11 @@ def anova(X, y):
     ms_between = sq_sum_between / float(deg_free_between)
     ms_within = sq_sum_within / float(deg_free_within)
     f = ms_between / ms_within
-    return f
+    return np.arrat(f)
 
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
                 "GiniIndex": gini_index,
-                # "MrmrDiscrete": mrmr_measure,
                 "SymmetricUncertainty": su_measure,
                 "SpearmanCorr": spearman_corr,
                 "PearsonCorr": pearson_corr,
@@ -544,6 +788,10 @@ def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
     
     Examples
     --------
+    
+    from ITMO_FS.filters.univariate import qpfs_filter
+    from sklearn.datasets import make_classification
+
     x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
     y = np.array([1, 3, 2, 1, 2])
     ranks = qpfs_filter(x, y)

@@ -33,7 +33,7 @@ class TPhMGWO:
         --------
         https://www.sciencedirect.com/science/article/pii/S0957417419305263
 
-        examples
+        Examples
         --------
         import numpy as np
         from ITMO_FS.wrappers.randomized import TPhMGWO
