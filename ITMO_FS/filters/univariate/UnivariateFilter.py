@@ -77,7 +77,11 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
 
     def get_scores(self, X, y, feature_names=None):
         """
+<<<<<<< HEAD
+            Counts feature scores on given data.
+=======
             Fits the filter.
+>>>>>>> 1f68423ce127f40db6fa50389f2ce9c9a0a30506
 
             Parameters
             ----------
@@ -99,7 +103,11 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
 
     def fit_transform(self, X, y=None, feature_names=None, store_scores=False, **fit_params):
         """
+<<<<<<< HEAD
+            Fits the filter and transforms given dataset X.
+=======
             Fits the filter.
+>>>>>>> 1f68423ce127f40db6fa50389f2ce9c9a0a30506
 
             Parameters
             ----------
@@ -152,7 +160,11 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
 
     def transform(self, X):
         """
+<<<<<<< HEAD
+            Slices given dataset by previously selected features.
+=======
             Fits the filter.
+>>>>>>> 1f68423ce127f40db6fa50389f2ce9c9a0a30506
 
             Parameters
             ----------
