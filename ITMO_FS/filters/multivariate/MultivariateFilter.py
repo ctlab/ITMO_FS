@@ -91,4 +91,19 @@ class MultivariateFilter(object):
 
 
     def transform(self, X):
+        """
+            Transform given data by slicing it with selected features.
+
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features)
+                The training input samples.
+            
+            Returns
+            ------
+            
+            Transformed 2D numpy array
+
+        """
+
         return X[:, self.selected_features]
