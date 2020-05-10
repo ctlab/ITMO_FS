@@ -181,9 +181,9 @@ def CIFE(selected_features, free_features, X, y):
 
 def MIFS(selected_features, free_features, X, y, beta):
     """
-        This criterion includes the I(X;Y) term to ensure feature relevance, but introduces a 
-        penalty to enforce low correlations with features already selected in S
         Mutual Information Feature Selection feature scoring criterion.
+        This criterion includes the I(X;Y) term to ensure feature relevance, but introduces a 
+        penalty to enforce low correlations with features already selected in set.
         Given set of already selected features and set of remaining features on dataset X
         with labels y selects next feature.
 
