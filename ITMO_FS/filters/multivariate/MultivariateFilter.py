@@ -90,5 +90,5 @@ class MultivariateFilter(object):
             free_features = np.delete(free_features, to_add)
 
 
-def transform(self, X):
-    return X[:, self.selected_features]
+    def transform(self, X):
+        return X[:, self.selected_features]
