@@ -62,6 +62,7 @@ def __calculate_F_ratio(row, y_data):
     return f_ratio
 
 def f_ratio_measure(X, y):
+    #TODO devision by zero
     """
     Calculates Fisher score for features.
 
