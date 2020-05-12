@@ -61,6 +61,8 @@ class VDM:
 
     def run(self, x, y, weighted=True):
         """
+        # TODO Fix case of y passed as DataFrame. For now y is transformed to 2D array and this causes an error.
+        #  It seems better to follow usual sklearn practice and to use check_X_y but np.asarray(y[0]) is also possible
         x = np.asarray(x)  # Converting input data to numpy arrays
         y = np.asarray(y)
 
