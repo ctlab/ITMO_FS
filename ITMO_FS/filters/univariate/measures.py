@@ -65,8 +65,10 @@ def __calculate_F_ratio(row, y_data):
     f_ratio = inter_class / intra_class
     return f_ratio
 
+
 def f_ratio_measure(X, y):
     return np.apply_along_axis(__calculate_F_ratio, 0, X, y)
+
 
 def gini_index(X, y):
     cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
@@ -84,6 +86,7 @@ def su_measure(X, y):
         cond_entropy = conditional_entropy(X[:, index], y)
         f_ratios[index] = 2 * (entropy_y - cond_entropy) / (entropy_x + entropy_y)
     return f_ratios
+
 
 # TODO concordation coef, kendal coef
 
@@ -112,6 +115,7 @@ def fechner_corr(X, y):
     else:
         f_ratios = np.sum((x_dev >= 0).T & (y_dev >= 0), axis=1) + np.sum((x_dev <= 0).T & (y_dev <= 0), axis=1).astype(
             float)
+    # TODO Count (Na-Nb)/N, for now Na/N is counted (possible fix: f_ratios = -1 + 2*f_ratios/n after simplification)
     f_ratios /= n
     return f_ratios
 
@@ -312,6 +316,7 @@ def __mi(U, V):
 def spearman_corr(X, y):
     n = X.shape[0]
     c = 6 / (n * (n - 1) * (n + 1))
+    # TODO It must count differences of ranks, not of values
     if y.shape == X.shape:
         dif = X - y
     else:
@@ -326,8 +331,10 @@ def pearson_corr(X, y):
     sq_dev_x = x_dev * x_dev
     sq_dev_y = y_dev * y_dev
     denominators = np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
-    results = np.array([(sum_dev[i] / denominators[i]) if denominators[i] > 0.0 else 0 for i in range(len(denominators))])
+    results = np.array(
+        [(sum_dev[i] / denominators[i]) if denominators[i] > 0.0 else 0 for i in range(len(denominators))])
     return results
+
 
 # TODO need to implement unsupervised way
 # TODO add sparse functionality
@@ -408,6 +415,7 @@ def information_gain(X, y):
     cond_entropy = np.apply_along_axis(conditional_entropy, 0, X, y)
     return entropy_x - cond_entropy
 
+
 def anova(X, y):
     """
     Calculates Laplacian Score for each feature.
@@ -465,6 +473,7 @@ def anova(X, y):
     f = ms_between / ms_within
     return f
 
+
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
                 "GiniIndex": gini_index,
@@ -516,6 +525,7 @@ GLOB_CR = {"Best by value": select_best_by_value,
            "Worst by value": select_worst_by_value,
            "K best": select_k_best,
            "K worst": select_k_worst}
+
 
 def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
     """

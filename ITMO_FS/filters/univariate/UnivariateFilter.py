@@ -29,6 +29,8 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
         if hasattr(x, 'values'):
             x = x.values
         if hasattr(y, 'values'):
+            # TODO Fix case of y passed as DataFrame. For now y is transformed to 2D array and this causes an error.
+            #  It seems better to follow usual sklearn practice using check_X_y but y = y[0].values is also possible
             y = y.values
 
         if hasattr(x, 'columns'):
@@ -69,4 +71,5 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
         :param x:
         :return:
         """
+        # TODO Add x transformation to array if DataFrame is passed (e.g. check_array)
         return x[:, self.selected_features]
