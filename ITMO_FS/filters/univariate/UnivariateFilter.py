@@ -19,7 +19,7 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
             which should return a list of metric values for each feature in the dataset.
         cutting_rule : string or callables
             A cutting rule name defined in GLOB_CR or a callable with signature
-            cutting_rule (features), 
+            cutting_rule (features),
             which should return a list features ranked by some rule.
 
         See Also
@@ -64,8 +64,9 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
         if hasattr(X, 'values'):
             X = X.values
         if hasattr(y, 'values'):
+            # TODO Fix case of y passed as DataFrame. For now y is transformed to 2D array and this causes an error.
+            #  It seems better to follow usual sklearn practice using check_X_y but y = y[0].values is also possible
             y = y.values
-        self.feature_scores = None
 
         if hasattr(X, 'columns'):
             feature_names = X.columns
@@ -110,14 +111,14 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
             feature_names : list of strings, optional
                 In case you want to define feature names
             store_scores : boolean, optional (by default False)
-                In case you want to store the scores of features 
+                In case you want to store the scores of features
                 for future calls to Univariate filter
-            **fit_params : 
+            **fit_params :
                 dictonary of measure parameter if needed.
 
             Returns
             ------
-            
+
             X dataset sliced with features selected by the filter
         """
         self.fit(X, y, feature_names, store_scores)
@@ -136,7 +137,7 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
             feature_names : list of strings, optional
                 In case you want to define feature names
             store_scores : boolean, optional (by default False)
-                In case you want to store the scores of features 
+                In case you want to store the scores of features
                 for future calls to Univariate filter
 
             Returns
@@ -158,7 +159,7 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
             ----------
             X : array-like, shape (n_features, n_samples)
                 The training input samples.
-            
+
             Returns
             ------
             X dataset sliced with features selected by the filter

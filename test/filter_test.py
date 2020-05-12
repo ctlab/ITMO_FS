@@ -41,9 +41,12 @@ class TestCases(unittest.TestCase):
     #              np.ones((data.shape[1],))]):
     #         assert (f(data[0], data[0]) == answer).all()
     #
-    # def test_df(self):
-    #     data, target = pd.DataFrame(self.wide_classification[0]), pd.DataFrame(self.wide_classification[1])
-    #     f = UnivariateFilter(pearson_corr, select_k_best(50))
-    #     f.fit(data, target)
-    #     res = f.transform(data)
-    #     res
+    def test_df(self):
+        data, target = pd.DataFrame(self.wide_classification[0]), pd.DataFrame(self.wide_classification[1])
+        f = UnivariateFilter(pearson_corr, select_k_best(50))
+        f.fit(data, target)
+        df = f.transform(data)
+        f = UnivariateFilter(pearson_corr, select_k_best(50))
+        f.fit(self.wide_classification[0], self.wide_classification[1])
+        arr = f.transform(data)
+        self.assertEqual(df, arr)

@@ -3,8 +3,7 @@ import numpy as np
 from ITMO_FS.utils.functions import cartesian
 
 
-##TODO some optimization
-
+#  TODO some optimization and sklearn-like API
 class VDM:
     """
         Creates Value Difference Metric builder
@@ -62,6 +61,8 @@ class VDM:
 
     def run(self, x, y, weighted=True):
         """
+        # TODO Fix case of y passed as DataFrame. For now y is transformed to 2D array and this causes an error.
+        #  It seems better to follow usual sklearn practice and to use check_X_y but np.asarray(y[0]) is also possible
         x = np.asarray(x)  # Converting input data to numpy arrays
         y = np.asarray(y)
 
@@ -98,6 +99,7 @@ class VDM:
                 # the class
                 amounts = np.array(list(entries_c_x[c].values()))  # Corresponding amounts
                 non_entries = np.arange(n_values)  # Feature values which are not presented in pairs for the class
+                # TODO get rid of error if entries are empty, example in test
                 non_entries[entries] = -1
                 non_entries = non_entries[non_entries != -1]
 
