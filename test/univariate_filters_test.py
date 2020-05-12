@@ -50,7 +50,7 @@ class TestCases(unittest.TestCase):
             assert i == res.shape[1]
 
     def test_corr(self):
-        # Consistence
+        # Consistency
         data, target = self.wide_classification[0], self.wide_classification[1]
         for f in [spearman_corr, pearson_corr, fechner_corr, ]:
             # X.shape == 1 case
