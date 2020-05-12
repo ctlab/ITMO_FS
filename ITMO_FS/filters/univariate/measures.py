@@ -705,7 +705,7 @@ def anova(X, y):
     ms_between = sq_sum_between / float(deg_free_between)
     ms_within = sq_sum_within / float(deg_free_within)
     f = ms_between / ms_within
-    return np.arrat(f)
+    return np.array(f)
 
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
