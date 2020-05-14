@@ -4,6 +4,7 @@ from .measures import GLOB_MEASURE
 from ...utils import generate_features
 
 
+# TODO X and y transformation for DataFrame support
 # TODO Test interface!!!!
 class MultivariateFilter(object):
     """
@@ -88,7 +89,6 @@ class MultivariateFilter(object):
             to_add = np.argmax(values)
             self.selected_features = np.append(self.selected_features, free_features[to_add])
             free_features = np.delete(free_features, to_add)
-
 
     def transform(self, X):
         """
