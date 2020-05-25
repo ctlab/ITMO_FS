@@ -2,7 +2,6 @@ import numpy as np
 from sklearn.metrics import pairwise_distances
 
 class STIR(object):
-
     """Feature selection using STIR algorithm.
 
     Algorithm taken from paper:
@@ -19,7 +18,7 @@ class STIR(object):
         self.feature_scores = None
         self.top_features = None
 
-    def max_diff(X):
+    def max_diff(self, X):
         """Computing max difference in each column.
 
         Args:
@@ -31,13 +30,11 @@ class STIR(object):
                 column difference vector.
         """
 
-        diff_vector = []
-        for column in X.T:
-            diff_vector.append(np.max(column) - np.min(column))
+        diff_vector = np.max(X, axis=0) - np.min(X, axis=0)
 
         return diff_vector
 
-    def distance_matrix(X):
+    def distance_matrix(self, X):
         """Computing distance matrix.
 
         Before calculating distance we center
@@ -51,7 +48,8 @@ class STIR(object):
             X_distances (array-like<n_samples, n_samples>):
                 distance matrix.
         """
-        max_diff_vec = STIR.max_diff(X)
+
+        max_diff_vec = self.max_diff(X)
         min_vec = X.min(axis=0)
 
         X_centered = X - min_vec
@@ -60,7 +58,7 @@ class STIR(object):
 
         return X_distances
 
-    def find_neighbors(X, y, k=1):
+    def find_neighbors(self, X, y, k=1):
         """Find the nearest hit/miss matrices.
 
         Args:
@@ -79,7 +77,8 @@ class STIR(object):
                 the first column instance) for list [1] and miss_index 
                 (nearest misses) for list [2].
         """
-        X_distances = STIR.distance_matrix(X)
+
+        X_distances = self.distance_matrix(X)
         num_samples = X.shape[0]
 
         indexes = []
@@ -116,11 +115,13 @@ class STIR(object):
                 Training labels.
             k (int): number of constant nearest hits/misses.
         """
+
+...
         n_samples = X.shape[0]
         n_features = X.shape[1]
         weights = np.zeros(n_features)
-        neighbors_index = STIR.find_neighbors(X, y, k)
-        range_vec = np.array(STIR.max_diff(X))
+        neighbors_index = self.find_neighbors(X, y, k)
+        range_vec = np.array(self.max_diff(X))
         one_over_range = 1 / range_vec
         one_over_m = 1 / n_samples
 
@@ -166,6 +167,7 @@ class STIR(object):
                 Reduced feature matrix.
 
         """
+
         return X[:, self.top_features[:self.n_features_to_keep]]
 
     def fit_transform(self, X, y, k=1):
@@ -185,5 +187,6 @@ class STIR(object):
                 Reduced feature matrix.
 
         """
+
         self.fit(X, y, k)
         return self.transform(X)
