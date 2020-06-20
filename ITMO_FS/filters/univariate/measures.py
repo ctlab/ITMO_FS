@@ -1,16 +1,22 @@
-from functools import partial
+from functools import partial, update_wrapper
+
+
 from math import exp
 from math import log
 
 import numpy as np
 from scipy import sparse as sp
-from scipy import special
 
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.information_theory import conditional_entropy
 from ITMO_FS.utils.information_theory import entropy
 from ITMO_FS.utils.qpfs_body import qpfs_body
 
+
+def _wrapped_partial(func, *args, **kwargs):
+    partial_func = partial(func, *args, **kwargs)
+    update_wrapper(partial_func, func)
+    return partial_func
 
 def fit_criterion_measure(X, y):
     x = np.asarray(X)  # Converting input data to numpy array
@@ -65,8 +71,10 @@ def __calculate_F_ratio(row, y_data):
     f_ratio = inter_class / intra_class
     return f_ratio
 
+
 def f_ratio_measure(X, y):
     return np.apply_along_axis(__calculate_F_ratio, 0, X, y)
+
 
 def gini_index(X, y):
     cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
@@ -84,6 +92,7 @@ def su_measure(X, y):
         cond_entropy = conditional_entropy(X[:, index], y)
         f_ratios[index] = 2 * (entropy_y - cond_entropy) / (entropy_x + entropy_y)
     return f_ratios
+
 
 # TODO concordation coef, kendal coef
 
@@ -324,13 +333,14 @@ def pearson_corr(X, y):
     sq_dev_x = x_dev * x_dev
     sq_dev_y = y_dev * y_dev
     denominators = np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
-    results = np.array([(sum_dev[i] / denominators[i]) if denominators[i] > 0.0 else 0 for i in range(len(denominators))])
+    results = np.array(
+        [(sum_dev[i] / denominators[i]) if denominators[i] > 0.0 else 0 for i in range(len(denominators))])
     return results
+
 
 # TODO need to implement unsupervised way
 # TODO add sparse functionality
-def laplacian_score(X, y, k_neighbors=5, t=1,
-                    metric=np.linalg.norm, **kwargs):
+def laplacian_score(X, y, k_neighbors=5, t=1, metric=np.linalg.norm, **kwargs):
     """
     Calculates Laplacian Score for each feature.
 
@@ -406,6 +416,7 @@ def information_gain(X, y):
     cond_entropy = np.apply_along_axis(conditional_entropy, 0, X, y)
     return entropy_x - cond_entropy
 
+
 def anova(X, y):
     """
     Calculates Laplacian Score for each feature.
@@ -463,6 +474,7 @@ def anova(X, y):
     f = ms_between / ms_within
     return f
 
+
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
                 "GiniIndex": gini_index,
@@ -477,11 +489,11 @@ GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
 
 
 def select_best_by_value(value):
-    return partial(__select_by_value, value=value, more=True)
+    return _wrapped_partial(__select_by_value, value=value, more=True)
 
 
 def select_worst_by_value(value):
-    return partial(__select_by_value, value=value, more=False)
+    return _wrapped_partial(__select_by_value, value=value, more=False)
 
 
 def __select_by_value(scores, value, more=True):
@@ -497,11 +509,11 @@ def __select_by_value(scores, value, more=True):
 
 
 def select_k_best(k):
-    return partial(__select_k, k=k, reverse=True)
+    return _wrapped_partial(__select_k, k=k, reverse=True)
 
 
 def select_k_worst(k):
-    return partial(__select_k, k=k)
+    return _wrapped_partial(__select_k, k=k)
 
 
 def __select_k(scores, k, reverse=False):
@@ -514,6 +526,7 @@ GLOB_CR = {"Best by value": select_best_by_value,
            "Worst by value": select_worst_by_value,
            "K best": select_k_best,
            "K worst": select_k_worst}
+
 
 def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
     """

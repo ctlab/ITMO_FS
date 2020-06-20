@@ -1,3 +1,5 @@
+import os
+import sys
 import unittest
 
 import numpy as np
@@ -5,7 +7,11 @@ import pandas as pd
 from sklearn.datasets import load_iris
 from sklearn.datasets import make_classification, make_regression
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from ITMO_FS.filters.univariate import *
+
+
+# from ITMO_FS.filters.univariate import *
 
 
 class TestCases(unittest.TestCase):

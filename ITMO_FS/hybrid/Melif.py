@@ -3,29 +3,18 @@ import logging
 
 import numpy as np
 from sklearn.model_selection import train_test_split
-from collections import defaultdict
+
 from ITMO_FS.utils.data_check import *
 
 
 class Melif:
-    __filters = []
-    __feature_names = []
-    __filter_weights = []
-    __y = []
-    __X = []
-    __alphas = []
-    __estimator = None
-    __points = []
-    __cutting_rule = None
-    __delta = None
-    _train_x = _train_y = _test_x = _test_y = None
 
-    def __init__(self, filters, score=None):  # TODO scorer name
-        check_filters(filters)
-        self.__filters = filters
-        self.__score = score
+    def __init__(self, filter_ensemble, scorer=None):  # TODO scorer name
+        self.ensemble = filter_ensemble
+        self.__score = scorer
         self.best_score = 0
         self.best_point = []
+        self.best_f = {}
 
     def fit(self, X, y, estimator, cutting_rule, test_size=0.3, delta=0.5, feature_names=None, points=None):
         """
@@ -40,47 +29,44 @@ class Melif:
         :param points:
         :return:
         """
-        logging.info('Running basic MeLiF\nFilters:{}'.format(self.__filters))
+        logging.info('Running basic MeLiF\nEnsemble of :{}'.format(self.ensemble))
         feature_names = generate_features(X, feature_names)
         check_shapes(X, y)
         # check_features(features_names)
         self.__feature_names = feature_names
         self.__X = X
         self.__y = y
-        self.__filter_weights = np.ones(len(self.__filters)) / len(self.__filters)
+        self.__filter_weights = np.ones(len(self.ensemble)) / len(self.ensemble)
         self.__points = points
         self.__estimator = estimator
         self.__cutting_rule = cutting_rule
 
         self.__delta = delta
-        logging.info("Estimator: {}".format(estimator))
-        logging.info(
-            "Optimizer greedy search, optimizing measure is {}".format(
-                self.__score))  # TODO add optimizer and quality measure
-        time = dt.datetime.now()
-        logging.info("time:{}".format(time))
+        # logging.info("Estimator: {}".format(estimator))
+        # logging.info(
+        #     "Optimizer greedy search, optimizing measure is {}".format(self.__score))  # TODO add optimizer and quality measure
+        # time = dt.datetime.now()
+        # logging.info("time:{}".format(time))
         check_cutting_rule(cutting_rule)
         self._train_x, self._test_x, self._train_y, self._test_y = train_test_split(self.__X, self.__y,
-                                                                                     test_size=test_size)
-        nu = defaultdict(list)
-        for _filter in self.__filters:
-            _filter.fit_transform(self._train_x, self._train_y, feature_names=self.__feature_names, store_scores=True)
-            for key, value in _filter.feature_scores.items():
-                _filter.feature_scores[key] = abs(value)
-            _min = min(_filter.feature_scores.values())
-            _max = max(_filter.feature_scores.values())
-            for key, value in _filter.feature_scores.items():
-                nu[key].append((value - _min) / (_max - _min))
+                                                                                    test_size=test_size)
+        nu = self.ensemble.score(self.__X, self.__y, self.__feature_names)
+
         if self.__points is None:
             self.__points = [self.__filter_weights]
         best_point = self.__points[0]
+
+        n = dict(zip(nu.keys(), self.__measure(np.array(list(nu.values())), best_point)))
+        self.selected_features = self.__cutting_rule(n)
+        self.best_f = {i: nu[i] for i in self.selected_features}
+
         self.__search(best_point, nu)
-        logging.info('Footer')
-        logging.info("Best point:{}".format(self.best_point))
-        logging.info("Best Score:{}".format(self.best_score))
-        logging.info('Top features:')
-        for key, value in sorted(self.best_f.items(), key=lambda x: x[1], reverse=True):
-            logging.info("Feature: {}, value: {}".format(key, value))
+        # logging.info('Footer')
+        # logging.info("Best point:{}".format(self.best_point))
+        # logging.info("Best Score:{}".format(self.best_score))
+        # logging.info('Top features:')
+        # for key, value in sorted(self.best_f.items(), key=lambda x: x[1], reverse=True):
+        #     logging.info("Feature: {}, value: {}".format(key, value))
 
     def transform(self, X):
         if type(X) is np.ndarray:
@@ -101,8 +87,8 @@ class Melif:
         time = dt.datetime.now()
         while i < len(points):
             point = points[i]
-            logging.info('Time:{}'.format(dt.datetime.now() - time))
-            logging.info('point:{}'.format(point))
+            # logging.info('Time:{}'.format(dt.datetime.now() - time))
+            # logging.info('point:{}'.format(point))
             self.__values = np.array(list(features.values()))
             n = dict(zip(features.keys(), self.__measure(self.__values, point)))
             self.selected_features = self.__cutting_rule(n)
@@ -112,8 +98,7 @@ class Melif:
             self.__estimator.fit(self._train_x[:, self.selected_features], self._train_y)
             predicted = self.__estimator.predict(self._test_x[:, self.selected_features])
             score = self.__score(self._test_y, predicted)
-            logging.info(
-                'Score at current point : {}'.format(score))
+            # logging.info('Score at current point : {}'.format(score))
             if score > self.best_score:
                 self.best_score = score
                 self.best_point = point

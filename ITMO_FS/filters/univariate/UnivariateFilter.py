@@ -1,3 +1,4 @@
+from numpy import ndarray
 from sklearn.base import TransformerMixin
 
 from .measures import GLOB_CR, GLOB_MEASURE
@@ -25,7 +26,7 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
         self.hash = None
         self.selected_features = None
 
-    def _check_input(self, x, y, feature_names):
+    def _check_input(self, x, y=None, feature_names=None):
         if hasattr(x, 'values'):
             x = x.values
         if hasattr(y, 'values'):
@@ -40,10 +41,26 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
         return x, y, feature_names
 
     def get_scores(self, x, y, feature_names=None):
+        """
+
+        :param x:
+        :param y:
+        :param feature_names:
+        :return:
+        """
         x, y, feature_names = self._check_input(x, y, feature_names)
         return dict(zip(feature_names, self.measure(x, y)))
 
     def fit_transform(self, X, y=None, feature_names=None, store_scores=False, **fit_params):
+        """
+
+        :param X:
+        :param y:
+        :param feature_names:
+        :param store_scores:
+        :param fit_params:
+        :return:
+        """
         self.fit(X, y, feature_names, store_scores)
         return self.transform(X)
 
@@ -69,4 +86,11 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
         :param x:
         :return:
         """
-        return x[:, self.selected_features]
+        if type(x) is ndarray:
+            return x[:, self.selected_features]
+        else:
+            return x[self.selected_features]
+
+    def __repr__(self):
+        return "Univariate filter with measure {} and cutting rule {}".format(self.measure.__name__,
+                                                                              self.cutting_rule.__name__)
