@@ -13,6 +13,7 @@ def _chained_information(x_i, x_j, y):
     return mutual_information(x_i, y) + mutual_information(x_j, y) + _complementarity(x_i, x_j, y)
 
 
+# TODO X and y transformation for DataFrame support
 class DISRWithMassive(object):
     """
         Creates DISR (Double Input Symmetric Relevance) feature selection filter
@@ -74,7 +75,7 @@ class DISRWithMassive(object):
 
         self.n_features = X.shape[1]
         if self.expected_size is None:
-            self.expected_size = self.n_features / 3
+            self.expected_size = self.n_features // 3
         free_features = np.array([], dtype=np.integer)
         self.selected_features = np.arange(self.n_features, dtype=np.integer)
         self._vertices = np.ones(self.n_features)
@@ -85,6 +86,10 @@ class DISRWithMassive(object):
                 if entropy_pair != 0.:
                     self._edges[i][j] = _chained_information(X[:, i], X[:, j], y) / entropy_pair
 
+        # TODO Find and fix the error, program fails while vectorizing.
+        #  Besides, using of vectorize is not recommended because it is very slow. Something like
+        #  np.vstack([self.__count_weight(ind) for ind in np.arange(self.n_features)]) could do the same much faster.
+        #  Finally, is it really intended to search for argmin over the flattened array and not an axis?
         while self.selected_features.size != self.expected_size:
             min_index = np.argmin(np.vectorize(lambda x: self.__count_weight(x))(np.arange(self.n_features)))
             self._vertices[min_index] = 0
