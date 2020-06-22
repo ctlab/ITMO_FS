@@ -40,7 +40,7 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
         print(ufilter.selected_features)
     """
 
-    def __init__(self, measure, cutting_rule):
+    def __init__(self, measure, cutting_rule=GLOB_CR['K best']):
         # TODO Check measure and cutting_rule
         if type(measure) is str:
             try:
@@ -58,12 +58,11 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
         else:
             self.cutting_rule = cutting_rule
         self.feature_scores = None
-        self.hash = None
         self.selected_features = None
 
     def _check_input(self, X, y=None, feature_names=None):
         if hasattr(X, 'values'):
-            x = X.values
+            X = X.values
         if hasattr(y, 'values'):
             # TODO Fix case of y passed as DataFrame. For now y is transformed to 2D array and this causes an error.
             #  It seems better to follow usual sklearn practice using check_X_y but y = y[0].values is also possible

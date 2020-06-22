@@ -20,7 +20,10 @@ def check_features(features, size):
 
 def generate_features(X, features=None):
     try:
-        features = X.columns
+        if X.columns is list:
+            features = X.columns
+        else:
+            features = list(X.columns)
     except AttributeError:
         if features is None:
             features = [i for i in range(X.shape[1])]

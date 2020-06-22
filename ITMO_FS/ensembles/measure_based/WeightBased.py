@@ -27,8 +27,6 @@ class WeightBased(TransformerMixin):
         self.feature_scores = defaultdict(list)
         for _filter in self.__filters:
             _filter.fit(X, y, feature_names=feature_names, store_scores=True)
-            for key, value in _filter.feature_scores.items():
-                _filter.feature_scores[key] = value
             _min = min(_filter.feature_scores.values())
             _max = max(_filter.feature_scores.values())
             for key, value in _filter.feature_scores.items():

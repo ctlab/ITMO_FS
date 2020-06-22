@@ -1,24 +1,22 @@
 from functools import partial, update_wrapper
-
-
 from math import exp
 from math import log
 
 import numpy as np
 from scipy import sparse as sp
+from scipy.sparse import lil_matrix
 
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.information_theory import conditional_entropy
 from ITMO_FS.utils.information_theory import entropy
 from ITMO_FS.utils.qpfs_body import qpfs_body
 
-from scipy.sparse import csc_matrix, lil_matrix
-
 
 def _wrapped_partial(func, *args, **kwargs):
     partial_func = partial(func, *args, **kwargs)
     update_wrapper(partial_func, func)
     return partial_func
+
 
 def fit_criterion_measure(X, y):
     x = np.asarray(X)  # Converting input data to numpy array
@@ -69,7 +67,7 @@ def __calculate_F_ratio(row, y_data):
 
 
 def f_ratio_measure(X, y):
-    #TODO devision by zero
+    # TODO devision by zero
     """
     Calculates Fisher score for features.
 
@@ -128,6 +126,9 @@ def gini_index(X, y):
     scores = gini_index(X, y)
     print(scores)
     """
+    #### TODO Check brown formula here gini could be greater than 1 or 0
+    if X.shape[0] < 2:
+        raise Exception("Sample size must be greater than 1")
     cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
     cum_y = np.cumsum(y / np.linalg.norm(y, 1))
     diff_x = (cum_x[1:] - cum_x[:-1])
@@ -547,7 +548,7 @@ def pearson_corr(X, y):
     """
     x_dev = X - np.mean(X, axis=0)
     y_dev = y - np.mean(y, axis=0)
-    sum_dev = y_dev.T.dot(x_dev)
+    sum_dev = y_dev.T.dot(x_dev).reshape((X.shape[1],))
     sq_dev_x = x_dev * x_dev
     sq_dev_y = y_dev * y_dev
     denominators = np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
@@ -723,7 +724,6 @@ def anova(X, y):
     ms_within = sq_sum_within / float(deg_free_within)
     f = ms_between / ms_within
     return np.array(f)
-
 
 
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
