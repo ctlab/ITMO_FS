@@ -43,7 +43,7 @@ class SimulatedAnnealing(object):
         
     """
 
-    def __init__(self, classifier, score=None, seed=1, iteration_number=100, c=1, init_number_of_features=None):
+    def __init__(self, classifier, score, seed=1, iteration_number=100, c=1, init_number_of_features=None):
         self.seed = seed
         self.iteration_number = iteration_number
         self.classifier = classifier
@@ -76,16 +76,11 @@ class SimulatedAnnealing(object):
         np.random.seed(self.seed)
         random.seed(self.seed)
         feature_number = train_x.shape[1]
-        if self.init_number_of_features == None:
+        if self.init_number_of_features is None:
             percentage = random.randint(5, 11)
             self.init_number_of_features = int(feature_number * percentage / 100)
         feature_subset = np.unique((np.random.randint(0, feature_number, self.init_number_of_features)))
-        self.classifier.fit(train_x[:, feature_subset], train_y)
-        if self.score == None:
-            prev_score = self.classifier.score(test_x[:, feature_subset], test_y)
-        else:
-            pred_labels = self.classifier.predict(test_x[:, feature_subset])
-            prev_score = self.score(pred_labels, test_y)
+        prev_score = self.__get_score(train_x, train_y, test_x, test_y, feature_subset)
         for i in range(self.iteration_number):
             operation = random.randint(0, 1)
             percentage = random.randint(1, 5)
@@ -100,12 +95,7 @@ class SimulatedAnnealing(object):
                 exclude_number = int(feature_number * (percentage / 100))
                 cur_subset = np.delete(feature_subset,
                                        np.random.choice(feature_subset, size=exclude_number, replace=False))
-            self.classifier.fit(train_x[:, cur_subset], train_y)
-            if self.score == None:
-                cur_score = self.classifier.score(test_x[:, cur_subset], test_y)
-            else:
-                pred_labels = self.classifier.predict(test_x[:, cur_subset])
-                cur_score = self.score(pred_labels, test_y)
+            cur_score = self.__get_score(train_x, train_y, test_x, test_y, feature_subset)
             if cur_score > prev_score:
                 feature_subset = cur_subset
                 prev_score = cur_score
@@ -115,6 +105,12 @@ class SimulatedAnnealing(object):
                     feature_subset = cur_subset
                     prev_score = cur_score
         self.selected_features = feature_subset
+
+    def __get_score(self, train_x, train_y, test_x, test_y, subset):
+        self.classifier.fit(train_x[:, subset], train_y)
+        pred_labels = self.classifier.predict(test_x[:, subset])
+        score = self.score(pred_labels, test_y)
+        return score
 
     def predict(self, test_x):
         """
@@ -130,4 +126,4 @@ class SimulatedAnnealing(object):
         array-like, shape (n_samples,n_selected_features) : array of feature numbers
         
         """
-        return classifier.predict(test_x[:, self.selected_features])
+        return self.classifier.predict(test_x[:, self.selected_features])
