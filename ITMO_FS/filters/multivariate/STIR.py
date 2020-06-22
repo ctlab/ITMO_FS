@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.metrics import pairwise_distances
 
+
 class STIR(object):
     """Feature selection using STIR algorithm.
 
@@ -89,11 +90,11 @@ class STIR(object):
             distances = X_distances[i]
             nearest = np.argsort(distances)
             nearest_matrix = np.column_stack((nearest, [y[j] for j in nearest]))
-            nearest_hits = np.array(list(filter(lambda row: row[1] == nearest_matrix[0, 1], 
+            nearest_hits = np.array(list(filter(lambda row: row[1] == nearest_matrix[0, 1],
                                                 nearest_matrix)))
-            nearest_misses = np.array(list(filter(lambda row: row[1] != nearest_matrix[0, 1], 
+            nearest_misses = np.array(list(filter(lambda row: row[1] != nearest_matrix[0, 1],
                                                   nearest_matrix)))
-            k_nearest_hits = [row[0] for row in nearest_hits[1 : (k + 1)]]
+            k_nearest_hits = [row[0] for row in nearest_hits[1: (k + 1)]]
             k_nearest_misses = [row[0] for row in nearest_misses[:k]]
 
             indexes += [i for j in range(k)]
@@ -116,7 +117,6 @@ class STIR(object):
             k (int): number of constant nearest hits/misses.
         """
 
-...
         n_samples = X.shape[0]
         n_features = X.shape[1]
         weights = np.zeros(n_features)
@@ -128,21 +128,19 @@ class STIR(object):
         hit_index, hits = np.hsplit(neighbors_index[0], 2)
         miss_index, misses = np.hsplit(neighbors_index[1], 2)
 
-
         hit_index = hit_index.flatten()
         hits = hits.flatten()
         miss_index = miss_index.flatten()
         misses = misses.flatten()
 
         for feature_index in range(n_features):
-
             attr_values = X.T[feature_index]
 
             hit_neighbors = np.array([attr_values[i] for i in hits])
             miss_neighbors = np.array([attr_values[i] for i in misses])
 
             hit_values = np.array([attr_values[i] for i in hit_index])
-            miss_values = np.array([attr_values[i] for i in miss_index]) 
+            miss_values = np.array([attr_values[i] for i in miss_index])
 
             attr_diff_hits = np.abs(hit_neighbors - hit_values) * one_over_range[feature_index]
             attr_diff_misses = np.abs(miss_neighbors - miss_values) * one_over_range[feature_index]
