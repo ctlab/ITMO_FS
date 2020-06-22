@@ -7,7 +7,7 @@ from sklearn.utils.validation import check_X_y
 from ITMO_FS.utils.data_check import *
 
 
-class Melif():
+class Melif(object):
 
     def __init__(self, filter_ensemble, scorer=None, verbose=False):  # TODO scorer name
         self.ensemble = filter_ensemble

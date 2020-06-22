@@ -3,8 +3,8 @@ import random
 
 import numpy as np
 
-class SimulatedAnnealing(object):
 
+class SimulatedAnnealing(object):
     """
         Performs feature selection using simulated annealing
 
@@ -81,7 +81,7 @@ class SimulatedAnnealing(object):
             self.init_number_of_features = int(feature_number * percentage / 100)
         feature_subset = np.unique((np.random.randint(0, feature_number, self.init_number_of_features)))
         self.classifier.fit(train_x[:, feature_subset], train_y)
-        if self.score==None:
+        if self.score == None:
             prev_score = self.classifier.score(test_x[:, feature_subset], test_y)
         else:
             pred_labels = self.classifier.predict(test_x[:, feature_subset])
@@ -90,16 +90,18 @@ class SimulatedAnnealing(object):
             operation = random.randint(0, 1)
             percentage = random.randint(1, 5)
             if operation == 1:
-                #inc
+                # inc
                 include_number = int(feature_number * (percentage / 100))
                 not_included_features = np.array([f for f in np.arange(0, feature_number) if f not in feature_subset])
-                cur_subset = np.append(feature_subset, np.random.choice(not_included_features, size=include_number, replace=False))
+                cur_subset = np.append(feature_subset,
+                                       np.random.choice(not_included_features, size=include_number, replace=False))
             else:
-                #exc
+                # exc
                 exclude_number = int(feature_number * (percentage / 100))
-                cur_subset = np.delete(feature_subset, np.random.choice(feature_subset, size=exclude_number, replace=False))
+                cur_subset = np.delete(feature_subset,
+                                       np.random.choice(feature_subset, size=exclude_number, replace=False))
             self.classifier.fit(train_x[:, cur_subset], train_y)
-            if self.score==None:
+            if self.score == None:
                 cur_score = self.classifier.score(test_x[:, cur_subset], test_y)
             else:
                 pred_labels = self.classifier.predict(test_x[:, cur_subset])
@@ -113,7 +115,6 @@ class SimulatedAnnealing(object):
                     feature_subset = cur_subset
                     prev_score = cur_score
         self.selected_features = feature_subset
-        
 
     def predict(self, test_x):
         """
@@ -130,8 +131,3 @@ class SimulatedAnnealing(object):
         
         """
         return classifier.predict(test_x[:, self.selected_features])
-
-
-
-
-
