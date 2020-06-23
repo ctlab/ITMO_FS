@@ -20,7 +20,10 @@ def check_features(features, size):
 
 def generate_features(X, features=None):
     try:
-        features = X.columns
+        if X.columns is list:
+            features = X.columns
+        else:
+            features = list(X.columns)
     except AttributeError:
         if features is None:
             features = [i for i in range(X.shape[1])]
@@ -35,9 +38,15 @@ def check_shapes(X, y):
 
 def check_filters(filters):
     for filter_ in filters:
-        if not hasattr(filter_, 'run'):
-            raise TypeError("filters should be a lost of filters each implementing "
-                            "'run' method, %r was passed" % filter_)
+        if not hasattr(filter_, 'fit'):
+            raise TypeError(
+                "filters should be a list of filters each implementing 'fit' method, %r was passed" % filter_)
+        if not hasattr(filter_, 'transform'):
+            raise TypeError(
+                "filters should be a list of filters each implementing 'transform' method, %r was passed" % filter_)
+        if not hasattr(filter_, 'fit_transform'):
+            raise TypeError(
+                "filters should be a list of filters each implementing 'fit_transform' method, %r was passed" % filter_)
 
 
 def check_classifier(classifier):
@@ -49,7 +58,7 @@ def check_scorer(scorer):
         result = scorer(1, 5)
         if (result is float) or (result is int):
             raise AttributeError("Scorer isn't fit")
-    except:
+    except AttributeError:
         pass  # todo scorer check
 
 

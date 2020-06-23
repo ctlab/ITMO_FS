@@ -4,6 +4,7 @@ from .measures import GLOB_MEASURE
 from ...utils import generate_features
 
 
+# TODO X and y transformation for DataFrame support
 # TODO Test interface!!!!
 class MultivariateFilter(object):
     """
@@ -22,10 +23,26 @@ class MultivariateFilter(object):
             Initialize only in case you run generalizedCriteria metric.
 
             Initialize only in case you run eneralizedCriteria metric
+        
         See Also
         --------
-        examples
+        
+        Examples
         --------
+        from ITMO_FS.filters.multivariate import MultivariateFilter
+        from sklearn.datasets import make_classification
+        from sklearn.preprocessing import KBinsDiscretizer
+
+        import numpy as np
+
+        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
+        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        data, target = np.array(dataset[0]), np.array(dataset[1])
+        est.fit(data)
+        data = est.transform(data)
+        model = MultivariateFilter('MRMR', 8)
+        model.fit(data, target)
+        print(model.selected_features)
     """
 
     def __init__(self, measure, n_features, beta=None, gamma=None):
@@ -47,34 +64,14 @@ class MultivariateFilter(object):
 
             Parameters
             ----------
-            X : array-like, shape (n_features,n_samples)
+            X : array-like, shape (n_samples, n_features)
                 The training input samples.
-            y : array-like, shape (n_features,n_samples)
+            y : array-like, shape (n_samples, )
                 The target values.
 
             Returns
             ------
             None
-
-            See Also
-            --------
-
-            examples
-            --------
-            from ITMO_FS.filters.multivariate import MultivariateFilter
-            from sklearn.datasets import make_classification
-            from sklearn.preprocessing import KBinsDiscretizer
-
-            import numpy as np
-
-            dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-            est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-            data, target = np.array(dataset[0]), np.array(dataset[1])
-            est.fit(data)
-            data = est.transform(data)
-            model = MultivariateFilter('MRMR', 8)
-            model.fit(data, target)
-            print(model.selected_features)
 
         """
         if self.__n_features > X.shape[1]:
@@ -93,6 +90,20 @@ class MultivariateFilter(object):
             self.selected_features = np.append(self.selected_features, free_features[to_add])
             free_features = np.delete(free_features, to_add)
 
+    def transform(self, X):
+        """
+            Transform given data by slicing it with selected features.
 
-def transform(self, X):
-    return X[:, self.selected_features]
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features)
+                The training input samples.
+            
+            Returns
+            ------
+            
+            Transformed 2D numpy array
+
+        """
+
+        return X[:, self.selected_features]

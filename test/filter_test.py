@@ -1,3 +1,5 @@
+import os
+import sys
 import unittest
 
 import numpy as np
@@ -5,7 +7,11 @@ import pandas as pd
 from sklearn.datasets import load_iris
 from sklearn.datasets import make_classification, make_regression
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from ITMO_FS.filters.univariate import *
+
+
+# from ITMO_FS.filters.univariate import *
 
 
 class TestCases(unittest.TestCase):
@@ -41,9 +47,12 @@ class TestCases(unittest.TestCase):
     #              np.ones((data.shape[1],))]):
     #         assert (f(data[0], data[0]) == answer).all()
     #
-    # def test_df(self):
-    #     data, target = pd.DataFrame(self.wide_classification[0]), pd.DataFrame(self.wide_classification[1])
-    #     f = UnivariateFilter(pearson_corr, select_k_best(50))
-    #     f.fit(data, target)
-    #     res = f.transform(data)
-    #     res
+    def test_df(self):
+        data, target = pd.DataFrame(self.wide_classification[0]), pd.DataFrame(self.wide_classification[1])
+        f = UnivariateFilter(pearson_corr, select_k_best(50))
+        f.fit(data, target)
+        df = f.transform(data)
+        f = UnivariateFilter(pearson_corr, select_k_best(50))
+        f.fit(self.wide_classification[0], self.wide_classification[1])
+        arr = f.transform(data)
+        self.assertEqual(df, arr)

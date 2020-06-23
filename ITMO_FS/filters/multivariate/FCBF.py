@@ -3,6 +3,7 @@ import numpy as np
 from ...utils.information_theory import matrix_mutual_information
 
 
+# TODO X and y transformation for DataFrame support
 class FCBFDiscreteFilter(object):
     """
         Creates FCBF (Fast Correlation Based filter) feature selection filter
@@ -52,6 +53,8 @@ class FCBFDiscreteFilter(object):
 
         free_features = np.arange(0, X.shape[1], dtype=np.integer)
         self.selected_features = np.array([], dtype=np.integer)
+        # TODO Add exit of the loop when all differences are positive and are not updated
+        #  (e.g. it happens when we get same max_index twice).
         while free_features.size != 0:
             max_index = np.argmax(matrix_mutual_information(X[:, free_features], y))
             self.selected_features = np.append(self.selected_features, max_index)
