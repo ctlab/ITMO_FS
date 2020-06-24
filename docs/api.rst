@@ -22,13 +22,13 @@ Prototype generation
    :no-members:
    :no-inherited-members:
 
-.. currentmodule:: imblearn
+.. currentmodule:: filters
 
 .. autosummary::
    :toctree: generated/
    :template: class.rst
 
-   under_sampling.ClusterCentroids
+   filters.univariate
 
 Prototype selection
 -------------------

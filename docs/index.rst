@@ -21,6 +21,13 @@ Welcome to ITMO_FS!
 
    user_guide
 
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: api
+
+   api
+
 
 `Getting started <install.html>`_
 ---------------------------------
