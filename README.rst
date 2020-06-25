@@ -1,6 +1,6 @@
 .. -*- mode: rst -*-
 .. image:: docs/logos/itmo_small_white_eng.png
-  :scale: 50 %
+  :scale: 25 %
   :target: https://en.itmo.ru/
 
 ITMO_FS
@@ -53,5 +53,5 @@ To use basic filter:
 
 .. |Python 2.7| image:: https://img.shields.io/badge/python-2.7-blue.svg
 .. |Python 3.6| image:: https://img.shields.io/badge/python-3.6-blue.svg
-.. |License| image:: https://img.shields.io/badge/license-MIT%20License-blue.svg
+.. |License| image:: https://img.shields.io/badge/license-BSD%20License-blue.svg
 
