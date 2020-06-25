@@ -1,4 +1,7 @@
 .. -*- mode: rst -*-
+.. image:: docs/logos/itmo_small_white_eng.png
+  :scale: 50 %
+  :target: https://en.itmo.ru/
 
 ITMO_FS
 =======
