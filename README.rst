@@ -1,4 +1,6 @@
 .. -*- mode: rst -*-
+.. image:: docs/logos/itmo_small_white_eng.png
+  :target: https://en.itmo.ru/
 
 ITMO_FS
 =======
