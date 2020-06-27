@@ -40,16 +40,9 @@ Current available algorithms:
 | QPFS                                 |                              |                 |          |                 |
 +--------------------------------------+------------------------------+-----------------+----------+-----------------+
 
-To use basic filter:
+Documentation:
 
-::
-
-   from sklearn.datasets import load_iris
-   from ITMO_FS.filters import UnivariateFilter, spearman_corr, select_best_by_value # provides you a filter class, basic measures and cutting rules
-
-   data, target = load_iris(True)
-   res = UnivariateFilter(spearman_corr, select_best_by_value(0.9999)).run(data, target)
-   print("SpearmanCorr:", data.shape, '--->', res.shape)
+https://itmo-fs.readthedocs.io/en/latest/
 
 .. |Python 2.7| image:: https://img.shields.io/badge/python-2.7-blue.svg
 .. |Python 3.6| image:: https://img.shields.io/badge/python-3.6-blue.svg

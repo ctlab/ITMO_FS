@@ -222,7 +222,7 @@ def fechner_corr(X, y):
         # TODO fix m == 1 case (The sum tries to go over 0 columns raising an error.
         #  It needs to be transformed to a two-dimensional array)
         f_ratios = np.array(
-            [np.sum((x_dev >= 0).T & (y_dev >= 0), axis=1) + np.sum((x_dev <= 0).T & (y_dev <= 0), axis=1)]).astype(
+            [np.sum((x_dev >= 0).T & (y_dev >= 0), axis=0) + np.sum((x_dev <= 0).T & (y_dev <= 0), axis=0)]).astype(
             float)
     else:
         f_ratios = np.sum((x_dev >= 0).T & (y_dev >= 0), axis=1) + np.sum((x_dev <= 0).T & (y_dev <= 0), axis=1).astype(
@@ -505,11 +505,22 @@ def spearman_corr(X, y):
     """
     n = X.shape[0]
     c = 6 / (n * (n - 1) * (n + 1))
-    # TODO It must count differences of ranks, not of values
+
+    d = dict(zip(sorted(y), range(y.shape[0])))
+    ranks_y = np.vectorize(d.get)(y)
     if y.shape == X.shape:
-        dif = X - y
+        d = dict(zip(sorted(X), range(X.shape[0])))
+        ranks_X = np.vectorize(d.get)(X)
+
+        dif = ranks_X - ranks_y
     else:
-        dif = X - np.repeat(y, X.shape[1]).reshape(y.shape[0], X.shape[1])
+        ranks_X = X.copy()
+        for i in range(X.shape[1]):
+            d = dict(zip(sorted(X[:, i]), range(X.shape[0])))
+            ranks_X[:, i] = np.vectorize(d.get)(X[:, i])
+
+        dif = ranks_X - np.repeat(ranks_y, X.shape[1]).reshape(y.shape[0], X.shape[1])
+
     return 1 - c * np.sum(dif * dif, axis=0)
 
 
@@ -548,10 +559,15 @@ def pearson_corr(X, y):
     """
     x_dev = X - np.mean(X, axis=0)
     y_dev = y - np.mean(y, axis=0)
-    sum_dev = y_dev.T.dot(x_dev).reshape((X.shape[1],))
     sq_dev_x = x_dev * x_dev
     sq_dev_y = y_dev * y_dev
-    denominators = np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
+    if len(X.shape) == 1:
+        sum_dev = y_dev.T.dot(x_dev).reshape((1,))
+        denominators = np.array([np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))])
+    else:
+        sum_dev = y_dev.T.dot(x_dev).reshape((X.shape[1],))
+        denominators = np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
+
     results = np.array(
         [(sum_dev[i] / denominators[i]) if denominators[i] > 0.0 else 0 for i in range(len(denominators))])
     return results
