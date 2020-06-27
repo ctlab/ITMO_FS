@@ -46,8 +46,6 @@ class AddDelWrapper(object):
         >>> lasso = linear_model.Lasso()
         >>> add_del = AddDelWrapper(lasso, mean_absolute_error, maximize=False)
         >>> add_del.fit(X, y)
-        ['ZN', 'INDUS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B']
-
     """
 
     def __init__(self, estimator, score, maximize=True, seed=42):
