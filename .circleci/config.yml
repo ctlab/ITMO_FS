@@ -37,7 +37,7 @@ jobs:
             conda create -n testenv --yes --quiet python=3
             source activate testenv
             conda install --yes pip numpy scipy scikit-learn matplotlib sphinx sphinx_rtd_theme numpydoc pillow
-            conda install -c --yes anaconda pytest
+            conda install --yes anaconda pytest
             pip install sphinx-gallery
             pip install .
             cd docs
