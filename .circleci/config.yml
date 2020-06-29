@@ -42,10 +42,7 @@ jobs:
             cd docs
             make html
 
-      - save_cache:
-          paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+
 
       # run tests!
       # this example uses Django's built-in test-runner
@@ -55,10 +52,13 @@ jobs:
       - run:
           name: run tests
           command: |
-            export PATH="~/miniconda/bin:$PATH"
-            conda update --yes --quiet conda
-            conda install --yes pytest
             pytest
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
+
 
       - store_artifacts:
           path: test-reports
