@@ -42,7 +42,10 @@ jobs:
             cd docs
             make html
 
-
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
 
       # run tests!
       # this example uses Django's built-in test-runner
@@ -51,14 +54,10 @@ jobs:
       # https://nose.readthedocs.io
       - run:
           name: run tests
-          command: |
-            pytest
-
-      - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
-
+          command: |
+            pytest
 
       - store_artifacts:
           path: test-reports
