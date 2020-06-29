@@ -36,8 +36,7 @@ jobs:
             conda update --yes --quiet conda
             conda create -n testenv --yes --quiet python=3
             source activate testenv
-            conda install --yes pip numpy scipy scikit-learn matplotlib sphinx sphinx_rtd_theme numpydoc pillow
-            pip install pytest
+            conda install --yes pip numpy scipy scikit-learn matplotlib sphinx sphinx_rtd_theme numpydoc pillow pytest
             pip install sphinx-gallery
             pip install .
             cd docs
@@ -56,8 +55,6 @@ jobs:
       - run:
           name: run tests
           command: |
-            pip install --upgrade pip
-            pip install pytest
             pytest
 
       - store_artifacts:
