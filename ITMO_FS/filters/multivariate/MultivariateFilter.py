@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.base import TransformerMixin
 
 from .measures import GLOB_MEASURE
 from ...utils import generate_features
@@ -6,7 +7,7 @@ from ...utils import generate_features
 
 # TODO X and y transformation for DataFrame support
 # TODO Test interface!!!!
-class MultivariateFilter(object):
+class MultivariateFilter(object, TransformerMixin):
     """
         Provides basic functionality for multivariate filters.
         Parameters
@@ -58,7 +59,23 @@ class MultivariateFilter(object):
         self.beta = beta
         self.gamma = gamma
 
-    def fit(self, X, y):
+    def _check_input(self, X, y=None, feature_names=None):
+        if hasattr(X, 'values'):
+            X = X.values
+        if hasattr(y, 'values'):
+            # TODO Fix case of y passed as DataFrame. For now y is transformed to 2D array and this causes an error.
+            #  It seems better to follow usual sklearn practice using check_X_y but y = y[0].values is also possible
+            y = y.values
+
+        if hasattr(X, 'columns'):
+            feature_names = X.columns
+        else:
+            if feature_names is None:
+                feature_names = list(range(X.shape[1]))
+
+        return X, y, feature_names
+
+    def fit(self, X, y, feature_names=None):
         """
             Fits the filter.
 
@@ -74,9 +91,9 @@ class MultivariateFilter(object):
             None
 
         """
+        X, y, feature_names = self._check_input(X, y, feature_names)
         if self.__n_features > X.shape[1]:
             raise ValueError("Cannot select %d features out of %d" % (self.__n_features, X.shape[1]))
-        values = np.array([])
         free_features = generate_features(X)
         while len(self.selected_features) != self.__n_features:
             if self.beta is None:
@@ -98,12 +115,41 @@ class MultivariateFilter(object):
             ----------
             X : array-like, shape (n_samples, n_features)
                 The training input samples.
-            
+
             Returns
             ------
-            
+
             Transformed 2D numpy array
 
         """
 
-        return X[:, self.selected_features]
+        if type(X) is np.ndarray:
+            return X[:, self.selected_features]
+        else:
+            return X[self.selected_features]
+
+    def fit_transform(self, X, y=None, feature_names=None, **fit_params):
+        """
+            Fits the filter and transforms given dataset X.
+
+            Parameters
+            ----------
+            X : array-like, shape (n_features, n_samples)
+                The training input samples.
+            y : array-like, shape (n_samples, ), optional
+                The target values.
+            feature_names : list of strings, optional
+                In case you want to define feature names
+            store_scores : boolean, optional (by default False)
+                In case you want to store the scores of features
+                for future calls to Univariate filter
+            **fit_params :
+                dictonary of measure parameter if needed.
+
+            Returns
+            ------
+
+            X dataset sliced with features selected by the filter
+        """
+        self.fit(X, y, feature_names)
+        return self.transform(X)
