@@ -57,7 +57,7 @@ jobs:
           paths:
             - ./venv
           command: |
-            pytest
+            . /venv/bin/pytest
 
       - store_artifacts:
           path: test-reports
