@@ -164,7 +164,6 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
             ------
             X dataset sliced with features selected by the filter
         """
-
         if type(X) is ndarray:
             return X[:, self.selected_features]
         else:
