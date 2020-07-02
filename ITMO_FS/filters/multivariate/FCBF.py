@@ -55,9 +55,9 @@ class FCBFDiscreteFilter(object):
         self.selected_features = np.array([], dtype=np.integer)
         # TODO Add exit of the loop when all differences are positive and are not updated
         #  (e.g. it happens when we get same max_index twice).
-        max_index=-1
+        max_index = -1
         while free_features.size != 0:
-            if max_index==np.argmax(matrix_mutual_information(X[:, free_features], y)):
+            if max_index == np.argmax(matrix_mutual_information(X[:, free_features], y)):
                 break
             max_index = np.argmax(matrix_mutual_information(X[:, free_features], y))
             self.selected_features = np.append(self.selected_features, max_index)

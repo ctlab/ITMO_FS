@@ -11,7 +11,7 @@ MAINTAINER_EMAIL = 'somacruz@bk.ru'
 URL = 'https://github.com/LastShekel/ITMO_FS'
 LICENSE = 'new BSD'
 DOWNLOAD_URL = 'https://github.com/LastShekel/ITMO_FS'
-VERSION = '0.3.0'
+VERSION = '0.3.1'
 INSTALL_REQUIRES = ['numpy', 'scipy', 'scikit-learn', 'imblearn', 'qpsolvers']
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Intended Audience :: Developers',
