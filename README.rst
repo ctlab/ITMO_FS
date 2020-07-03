@@ -12,7 +12,7 @@ ITMO_FS
 
 Feature selection library in Python
 
-Package information: |Python 2.7| |Python 3.6| |License| |CircleCI|
+Package information: |Python 2.7| |Python 3.6| |License| |CircleCI| |Docs|
 
 
 Install with
@@ -54,3 +54,6 @@ https://itmo-fs.readthedocs.io/en/latest/
 .. |License| image:: https://img.shields.io/badge/license-BSD%20License-blue.svg
 .. |CircleCI| image:: https://circleci.com/gh/scikit-learn-contrib/imbalanced-learn.svg?style=shield&circle-token=:circle-token
 .. _CircleCI: https://circleci.com/gh/scikit-learn-contrib/imbalanced-learn/tree/master
+
+.. |Docs| image:: https://readthedocs.org/projects/itmo-fs/badge/?version=latest
+:alt: Documentation Status
