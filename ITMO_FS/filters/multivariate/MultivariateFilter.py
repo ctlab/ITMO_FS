@@ -7,7 +7,7 @@ from ...utils import generate_features
 
 # TODO X and y transformation for DataFrame support
 # TODO Test interface!!!!
-class MultivariateFilter(object, TransformerMixin):
+class MultivariateFilter(TransformerMixin):
     """
         Provides basic functionality for multivariate filters.
         Parameters
