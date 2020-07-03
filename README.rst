@@ -56,4 +56,3 @@ https://itmo-fs.readthedocs.io/en/latest/
 .. _CircleCI: https://circleci.com/gh/scikit-learn-contrib/imbalanced-learn/tree/master
 
 .. |Docs| image:: https://readthedocs.org/projects/itmo-fs/badge/?version=latest
-:alt: Documentation Status
