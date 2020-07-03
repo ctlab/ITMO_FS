@@ -788,10 +788,37 @@ def __select_k(scores, k, reverse=False):
     return [keys[0] for keys in sorted(scores.items(), key=lambda kv: kv[1], reverse=reverse)[:k]]
 
 
+def __select_percentage_best(scores, percent):
+    features = []
+    max_val = max(scores.values())
+    threshold = max_val * percent
+    for key, sc_value in scores.items():
+        if sc_value >= threshold:
+            features.append(key)
+    return features
+
+def select_best_percentage(percent):
+    return _wrapped_partial(__select_percentage_best, percent=percent)
+
+def __select_percentage_worst(scores, percent):
+    features = []
+    max_val = min(scores.values())
+    threshold = max_val * percent
+    for key, sc_value in scores.items():
+        if sc_value >= threshold:
+            features.append(key)
+    return features
+
+def select_worst_percentage(percent):
+    return _wrapped_partial(__select_percentage_worst, percent=percent)
+
+
 GLOB_CR = {"Best by value": select_best_by_value,
            "Worst by value": select_worst_by_value,
            "K best": select_k_best,
-           "K worst": select_k_worst}
+           "K worst": select_k_worst,
+           "Worst by percentage": select_worst_percentage,
+           "Best by percentage": select_best_percentage}
 
 
 def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):

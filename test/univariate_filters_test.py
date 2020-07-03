@@ -5,8 +5,10 @@ import pandas as pd
 from scipy import stats
 from sklearn.datasets import load_iris
 from sklearn.datasets import make_classification, make_regression
+from sklearn.feature_selection import chi2, f_classif, mutual_info_classif
 
 from ITMO_FS.filters.univariate import *
+from ITMO_FS.utils.information_theory import *
 
 np.random.seed(42)
 
@@ -103,7 +105,53 @@ class TestCases(unittest.TestCase):
         # f = VDM()
         # arr = f.run(data, target)
         # np.testing.assert_array_equal(df, arr)
+    def test_chi2(self):
+        iris_dataset = load_iris()
+        X = iris_dataset.data
+        y = iris_dataset.target
+        X = X.astype(int)
+        res = chi2_measure(X, y)
+        true_res = chi2(X, y)[0]
+        np.testing.assert_allclose(res, true_res)
 
+    def test_anova(self):
+        iris_dataset = load_iris()
+        X = iris_dataset.data
+        y = iris_dataset.target
+        E = np.random.RandomState(42).uniform(0, 0.1, size=(X.shape[0], 20))
+        X = np.hstack((X, E))
+
+        res = anova(X, y)
+        true_res = f_classif(X, y)[0]
+        np.testing.assert_allclose(res, true_res)
+
+    def test_igain(self):
+        iris_dataset = load_iris()
+        X = iris_dataset.data
+        y = iris_dataset.target
+        X = X.astype(int)
+        res = information_gain(X, y)
+        true_res = mutual_info_classif(X, y)
+        print(res)
+        print(true_res)
+        np.testing.assert_allclose(res, true_res)
+
+    def test_mi(self):
+        iris_dataset = load_iris()
+        X = iris_dataset.data
+        y = iris_dataset.target
+        X = X.astype(int)
+
+        # check invariant
+        X_j = X[:, 0]
+        eq_1 = entropy(X_j) - conditional_entropy(X_j, y)
+        eq_2 = entropy(y) - conditional_entropy(y, X_j)
+        eq_3 = entropy(X_j) + entropy(y) - entropy(list(zip(X_j, y)))
+        eq_4 = entropy(list(zip(X_j, y))) - conditional_entropy(X_j, y) - conditional_entropy(y, X_j)
+
+        np.testing.assert_allclose(eq_1, eq_2)
+        np.testing.assert_allclose(eq_2, eq_3)
+        np.testing.assert_allclose(eq_3, eq_4)
 
 if __name__ == "__main__":
     unittest.main()
