@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('.'))
 # -- Project information -----------------------------------------------------
 
 project = 'ITMO_FS'
-copyright = '2020, Nikita Pilnenskiy'
+copyright = '2020, ITMO University,Nikita Pilnenskiy'
 author = 'Nikita Pilnenskiy'
 
 # The full version, including alpha/beta/rc tags
