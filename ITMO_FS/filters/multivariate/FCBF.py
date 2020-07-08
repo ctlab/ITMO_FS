@@ -1,10 +1,11 @@
 import numpy as np
 
 from ...utils.information_theory import matrix_mutual_information
+from ...utils import DataChecker, generate_features
 
 
 # TODO X and y transformation for DataFrame support
-class FCBFDiscreteFilter(object):
+class FCBFDiscreteFilter(DataChecker):
     """
         Creates FCBF (Fast Correlation Based filter) feature selection filter
         based on mutual information criteria for data with discrete features
@@ -34,7 +35,7 @@ class FCBFDiscreteFilter(object):
     def __init__(self):
         self.selected_features = None
 
-    def run(self, X, y):
+    def fit(self, X, y, feature_names=None):
         """
             Fits filter
 
@@ -44,19 +45,22 @@ class FCBFDiscreteFilter(object):
 
             y : numpy array, shape (n_samples, )
 
+            feature_names : list of strings, optional
+                In case you want to define feature names
             Returns
             ----------
-            selected_features : numpy array
-                selected pool of features
-
+            None
         """
 
-        free_features = np.arange(0, X.shape[1], dtype=np.integer)
-        self.selected_features = np.array([], dtype=np.integer)
+        features = generate_features(X)
+        X, y, feature_names = self._check_input(X, y, feature_names)
+        free_features = generate_features(X)
+        self.feature_names = dict(zip(features, feature_names))
+        self.selected_features = np.array([], dtype='object')
         # TODO Add exit of the loop when all differences are positive and are not updated
         #  (e.g. it happens when we get same max_index twice).
         max_index = -1
-        while free_features.size != 0:
+        while len(free_features) != 0:
             if max_index == np.argmax(matrix_mutual_information(X[:, free_features], y)):
                 break
             max_index = np.argmax(matrix_mutual_information(X[:, free_features], y))
@@ -65,4 +69,46 @@ class FCBFDiscreteFilter(object):
             redundancy = matrix_mutual_information(X[:, free_features], X[:, max_index])
             difference = relevance - redundancy
             free_features = np.delete(free_features, np.where(difference <= 0.)[0])
-        return self.selected_features
+        self.selected_features = features[self.selected_features.astype(int)]
+
+    def transform(self, X):
+        """
+            Transform given data by slicing it with selected features.
+
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features)
+                The training input samples.
+
+            Returns
+            ------
+
+            Transformed 2D numpy array
+
+        """
+
+        if type(X) is np.ndarray:
+            return X[:, self.selected_features.astype(int)]
+        else:
+            return X[self.selected_features]
+
+    def fit_transform(self, X, y, feature_names=None):
+        """
+            Fits the filter and transforms given dataset X.
+
+            Parameters
+            ----------
+            X : array-like, shape (n_features, n_samples)
+                The training input samples.
+            y : array-like, shape (n_samples, )
+                The target values.
+            feature_names : list of strings, optional
+                In case you want to define feature names
+
+            Returns
+            ------
+
+            X dataset sliced with features selected by the filter
+        """
+        self.fit(X, y, feature_names)
+        return self.transform(X)
