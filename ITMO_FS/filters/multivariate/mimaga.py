@@ -7,18 +7,6 @@ from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 
 
-def csv_to_dataset(filename):
-    table = np.genfromtxt(filename, delimiter=',', dtype=None)
-    row_len = len(table[0])
-    distribution = list(map(lambda t: hash(t[row_len - 1]), table[1:]))
-    table = np.array(list(map(lambda t: t[:-1], table[1:])))
-    dataset = []
-    for i in range(len(table)):
-        row = list(map(float, table[i]))
-        dataset.append(row)
-    return np.array(dataset), distribution
-
-
 def marginal_entropy(x):
     x_counter = {xi: 0 for xi in x}
     for xi in x:
@@ -155,20 +143,18 @@ class MIMAGA(object):
         :param k3: consts to determine mutation probability
         :param k4: consts to determine mutation probability
         """
-        self.mim_size = mim_size
-        self.pop_size = pop_size
-        self.max_iter = max_iter
-        self.f_target = f_target
-        self.k1 = k1
-        self.k2 = k2
-        self.k3 = k3
-        self.k4 = k4
-        self.best_features = None
-        self.best_fitness = None
+        self._mim_size = mim_size
+        self._pop_size = pop_size
+        self._max_iter = max_iter
+        self._f_target = f_target
+        self._k1 = k1
+        self._k2 = k2
+        self._k3 = k3
+        self._k4 = k4
 
     # MIM
 
-    def mim_filter(self, genes):
+    def _mim_filter(self, genes):
         """
         :param genes: initial dataset
         :return: sequence of feature indexes with minimum MI
@@ -180,36 +166,35 @@ class MIMAGA(object):
         return target_sequence
 
     # AGA
-    def initial_population(self):
+    def _initial_population(self):
         """
-        :param pop_size: size of population (number of individuals)
         :return: initial population
         P.S. each individual corresponds to chromosome
         """
         population = []
-        for _ in range(self.pop_size):
-            individual_num = random.randint(1, 2 << self.mim_size - 1)
-            individual_code = list(map(int, bin(individual_num)[2:].zfill(self.mim_size)))
+        for _ in range(self._pop_size):
+            individual_num = random.randint(1, 2 << self._mim_size - 1)
+            individual_code = list(map(int, bin(individual_num)[2:].zfill(self._mim_size)))
             population.append(individual_code)
         return population
 
-    def crossover_probability(self, f_max, f_avg, f_par):
+    def _crossover_probability(self, f_max, f_avg, f_par):
         """ probability of crossover in population """
         if f_par >= f_avg:
-            return self.k1 * ((f_max - f_par) / (f_max - f_avg)) \
+            return self._k1 * ((f_max - f_par) / (f_max - f_avg)) \
                 if f_max != f_avg else 1
         else:
-            return self.k2
+            return self._k2
 
-    def mutation_probability(self, f_max, f_avg, f_par):
+    def _mutation_probability(self, f_max, f_avg, f_par):
         """ probability of mutation in population """
         if f_par >= f_avg:
-            return self.k3 * ((f_max - f_par) / (f_max - f_avg)) \
+            return self._k3 * ((f_max - f_par) / (f_max - f_avg)) \
                 if f_max != f_avg else 1
         else:
-            return self.k4
+            return self._k4
 
-    def aga_filter(self, max_size, mapping, population, train, train_cl, test, test_cl):
+    def _aga_filter(self, max_size, mapping, population, train, train_cl, test, test_cl):
         """
         :param max_size: maximum size of population (if population becomes bigger,
                          the worst individuals are killed)
@@ -224,7 +209,7 @@ class MIMAGA(object):
         f_par = f_max = 0
         counter = 0
         best_individual = [1 for _ in range(len(population[0]))]
-        while counter < self.max_iter and f_max < self.f_target:
+        while counter < self._max_iter and f_max < self._f_target:
             code_fitness, f_max, f_avg = population_fitness(mapping, population, train, train_cl, test, test_cl)
             if len(code_fitness) > max_size:
                 code_fitness = code_fitness[:max_size]
@@ -235,8 +220,8 @@ class MIMAGA(object):
                 highly_fitted = code_fitness
             best_individual = code_fitness[0][0]
 
-            pc = self.crossover_probability(f_max, f_avg, f_par)
-            pm = self.mutation_probability(f_max, f_avg, f_par)
+            pc = self._crossover_probability(f_max, f_avg, f_par)
+            pm = self._mutation_probability(f_max, f_avg, f_par)
             new_generation, f_par = cross_and_mutate(pc, pm, highly_fitted)
             population = population + new_generation
             counter += 1
@@ -251,12 +236,12 @@ class MIMAGA(object):
         """
         genes_T = genes.transpose()
         train_set, test_set, train_classes, test_classes = train_test_split(genes_T, classes, test_size=0.33)
-        filtered_indexes = self.mim_filter(train_set.transpose())
-        index_map = dict(zip([i for i in range(self.mim_size)], filtered_indexes))
+        filtered_indexes = self._mim_filter(train_set.transpose())
+        index_map = dict(zip([i for i in range(self._mim_size)], filtered_indexes))
 
-        first_population = self.initial_population()
-        best, max_fitness = self.aga_filter(self.pop_size * 2, index_map, first_population,
-                                            train_set.transpose(), train_classes, test_set.transpose(), test_classes)
+        first_population = self._initial_population()
+        best, max_fitness = self._aga_filter(self._pop_size * 2, index_map, first_population,
+                                             train_set.transpose(), train_classes, test_set.transpose(), test_classes)
         result_genes, _ = decode_genes(index_map, best, train_set.transpose(), test_set.transpose())
         return result_genes, max_fitness
 
