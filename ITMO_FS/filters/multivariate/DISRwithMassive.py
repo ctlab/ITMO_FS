@@ -54,13 +54,7 @@ class DISRWithMassive(DataChecker):
         self.selected_features = None
 
     def __count_weight(self, i):
-        temp_difference = 0
-        for j in range(self.n_features):
-            temp_difference += self._edges[i][j] * self._vertices[i] * self._vertices[j]
-            temp_difference += self._edges[j][i] * self._vertices[i] * self._vertices[j]
-        return temp_difference
-        #TODO: this was supposed to be an optimization
-        #return 2 * self._vertices[i] * np.multiply(self._edges[i], self._vertices) 
+        return np.sum(2 * self._vertices[i] * np.multiply(self._edges[i], self._vertices))
 
     def fit(self, X, y, feature_names=None):
         """
