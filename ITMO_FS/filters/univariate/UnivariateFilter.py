@@ -41,7 +41,7 @@ class UnivariateFilter(TransformerMixin, DataChecker):  # TODO ADD LOGGING
         print(ufilter.selected_features)
     """
 
-    def __init__(self, measure, cutting_rule=(GLOB_CR['K best'], 5)):
+    def __init__(self, measure, cutting_rule=("Best by percentage", 0.2)):
         # TODO Check measure and cutting_rule
         if type(measure) is str:
             try:

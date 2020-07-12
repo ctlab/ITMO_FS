@@ -10,6 +10,7 @@ from sklearn.feature_selection import chi2, f_classif, mutual_info_classif
 from sklearn.svm import SVC
 
 from ITMO_FS.filters.univariate import *
+from ITMO_FS.filters.univariate.measures import GLOB_CR
 from ITMO_FS.utils.information_theory import *
 from sklearn.model_selection import KFold
 
@@ -181,12 +182,14 @@ class TestCases(unittest.TestCase):
         # univ_filter.fit(X, y)
         # print(univ_filter.selected_features)
 
-    def test_kendall(self):
+    def test_def_cr(self):
         iris_dataset = load_iris()
         X = iris_dataset.data
         y = iris_dataset.target
         X = X.astype(int)
-
+        univ_filter = UnivariateFilter('FechnerCorr')
+        univ_filter.fit(X, y)
+        assert univ_filter.selected_features == [0, 2, 3]
 
 if __name__ == "__main__":
     unittest.main()
