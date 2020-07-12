@@ -60,14 +60,17 @@ def __calculate_F_ratio(row, y_data):
         n = np.sum(row[index_for_this_value])
         mu = np.mean(row[index_for_this_value])
         var = np.var(row[index_for_this_value])
-        inter_class += n * np.power((mu - mean_feature), 2)  # TODO: something went horribly wrong here
+        inter_class += n * np.power((mu - mean_feature), 2)
         intra_class += (n - 1) * var
-    f_ratio = inter_class / intra_class
-    return f_ratio
+    if inter_class == 0. and intra_class == 0.:
+        return 0.
+    elif intra_class == 0.:
+        return float('inf')
+    else:
+        return inter_class / intra_class
 
 
 def f_ratio_measure(X, y):
-    # TODO devision by zero
     """
     Calculates Fisher score for features.
 
@@ -126,13 +129,16 @@ def gini_index(X, y):
     scores = gini_index(X, y)
     print(scores)
     """
-    #### TODO Check brown formula here gini could be greater than 1 or 0
+    # Gini = 2 * AUROC - 1
+    # TODO Check brown formula here gini could be greater than 1 or 0
     if X.shape[0] < 2:
         raise Exception("Sample size must be greater than 1")
     cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
     cum_y = np.cumsum(y / np.linalg.norm(y, 1))
     diff_x = (cum_x[1:] - cum_x[:-1])
     diff_y = (cum_y[1:] + cum_y[:-1])
+    # TODO Negative values impact the metric so the value becomes greater then 1, example is in test section
+    # TODO Rewrite through ROC-AUC
     return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
 
 
@@ -170,12 +176,60 @@ def su_measure(X, y):
     f_ratios = np.empty(X.shape[1])
     for index in range(X.shape[1]):
         entropy_x = entropy(X[:, index])
-        cond_entropy = conditional_entropy(X[:, index], y)
-        f_ratios[index] = 2 * (entropy_y - cond_entropy) / (entropy_x + entropy_y)
+        cond_entropy = conditional_entropy(y, X[:, index])
+        f_ratios[index] = (entropy_x + entropy_y - cond_entropy) / (entropy_x + entropy_y)
     return f_ratios
 
 
-# TODO concordation coef, kendal coef
+# TODO CONCORDATION COEF
+
+def kendall_corr(X, y):
+    """
+    Calculates Sample sign correlation (Kendall correlation) for each feature.
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features) or (n_samples, )
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, )
+
+    See Also
+    --------
+    https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient
+
+    Examples
+    --------
+    import sklearn.datasets as datasets
+    from ITMO_FS.filters.univariate import kendall_corr
+
+    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    scores = kendall_corr(X, y)
+    print(scores)
+    """
+
+    if len(X.shape) == 1:
+        k_corr = 0.0
+        for i in range(len(X)):
+            for j in range(i + 1, len(X)):
+                k_corr += np.sign(X[i] - X[j]) * np.sign(y[i] - y[j])
+        return float(2 * k_corr) / (len(X) * (len(X) - 1))
+    else:
+        res = []
+        for var in range(X.shape[1]):
+            x = X[:, var]
+            k_corr = 0.0
+            for i in range(len(x)):
+                for j in range(i + 1, len(x)):
+                    k_corr += np.sign(x[i] - x[j]) * np.sign(y[i] - y[j])
+            k_corr = float(2 * k_corr) / (len(x) * (len(x) - 1))
+            res.append(k_corr)
+        return np.array(res)
+
 
 def fechner_corr(X, y):
     """
@@ -195,7 +249,6 @@ def fechner_corr(X, y):
 
     See Also
     --------
-    https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient
 
     Examples
     --------
@@ -206,30 +259,22 @@ def fechner_corr(X, y):
     scores = fechner_corr(X, y)
     print(scores)
     """
-    y_mean = np.mean(y)
+
     if len(X.shape) == 1:
         m = 1
-        n = X.shape[0]
     else:
-        n, m = X.shape
-    y_dev = y - y_mean
+        m = X.shape[1]
+    y_dev = y - np.mean(y)
+    x_dev = X - np.mean(X, axis=0)
     if m == 1:
-        x_col_mean = np.mean(X)
+        N_plus = np.sum((x_dev >= 0) & (y_dev >= 0)) + np.sum((x_dev < 0) & (y_dev < 0))
+        N_minus = np.sum((x_dev > 0) & (y_dev < 0)) + np.sum((x_dev < 0) & (y_dev > 0))
     else:
-        x_col_mean = np.mean(X, axis=0)
-    x_dev = X - x_col_mean
-    if m == 1:
-        # TODO fix m == 1 case (The sum tries to go over 0 columns raising an error.
-        #  It needs to be transformed to a two-dimensional array)
-        f_ratios = np.array(
-            [np.sum((x_dev >= 0).T & (y_dev >= 0), axis=0) + np.sum((x_dev <= 0).T & (y_dev <= 0), axis=0)]).astype(
+        N_plus = np.sum((x_dev >= 0).T & (y_dev >= 0), axis=1) + np.sum((x_dev < 0).T & (y_dev < 0), axis=1).astype(
             float)
-    else:
-        f_ratios = np.sum((x_dev >= 0).T & (y_dev >= 0), axis=1) + np.sum((x_dev <= 0).T & (y_dev <= 0), axis=1).astype(
+        N_minus = np.sum((x_dev > 0).T & (y_dev < 0), axis=1) + np.sum((x_dev < 0).T & (y_dev > 0), axis=1).astype(
             float)
-    # TODO Count (Na-Nb)/N, for now Na/N is counted (possible fix: f_ratios = -1 + 2*f_ratios/n after simplification)
-    f_ratios /= n
-    return f_ratios
+    return (N_plus - N_minus) / (N_plus + N_minus)
 
 
 def __distance_matrix(X, y, n_samples):
@@ -574,7 +619,6 @@ def pearson_corr(X, y):
 
 
 # TODO need to implement unsupervised way
-# TODO add sparse functionality
 def laplacian_score(X, y, k_neighbors=5, t=1, metric=np.linalg.norm, **kwargs):
     """
     Calculates Laplacian Score for each feature.
@@ -679,7 +723,7 @@ def information_gain(X, y):
     print(scores)
 
     """
-    entropy_x = np.apply_along_axis(entropy, 0, X)
+    entropy_x = entropy(y)
     cond_entropy = np.apply_along_axis(conditional_entropy, 0, X, y)
     return entropy_x - cond_entropy
 
@@ -749,6 +793,7 @@ GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "SpearmanCorr": spearman_corr,
                 "PearsonCorr": pearson_corr,
                 "FechnerCorr": fechner_corr,
+                "KendallCorr": kendall_corr,
                 "ReliefF": reliefF_measure,
                 "Chi2": chi2_measure,
                 "InformationGain": information_gain}
@@ -797,8 +842,10 @@ def __select_percentage_best(scores, percent):
             features.append(key)
     return features
 
+
 def select_best_percentage(percent):
     return _wrapped_partial(__select_percentage_best, percent=percent)
+
 
 def __select_percentage_worst(scores, percent):
     features = []
@@ -808,6 +855,7 @@ def __select_percentage_worst(scores, percent):
         if sc_value >= threshold:
             features.append(key)
     return features
+
 
 def select_worst_percentage(percent):
     return _wrapped_partial(__select_percentage_worst, percent=percent)

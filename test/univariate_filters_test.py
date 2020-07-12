@@ -7,8 +7,12 @@ from sklearn.datasets import load_iris
 from sklearn.datasets import make_classification, make_regression
 from sklearn.feature_selection import chi2, f_classif, mutual_info_classif
 
+from sklearn.svm import SVC
+
 from ITMO_FS.filters.univariate import *
+from ITMO_FS.filters.univariate.measures import GLOB_CR
 from ITMO_FS.utils.information_theory import *
+from sklearn.model_selection import KFold
 
 np.random.seed(42)
 
@@ -55,7 +59,7 @@ class TestCases(unittest.TestCase):
     def test_corr(self):
         # Consistency
         data, target = self.wide_classification[0], self.wide_classification[1]
-        for f in [spearman_corr, pearson_corr, fechner_corr, ]:
+        for f in [spearman_corr, pearson_corr, fechner_corr, kendall_corr]:
             # X.shape == 1 case
             np.testing.assert_array_almost_equal(np.round(f(data[:, 0], data[:, 0]), 10), np.array([1.]))
             # X.shape == 2 case
@@ -105,6 +109,7 @@ class TestCases(unittest.TestCase):
         # f = VDM()
         # arr = f.run(data, target)
         # np.testing.assert_array_equal(df, arr)
+
     def test_chi2(self):
         iris_dataset = load_iris()
         X = iris_dataset.data
@@ -132,26 +137,59 @@ class TestCases(unittest.TestCase):
         X = X.astype(int)
         res = information_gain(X, y)
         true_res = mutual_info_classif(X, y)
-        print(res)
-        print(true_res)
-        np.testing.assert_allclose(res, true_res)
+        np.testing.assert_allclose(res, true_res, rtol=0.12)
 
     def test_mi(self):
         iris_dataset = load_iris()
         X = iris_dataset.data
         y = iris_dataset.target
         X = X.astype(int)
-
         # check invariant
-        X_j = X[:, 0]
-        eq_1 = entropy(X_j) - conditional_entropy(X_j, y)
-        eq_2 = entropy(y) - conditional_entropy(y, X_j)
+        X_j = X[:, 1]
+        eq_1 = entropy(X_j) - conditional_entropy(y, X_j)
+        eq_2 = entropy(y) - conditional_entropy(X_j, y)
         eq_3 = entropy(X_j) + entropy(y) - entropy(list(zip(X_j, y)))
         eq_4 = entropy(list(zip(X_j, y))) - conditional_entropy(X_j, y) - conditional_entropy(y, X_j)
-
+        print(eq_1, eq_2)
         np.testing.assert_allclose(eq_1, eq_2)
         np.testing.assert_allclose(eq_2, eq_3)
         np.testing.assert_allclose(eq_3, eq_4)
+
+    def test_gini_index(self):
+        X = np.array([[1, 2, 3], [-1, 2, 3], [1, 2, 2], [-1, 1, 1], [1, 2, 1], [-1, 3, 4]])
+        y = np.array([1, 2, 1, 3, 1, 1])
+        univ_filter = UnivariateFilter('GiniIndex', cutting_rule=('K best', 2))
+        univ_filter.fit(X, y)
+        # print(univ_filter.feature_scores)
+        assert (-1 <= univ_filter.feature_scores).all()
+
+    def test_single_class(self):
+        X = np.array([[1, 2, 3], [1, 2, 3], [2, 2, 2], [1, 1, 1], [1, 2, 1]])
+        y = np.array([1, 1, 1, 1, 1])
+
+        univ_filter = UnivariateFilter('FRatio', cutting_rule=('K best', 1))
+        univ_filter.fit(X, y)
+
+    def test_fechner(self):
+        iris_dataset = load_iris()
+        X = iris_dataset.data
+        y = iris_dataset.target
+        X = X.astype(int)
+        univ_filter = UnivariateFilter('FechnerCorr', cutting_rule=('K best', 10))
+        univ_filter.fit(X, y)
+        # print(univ_filter.selected_features)
+        # univ_filter = UnivariateFilter('PearsonCorr', cutting_rule=('K best', 10))
+        # univ_filter.fit(X, y)
+        # print(univ_filter.selected_features)
+
+    def test_def_cr(self):
+        iris_dataset = load_iris()
+        X = iris_dataset.data
+        y = iris_dataset.target
+        X = X.astype(int)
+        univ_filter = UnivariateFilter('FechnerCorr')
+        univ_filter.fit(X, y)
+        assert univ_filter.selected_features == [0, 2, 3]
 
 if __name__ == "__main__":
     unittest.main()

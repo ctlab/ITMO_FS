@@ -1,21 +1,18 @@
 import unittest
 
-import numpy as np
 import pandas as pd
-from scipy import stats
-from sklearn.datasets import load_iris
-from sklearn.datasets import make_classification, make_regression
-from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
 
 from ITMO_FS.filters.multivariate import *
 
 np.random.seed(42)
 
+
 class TestCases(unittest.TestCase):
     data, target = np.random.randint(10, size=(100, 20)), np.random.randint(10, size=(100,))
-    feature_names = [''.join(['f', str(i)]) for i in range(X.shape[0])]
-    feature_names_override = [''.join(['g', str(i)]) for i in range(X.shape[0])]
+    feature_names = [''.join(['f', str(i)]) for i in range(data.shape[0])]
+    feature_names_override = [''.join(['g', str(i)]) for i in range(data.shape[0])]
 
     def test_FCBF(self):
         # FCBF
@@ -130,6 +127,7 @@ class TestCases(unittest.TestCase):
         for f in [FCBFDiscreteFilter(), DISRWithMassive(), MultivariateFilter(MIM, 10), TraceRatioFisher(10), STIR(10)]:
             arr = f.fit_transform(dfX, pd.DataFrame(self.target), feature_names=self.feature_names)
             assert np.all([feature in self.feature_names for feature in f.get_feature_names()])
+
 
 if __name__ == "__main__":
     unittest.main()

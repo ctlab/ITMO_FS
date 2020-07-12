@@ -41,23 +41,30 @@ class UnivariateFilter(TransformerMixin, DataChecker):  # TODO ADD LOGGING
         print(ufilter.selected_features)
     """
 
-    def __init__(self, measure, cutting_rule=GLOB_CR['K best']):
+    def __init__(self, measure, cutting_rule=("Best by percentage", 0.2)):
         # TODO Check measure and cutting_rule
         if type(measure) is str:
             try:
                 self.measure = GLOB_MEASURE[measure]
             except KeyError:
                 raise KeyError("No %r measure yet" % measure)
-        else:
+        elif hasattr(measure, '__call__'):
             self.measure = measure
-
-        if type(cutting_rule) is str:
-            try:
-                self.cutting_rule = GLOB_CR[cutting_rule]
-            except KeyError:
-                raise KeyError("No %r cutting rule yet" % measure)
         else:
+            raise KeyError("%r isn't a measure function or string" % measure)
+
+        if type(cutting_rule) is tuple:
+            cutting_rule_name = cutting_rule[0]
+            cutting_rule_value = cutting_rule[1]
+            try:
+                self.cutting_rule = GLOB_CR[cutting_rule_name](cutting_rule_value)
+            except KeyError:
+                raise KeyError("No %r cutting rule yet" % cutting_rule_name)
+        elif hasattr(cutting_rule, '__call__'):
             self.cutting_rule = cutting_rule
+        else:
+            raise KeyError("%r isn't a cutting rule function or string" % cutting_rule)
+
         self.feature_scores = None
         self.selected_features = None
 
