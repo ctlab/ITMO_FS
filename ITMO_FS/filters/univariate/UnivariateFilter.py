@@ -2,9 +2,10 @@ from numpy import ndarray
 from sklearn.base import TransformerMixin
 
 from .measures import GLOB_CR, GLOB_MEASURE
+from ...utils import DataChecker, generate_features
 
 
-class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
+class UnivariateFilter(TransformerMixin, DataChecker):  # TODO ADD LOGGING
     """
         Basic interface for using univariate measures for feature selection.
         List of available measures is in ITMO_FS.filters.univariate.measures, also you can
@@ -60,23 +61,7 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
         self.feature_scores = None
         self.selected_features = None
 
-    def _check_input(self, X, y=None, feature_names=None):
-        if hasattr(X, 'values'):
-            X = X.values
-        if hasattr(y, 'values'):
-            # TODO Fix case of y passed as DataFrame. For now y is transformed to 2D array and this causes an error.
-            #  It seems better to follow usual sklearn practice using check_X_y but y = y[0].values is also possible
-            y = y.values
-
-        if hasattr(X, 'columns'):
-            feature_names = X.columns
-        else:
-            if feature_names is None:
-                feature_names = list(range(X.shape[1]))
-
-        return X, y, feature_names
-
-    def get_scores(self, X, y, feature_names=None):
+    def get_scores(self, X, y, feature_names):
         """
             Counts feature scores on given data.
 
@@ -86,16 +71,14 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
                 The training input samples.
             y : array-like, shape (n_samples, )
                 The target values.
-            feature_names : list of strings, optional
+            feature_names : list of strings
                 In case you want to define feature names
 
             Returns
             ------
-            dictionary of format: key - feature_names if defined or number of features,
-            values - feature scores
+            dictionary of format: key - feature_names, values - feature scores
 
         """
-        X, y, feature_names = self._check_input(X, y, feature_names)
         return dict(zip(feature_names, self.measure(X, y)))
 
     def fit_transform(self, X, y=None, feature_names=None, store_scores=False, **fit_params):
@@ -145,7 +128,9 @@ class UnivariateFilter(TransformerMixin):  # TODO ADD LOGGING
             None
         """
         X, y, feature_names = self._check_input(X, y, feature_names)
-        feature_scores = self.get_scores(X, y, feature_names)
+        features = generate_features(X)
+        self.feature_names = dict(zip(features, feature_names))
+        feature_scores = self.get_scores(X, y, features)
 
         if store_scores:
             self.feature_scores = feature_scores

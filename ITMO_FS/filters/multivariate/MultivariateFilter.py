@@ -2,12 +2,12 @@ import numpy as np
 from sklearn.base import TransformerMixin
 
 from .measures import GLOB_MEASURE
-from ...utils import generate_features
+from ...utils import DataChecker, generate_features
 
 
 # TODO X and y transformation for DataFrame support
 # TODO Test interface!!!!
-class MultivariateFilter(TransformerMixin):
+class MultivariateFilter(TransformerMixin, DataChecker):
     """
         Provides basic functionality for multivariate filters.
         Parameters
@@ -52,25 +52,9 @@ class MultivariateFilter(TransformerMixin):
         else:
             self.measure = measure
         self.__n_features = n_features
-        self.selected_features = np.array([], dtype=np.integer)
+        self.selected_features = np.array([], dtype='object')
         self.beta = beta
         self.gamma = gamma
-
-    def _check_input(self, X, y=None, feature_names=None):
-        if hasattr(X, 'values'):
-            X = X.values
-        if hasattr(y, 'values'):
-            # TODO Fix case of y passed as DataFrame. For now y is transformed to 2D array and this causes an error.
-            #  It seems better to follow usual sklearn practice using check_X_y but y = y[0].values is also possible
-            y = y.values
-
-        if hasattr(X, 'columns'):
-            feature_names = X.columns
-        else:
-            if feature_names is None:
-                feature_names = list(range(X.shape[1]))
-
-        return X, y, feature_names
 
     def fit(self, X, y, feature_names=None):
         """
@@ -82,16 +66,20 @@ class MultivariateFilter(TransformerMixin):
                 The training input samples.
             y : array-like, shape (n_samples, )
                 The target values.
+            feature_names : list of strings, optional
+                In case you want to define feature names
 
             Returns
             ------
             None
 
         """
+        features = generate_features(X)
         X, y, feature_names = self._check_input(X, y, feature_names)
         if self.__n_features > X.shape[1]:
             raise ValueError("Cannot select %d features out of %d" % (self.__n_features, X.shape[1]))
         free_features = generate_features(X)
+        self.feature_names = dict(zip(features, feature_names))
         while len(self.selected_features) != self.__n_features:
             if self.beta is None:
                 values = self.measure(self.selected_features, free_features, X, y)
@@ -103,6 +91,7 @@ class MultivariateFilter(TransformerMixin):
             to_add = np.argmax(values)
             self.selected_features = np.append(self.selected_features, free_features[to_add])
             free_features = np.delete(free_features, to_add)
+        self.selected_features = features[self.selected_features.astype(int)]
 
     def transform(self, X):
         """
@@ -121,7 +110,7 @@ class MultivariateFilter(TransformerMixin):
         """
 
         if type(X) is np.ndarray:
-            return X[:, self.selected_features]
+            return X[:, self.selected_features.astype(int)]
         else:
             return X[self.selected_features]
 
@@ -137,9 +126,6 @@ class MultivariateFilter(TransformerMixin):
                 The target values.
             feature_names : list of strings, optional
                 In case you want to define feature names
-            store_scores : boolean, optional (by default False)
-                In case you want to store the scores of features
-                for future calls to Univariate filter
             **fit_params :
                 dictonary of measure parameter if needed.
 

@@ -2,7 +2,7 @@ import numpy as np
 
 from ITMO_FS.utils.information_theory import entropy
 from ITMO_FS.utils.information_theory import mutual_information
-
+from ...utils import DataChecker, generate_features
 
 def _complementarity(x_i, x_j, y):
     return entropy(x_i) + entropy(x_j) + entropy(y) - entropy(list(zip(x_i, x_j))) - \
@@ -14,7 +14,7 @@ def _chained_information(x_i, x_j, y):
 
 
 # TODO X and y transformation for DataFrame support
-class DISRWithMassive(object):
+class DISRWithMassive(DataChecker):
     """
         Creates DISR (Double Input Symmetric Relevance) feature selection filter
         based on kASSI criterin for feature selection
@@ -54,17 +54,20 @@ class DISRWithMassive(object):
         self.selected_features = None
 
     def __count_weight(self, i):
-        return 2 * self._vertices[i] * np.multiply(self._edges[i], self._vertices)
+        return np.sum(2 * self._vertices[i] * np.multiply(self._edges[i], self._vertices))
 
-    def run(self, X, y):
+    def fit(self, X, y, feature_names=None):
         """
             Fits filter
 
             Parameters
             ----------
-            X : numpy array, shape (n_samples, n_features)
-
-            y : numpy array, shape (n_samples, )
+            X : array-like, shape (n_samples, n_features)
+                The training input samples.
+            y : array-like, shape (n_samples, )
+                The target values.
+            feature_names : list of strings, optional
+                In case you want to define feature names
 
             Returns
             ----------
@@ -72,12 +75,15 @@ class DISRWithMassive(object):
                 selected pool of features
 
         """
-
+        
+        features = generate_features(X)
+        X, y, feature_names = self._check_input(X, y, feature_names)
+        self.feature_names = dict(zip(features, feature_names))
         self.n_features = X.shape[1]
         if self.expected_size is None:
             self.expected_size = self.n_features // 3
-        free_features = np.array([], dtype=np.integer)
-        self.selected_features = np.arange(self.n_features, dtype=np.integer)
+        free_features = np.array([], dtype='object')
+        self.selected_features = generate_features(X)
         self._vertices = np.ones(self.n_features)
         self._edges = np.zeros((self.n_features, self.n_features))
         for i in range(self.n_features):
@@ -86,12 +92,9 @@ class DISRWithMassive(object):
                 if entropy_pair != 0.:
                     self._edges[i][j] = _chained_information(X[:, i], X[:, j], y) / entropy_pair
 
-        # TODO Find and fix the error, program fails while vectorizing.
-        #  Besides, using of vectorize is not recommended because it is very slow. Something like
-        #  np.vstack([self.__count_weight(ind) for ind in np.arange(self.n_features)]) could do the same much faster.
-        #  Finally, is it really intended to search for argmin over the flattened array and not an axis?
+        # TODO apply vectorize to selected_features and not arange(n_features)?
         while self.selected_features.size != self.expected_size:
-            min_index = np.argmin(np.vectorize(lambda x: self.__count_weight(x))(np.arange(self.n_features)))
+            min_index = np.argmin(np.vectorize(lambda x: self.__count_weight(x))(self.selected_features))
             self._vertices[min_index] = 0
             free_features = np.append(free_features, min_index)
             self.selected_features = np.delete(self.selected_features, min_index)
@@ -115,5 +118,46 @@ class DISRWithMassive(object):
                 free_features = np.delete(free_features, new_selected)
                 self.selected_features = np.append(self.selected_features, new_selected)
                 self.selected_features = np.delete(self.selected_features, new_free)
+        self.selected_features = features[self.selected_features]
 
-        return self.selected_features
+    def transform(self, X):
+        """
+            Transform given data by slicing it with selected features.
+
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features)
+                The training input samples.
+
+            Returns
+            ------
+
+            Transformed 2D numpy array
+
+        """
+
+        if type(X) is np.ndarray:
+            return X[:, self.selected_features.astype(int)]
+        else:
+            return X[self.selected_features]
+
+    def fit_transform(self, X, y, feature_names=None):
+        """
+            Fits the filter and transforms given dataset X.
+
+            Parameters
+            ----------
+            X : array-like, shape (n_features, n_samples)
+                The training input samples.
+            y : array-like, shape (n_samples, )
+                The target values.
+            feature_names : list of strings, optional
+                In case you want to define feature names
+
+            Returns
+            ------
+
+            X dataset sliced with features selected by the filter
+        """
+        self.fit(X, y, feature_names)
+        return self.transform(X)

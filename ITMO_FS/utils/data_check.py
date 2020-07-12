@@ -27,7 +27,7 @@ def generate_features(X, features=None):
     except AttributeError:
         if features is None:
             features = [i for i in range(X.shape[1])]
-    return features
+    return array(features)
 
 
 def check_shapes(X, y):
