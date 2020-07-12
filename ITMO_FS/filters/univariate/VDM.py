@@ -9,15 +9,12 @@ class VDM:
         Creates Value Difference Metric builder
         http://aura.abdn.ac.uk/bitstream/handle/2164/10951/payne_ecai_98.pdf?sequence=1
         https://www.jair.org/index.php/jair/article/view/10182
-
         Parameters
         ----------
         weighted: bool
             If weighted = False, modified version of metric which omits the weights is used
-
         See Also
         --------
-
         examples
         --------
         # >>> x = np.array([[0, 0, 0, 0],
@@ -41,24 +38,19 @@ class VDM:
         """
             Generates metric for the data
             Complexity: O(n_features * n_samples^3) worst case, should be faster on a real data
-
             Parameters
             ----------
             x: array-like, shape (n_features, n_samples)
                 Input samples' parameters. Parameters among every class must be sequential integers.
             y: array-like, shape (n_samples)
                 Input samples' class labels. Class labels must be sequential integers.
-
             Returns
             -------
             result:
                 numpy.ndarray, shape=(n_samples, n_samples), dtype=np.double with selected version of metrics
             See Also
             --------
-
-
     feature_scores = {}
-
     def run(self, x, y, weighted=True):
         """
         # TODO Fix case of y passed as DataFrame. For now y is transformed to 2D array and this causes an error.
