@@ -5,6 +5,7 @@ from math import log
 import numpy as np
 from scipy import sparse as sp
 from scipy.sparse import lil_matrix
+from sklearn.preprocessing import MinMaxScaler
 
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.information_theory import conditional_entropy
@@ -104,6 +105,7 @@ def f_ratio_measure(X, y):
 def gini_index(X, y):
     """
     Gini index is a measure of statistical dispersion.
+    Note: before counting gini index data is normalized with MinMaxScaler
 
     Parameters
     ----------
@@ -128,17 +130,17 @@ def gini_index(X, y):
     X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
     scores = gini_index(X, y)
     print(scores)
+
     """
-    # Gini = 2 * AUROC - 1
-    # TODO Check brown formula here gini could be greater than 1 or 0
+
     if X.shape[0] < 2:
         raise Exception("Sample size must be greater than 1")
+    scaler = MinMaxScaler()
+    X = scaler.fit_transform(X)
     cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
     cum_y = np.cumsum(y / np.linalg.norm(y, 1))
     diff_x = (cum_x[1:] - cum_x[:-1])
     diff_y = (cum_y[1:] + cum_y[:-1])
-    # TODO Negative values impact the metric so the value becomes greater then 1, example is in test section
-    # TODO Rewrite through ROC-AUC
     return np.abs(1 - np.sum(np.multiply(diff_x.T, diff_y).T, axis=0))
 
 
@@ -872,7 +874,7 @@ GLOB_CR = {"Best by value": select_best_by_value,
 def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
     """
     Performs Quadratic Programming Feature Selection algorithm.
-    Note that this realization requires labels to start from 1 and be numberical.
+    Note: this realization requires labels to start from 1 and be numerical.
     
     Parameters
     ----------
