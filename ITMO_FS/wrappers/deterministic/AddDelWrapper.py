@@ -61,7 +61,6 @@ class AddDelWrapper(object):
     def __add(self, X, y, cv=3, silent=True):
 
         prev_score = 0
-        current_score = 0
         scores = []
 
         to_append = [i for i in range(X.shape[1])]  # list of features not used in final configuration
