@@ -53,7 +53,7 @@ The output will be of the following type:
 .. _problem_statement:
 
 Problem statement regarding data sets with redundant features
-------------------------------------------------
+-------------------------------------------------------------
 
 Feature selection methods can be used to identify and remove unneeded,
 irrelevant and redundant attributes from data that do not contribute
