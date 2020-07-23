@@ -3,22 +3,18 @@ import numpy as np
 from ITMO_FS.utils.functions import cartesian
 
 
-##TODO some optimization
-
+#  TODO some optimization and sklearn-like API
 class VDM:
     """
         Creates Value Difference Metric builder
         http://aura.abdn.ac.uk/bitstream/handle/2164/10951/payne_ecai_98.pdf?sequence=1
         https://www.jair.org/index.php/jair/article/view/10182
-
         Parameters
         ----------
         weighted: bool
             If weighted = False, modified version of metric which omits the weights is used
-
         See Also
         --------
-
         examples
         --------
         # >>> x = np.array([[0, 0, 0, 0],
@@ -42,26 +38,23 @@ class VDM:
         """
             Generates metric for the data
             Complexity: O(n_features * n_samples^3) worst case, should be faster on a real data
-
             Parameters
             ----------
             x: array-like, shape (n_features, n_samples)
                 Input samples' parameters. Parameters among every class must be sequential integers.
             y: array-like, shape (n_samples)
                 Input samples' class labels. Class labels must be sequential integers.
-
             Returns
             -------
             result:
                 numpy.ndarray, shape=(n_samples, n_samples), dtype=np.double with selected version of metrics
             See Also
             --------
-
-
     feature_scores = {}
-
     def run(self, x, y, weighted=True):
         """
+        # TODO Fix case of y passed as DataFrame. For now y is transformed to 2D array and this causes an error.
+        #  It seems better to follow usual sklearn practice and to use check_X_y but np.asarray(y[0]) is also possible
         x = np.asarray(x)  # Converting input data to numpy arrays
         y = np.asarray(y)
 
@@ -98,6 +91,7 @@ class VDM:
                 # the class
                 amounts = np.array(list(entries_c_x[c].values()))  # Corresponding amounts
                 non_entries = np.arange(n_values)  # Feature values which are not presented in pairs for the class
+                # TODO get rid of error if entries are empty, example in test
                 non_entries[entries] = -1
                 non_entries = non_entries[non_entries != -1]
 

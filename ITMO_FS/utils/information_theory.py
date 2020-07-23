@@ -1,22 +1,26 @@
 from math import log
+from collections import defaultdict
 
 import numpy as np
 
 
+def builder_dict():
+    return defaultdict(int)
+
 def conditional_entropy(x_j, y):
-    countX = {x: 0 for x in x_j}
-    dictYByX = {x: {} for x in x_j}
+    # H(Y|X)
+    count_x = defaultdict(int)
+    dict_y_by_x = defaultdict(builder_dict)
     for i in range(len(y)):
         x_val = x_j[i]
         y_val = y[i]
-        countX[x_val] += 1
-        dictYByX[x_val].update({y_val: dictYByX[x_val].get(y_val, 0) + 1})
+        count_x[x_val] += 1
+        dict_y_by_x[x_val][y_val] += 1
     entropy = 0.0
-    for x in countX.keys():
-        partEntropy = 0.0
-        curDict = dictYByX[x]
-        partEntropy = sum(map(lambda inClass: elog(inClass / countX[x]), curDict.values()))
-        entropy += countX[x] / len(y) * partEntropy
+    for x_key in count_x.keys():
+        cur_dict = dict_y_by_x[x_key]
+        part_entropy = sum(map(lambda num_y: elog(num_y / count_x[x_key]), cur_dict.values()))
+        entropy += count_x[x_key] / len(x_j) * part_entropy
     return -entropy
 
 
@@ -48,8 +52,8 @@ def elog(x):
 
 
 def entropy(x):
-    d = dict()
+    d = defaultdict(int)
     for obj in x:
-        d[obj] = d.get(obj, 0) + 1
+        d[obj] += 1
     probs = map(lambda z: float(z) / len(x), d.values())
     return -sum(map(elog, probs))
