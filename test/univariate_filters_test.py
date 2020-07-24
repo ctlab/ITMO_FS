@@ -110,6 +110,19 @@ class TestCases(unittest.TestCase):
         # arr = f.run(data, target)
         # np.testing.assert_array_equal(df, arr)
 
+    def test_df_feature_names(self):
+        # Univariate filter
+        data, target = self.wide_classification[0], self.wide_classification[1]
+        f = UnivariateFilter(pearson_corr, select_k_best(50))
+        f.fit(pd.DataFrame(data), pd.DataFrame(target),feature_names=[str(i) + ' column' for i in data.columns])
+        df = f.transform(pd.DataFrame(data))
+
+        f = UnivariateFilter(pearson_corr, select_k_best(50))
+        f.fit(data, target)
+        arr = f.transform(data)
+        np.testing.assert_array_equal(df.values, arr)
+
+
     def test_chi2(self):
         iris_dataset = load_iris()
         X = iris_dataset.data

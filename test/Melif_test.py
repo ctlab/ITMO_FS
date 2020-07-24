@@ -36,8 +36,8 @@ class MyTestCase(unittest.TestCase):
     def test_wide_pd(self):
         data, target = pd.DataFrame(self.wide_classification[0]), pd.DataFrame(self.wide_classification[1])
         train_data, test_data, train_target, test_target = train_test_split(data, target)
-        self.melif.fit(train_data, train_target, self.estimator, select_k_best(1500),feature_names=data.columns)
-
+        self.melif.fit(train_data, train_target, self.estimator, select_k_best(1500),
+                       feature_names=[str(i) + ' column' for i in data.columns])
         print(f1_score(test_target, self.melif.predict(test_data)))
 
 

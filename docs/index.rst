@@ -31,6 +31,11 @@ Information to install, test, and contribute to the package.
 `User Guide <user_guide.html>`_
 -------------------------------
 
+User guide of ITMO_FS
+
+`API <api.html>`_
+-------------------------------
+
 The main documentation. This contains an in-depth description of all
 algorithms and how to apply them.
 

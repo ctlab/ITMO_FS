@@ -134,7 +134,7 @@ n_repeated = 10, shuffle = False)
             None
         """
         X, y, feature_names = self._check_input(X, y, feature_names)
-        features = generate_features(X)
+        features = generate_features(X, feature_names)
         self.feature_names = dict(zip(features, feature_names))
         feature_scores = self.get_scores(X, y, features)
 

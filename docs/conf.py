@@ -24,7 +24,7 @@ copyright = '2020, ITMO University,Nikita Pilnenskiy'
 author = 'Nikita Pilnenskiy'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = '0.3.2'
 
 
 # -- General configuration ---------------------------------------------------

@@ -63,13 +63,17 @@ class Melif(object):
                 a[i] = 1
                 self.__points.append(a)
         best_point = self.__points[0]
-
+        mapping = dict(zip(range(len(nu.keys())), nu.keys()))
         n = dict(zip(nu.keys(), self.__measure(np.array(list(nu.values())), best_point)))
+
         self.selected_features = self.__cutting_rule(n)
         self.best_f = {i: nu[i] for i in self.selected_features}
-
+        for k, v in mapping.items():
+            nu[k] = nu.pop(v)
         self.__search(self.__points, nu)
-
+        self.selected_features = [mapping[i] for i in self.selected_features]
+        for k in list(self.best_f.keys()):
+            self.best_f[mapping[k]] = self.best_f.pop(k)
         if self.verbose:
             print('Footer')
             print("Best point:{}".format(self.best_point))
