@@ -22,9 +22,9 @@ class MOS(object):
         seed : int
             Seed for python random.
 
-        See Also
-        --------
-        https://www.sciencedirect.com/science/article/pii/S0169743919306070
+        Notes
+        -----
+        For more details see `this paper <https://www.sciencedirect.com/science/article/pii/S0169743919306070/>`_.
 
         Examples
         --------

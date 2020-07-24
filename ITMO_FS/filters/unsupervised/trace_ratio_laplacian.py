@@ -21,7 +21,7 @@ class TraceRatioLaplacian(object):
             - Note: in laplacian case only. In fisher it uses label similarity, i.e if both samples belong to same class
 
         Notes
-        --------
+        -----
         For more details see `this paper <https://aaai.org/Papers/AAAI/2008/AAAI08-107.pdf/>`_.
 
         Examples

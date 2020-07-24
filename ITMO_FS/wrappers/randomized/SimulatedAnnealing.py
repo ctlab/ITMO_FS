@@ -26,9 +26,9 @@ class SimulatedAnnealing(object):
             number of features to initialize start features subset,
             Note: by default (5-10) percents of number of features is used
         
-        See Also
-        --------
-        http://www.feat.engineering/simulated-annealing.html
+        Notes
+        -----
+        For more details see `this paper <http://www.feat.engineering/simulated-annealing.html/>`_.
 
         Examples
         --------

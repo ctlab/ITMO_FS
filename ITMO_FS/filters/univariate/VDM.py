@@ -15,8 +15,11 @@ class VDM:
         weighted: bool
             If weighted = False, modified version of metric which omits the weights is used
 
-        See Also
-        --------
+        Notes
+        -----
+        For more details see papers about `Improved Heterogeneous Distance Functions
+        <https://www.jair.org/index.php/jair/article/view/10182/>`_ and `Implicit Future Selection with the VDM
+        <https://aura.abdn.ac.uk/bitstream/handle/2164/10951/payne_ecai_98.pdf?sequence=1/>`_.
 
         Examples
         --------

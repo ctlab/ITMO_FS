@@ -38,7 +38,6 @@ def qpfs_wrapper(X, y, alpha, r=None, sigma=None, solv='quadprog', fn=pearson_co
     Examples
     --------
     >>> import numpy as np
-
     >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
     >>> y = np.array([1, 3, 2, 1, 2])
     >>> alpha = 0.5

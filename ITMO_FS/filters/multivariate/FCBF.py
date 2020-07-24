@@ -16,9 +16,10 @@ class FCBFDiscreteFilter(DataChecker):
         Parameters
         ----------
 
-        See Also
-        --------
-        https://www.aaai.org/Papers/ICML/2003/ICML03-111.pdf
+        Notes
+        -----
+        For more details see `this paper <https://www.aaai.org/Papers/ICML/2003/ICML03-111.pdf/>`_.
+
 
         Examples
         --------

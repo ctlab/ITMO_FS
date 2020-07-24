@@ -16,9 +16,10 @@ class TraceRatioFisher(DataChecker):
         n_selected_features : int
             Amount of features to filter
 
-        See Also
-        --------
-        https://www.aaai.org/Papers/AAAI/2008/AAAI08-107.pdf
+        Notes
+        -----
+        For more details see `this paper <https://www.aaai.org/Papers/AAAI/2008/AAAI08-107.pdf/>`_.
+
 
         Examples
         --------

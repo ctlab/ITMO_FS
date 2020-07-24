@@ -63,9 +63,7 @@ class BackwardSelection:
             >>> from ITMO_FS.wrappers import BackwardSelection
             >>> from sklearn.linear_model import LogisticRegression
             >>> from sklearn.datasets import make_classification
-
             >>> import numpy as np
-
             >>> dataset = make_classification(n_samples=100, n_features=20, \
 n_informative=4, n_redundant=0, shuffle=False)
             >>> data, target = np.array(dataset[0]), np.array(dataset[1])

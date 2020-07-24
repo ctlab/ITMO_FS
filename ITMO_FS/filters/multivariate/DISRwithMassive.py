@@ -30,9 +30,11 @@ class DISRWithMassive(DataChecker):
         expected_size : int
             Expected size of subset of features.
 
-        See Also
-        --------
-        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.318.6576&rep=rep1&type=pdf
+        Notes
+        -----
+        For more details see `this paper
+        <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.318.6576&rep=rep1&type=pdf/>`_.
+
 
         Examples
         --------

@@ -80,8 +80,8 @@ class NDFS(object):
 			>>> from ITMO_FS.filters.sparse import NDFS
 			>>> from sklearn.datasets import make_classification
 			>>> import numpy as np
-			
-			>>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
+			>>> dataset = make_classification(n_samples=100, n_features=20, \
+n_informative=4, n_redundant=0, shuffle=False)
 			>>> data, target = np.array(dataset[0]), np.array(dataset[1])
 			>>> model = NDFS(p=5, c=2)
 			>>> weights = model.run(data)
