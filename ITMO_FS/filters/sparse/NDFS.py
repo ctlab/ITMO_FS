@@ -34,7 +34,7 @@ class NDFS(object):
 		--------
 		http://www.nlpr.ia.ac.cn/2012papers/gjhy/gh27.pdf
 
-		examples
+		Examples
 		--------
 
 	"""
@@ -75,17 +75,17 @@ class NDFS(object):
 			See Also
 			--------
 
-			examples
+			Examples
 			--------
-			from ITMO_FS.filters.sparse import NDFS
-			from sklearn.datasets import make_classification
-			import numpy as np
+			>>> from ITMO_FS.filters.sparse import NDFS
+			>>> from sklearn.datasets import make_classification
+			>>> import numpy as np
 			
-			dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-			data, target = np.array(dataset[0]), np.array(dataset[1])
-			model = NDFS(p=5, c=2)
-			weights = model.run(data)
-			print(model.feature_ranking(weights))
+			>>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
+			>>> data, target = np.array(dataset[0]), np.array(dataset[1])
+			>>> model = NDFS(p=5, c=2)
+			>>> weights = model.run(data)
+			>>> print(model.feature_ranking(weights))
 		"""
 
 		n_samples, n_features = X.shape
@@ -99,7 +99,7 @@ class NDFS(object):
 		A = np.diag(S.sum(axis=0))
 		L = power_neg_half(A).dot(A - S).dot(power_neg_half(A))
 		
-		if y != None:
+		if y is not None:
 			if len(y.shape) == 2:
 				Y = y
 			else:

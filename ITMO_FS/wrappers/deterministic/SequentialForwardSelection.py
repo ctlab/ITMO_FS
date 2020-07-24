@@ -9,6 +9,7 @@ class SequentialForwardSelection:
     """
         Sequentially Adds Features that Maximises the Classifying function when combined with the features already used
         TODO add theory about this method
+
         Parameters
         ----------
         estimator: object
@@ -19,11 +20,11 @@ class SequentialForwardSelection:
         measure : string or callable
             A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable object / function with signature
             measure(estimator, X, y) which should return only a single value.
+
         See Also
         --------
 
-
-        examples
+        Examples
         --------
 
         """
@@ -53,19 +54,19 @@ class SequentialForwardSelection:
             See Also
             --------
 
-            examples
+            Examples
             --------
-            from ITMO_FS.wrappers import SequentialForwardSelection
-            from sklearn.linear_model import LogisticRegression
-            from sklearn.datasets import make_classification
+            >>> from ITMO_FS.wrappers import SequentialForwardSelection
+            >>> from sklearn.linear_model import LogisticRegression
+            >>> from sklearn.datasets import make_classification
 
-            import numpy as np
+            >>> import numpy as np
 
-            dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-            data, target = np.array(dataset[0]), np.array(dataset[1])
-            model = SequentialForwardSelection(LogisticRegression(), 5, 'f1_macro')
-            model.fit(data, target)
-            print(model.selected_features)
+            >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
+            >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+            >>> model = SequentialForwardSelection(LogisticRegression(), 5, 'f1_macro')
+            >>> model.fit(data, target)
+            >>> print(model.selected_features)
 
 
         """

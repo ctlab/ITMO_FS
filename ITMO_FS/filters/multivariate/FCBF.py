@@ -20,15 +20,14 @@ class FCBFDiscreteFilter(DataChecker):
         --------
         https://www.aaai.org/Papers/ICML/2003/ICML03-111.pdf
 
-        examples
+        Examples
         --------
-        from ITMO_FS.filters.multivariate import FCBFDiscreteFilter
-        import numpy as np
-
-        X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-        fcbf = FCBFDiscreteFilter()
-        print(fcbf.run(X, y))
+        >>> from ITMO_FS.filters.multivariate import FCBFDiscreteFilter
+        >>> import numpy as np
+        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> fcbf = FCBFDiscreteFilter()
+        >>> print(fcbf.run(X, y))
 
     """
 
@@ -81,7 +80,7 @@ class FCBFDiscreteFilter(DataChecker):
                 The training input samples.
 
             Returns
-            ------
+            -------
 
             Transformed 2D numpy array
 
@@ -106,8 +105,7 @@ class FCBFDiscreteFilter(DataChecker):
                 In case you want to define feature names
 
             Returns
-            ------
-
+            -------
             X dataset sliced with features selected by the filter
         """
         self.fit(X, y, feature_names)

@@ -26,20 +26,18 @@ def MIM(selected_features, free_features, X, y):
         Examples
         --------
         
-        from ITMO_FS.filters.multivariate import MIM
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        selected_features = [1, 2]
-        other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
-        print(MIM(np.array(selected_features), np.array(other_features), data, target))
+        >>> from ITMO_FS.filters.multivariate import MIM
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
+        >>> print(MIM(np.array(selected_features), np.array(other_features), data, target))
 
     """
     return matrix_mutual_information(X[:, free_features], y)
@@ -69,20 +67,19 @@ def MRMR(selected_features, free_features, X, y):
         Examples
         --------
         
-        from ITMO_FS.filters.multivariate import MRMR
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        selected_features = [1, 2]
-        other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
-        print(MRMR(np.array(selected_features), np.array(other_features), data, target))
+        >>> from ITMO_FS.filters.multivariate import MRMR
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, \
+n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
+        >>> print(MRMR(np.array(selected_features), np.array(other_features), data, target))
 
     """
     if selected_features.size == 0:
@@ -114,20 +111,19 @@ def JMI(selected_features, free_features, X, y):
         Examples
         --------
         
-        from ITMO_FS.filters.multivariate import JMI
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        selected_features = [1, 2]
-        other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
-        print(JMI(np.array(selected_features), np.array(other_features), data, target))
+        >>> from ITMO_FS.filters.multivariate import JMI
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, \
+n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
+        >>> print(JMI(np.array(selected_features), np.array(other_features), data, target))
 
     """
     if selected_features.size == 0:
@@ -160,20 +156,19 @@ def CIFE(selected_features, free_features, X, y):
         Examples
         --------
         
-        from ITMO_FS.filters.multivariate import CIFE
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        selected_features = [1, 2]
-        other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
-        print(CIFE(np.array(selected_features), np.array(other_features), data, target))
+        >>> from ITMO_FS.filters.multivariate import CIFE
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, \
+n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
+        >>> print(CIFE(np.array(selected_features), np.array(other_features), data, target))
 
     """
     return generalizedCriteria(selected_features, free_features, X, y, 1, 1)
@@ -207,20 +202,19 @@ def MIFS(selected_features, free_features, X, y, beta):
         Examples
         --------
         
-        from ITMO_FS.filters.multivariate import MIFS
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        selected_features = [1, 2]
-        other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
-        print(MIFS(np.array(selected_features), np.array(other_features), data, target, 0.4))
+        >>> from ITMO_FS.filters.multivariate import MIFS
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, \
+n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
+        >>> print(MIFS(np.array(selected_features), np.array(other_features), data, target, 0.4))
 
     """
     return generalizedCriteria(selected_features, free_features, X, y, beta, 0)
@@ -250,20 +244,19 @@ def CMIM(selected_features, free_features, X, y):
         Examples
         --------
         
-        from ITMO_FS.filters.multivariate import CMIM
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        selected_features = [1, 2]
-        other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
-        print(CMIM(np.array(selected_features), np.array(other_features), data, target))
+        >>> from ITMO_FS.filters.multivariate import CMIM
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, \
+n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
+        >>> print(CMIM(np.array(selected_features), np.array(other_features), data, target))
 
     """
     if selected_features.size == 0:
@@ -300,20 +293,18 @@ def ICAP(selected_features, free_features, X, y):
         Examples
         --------
         
-        from ITMO_FS.filters.multivariate import ICAP
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        selected_features = [1, 2]
-        other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
-        print(ICAP(np.array(selected_features), np.array(other_features), data, target))
+        >>> from ITMO_FS.filters.multivariate import ICAP
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
+        >>> print(ICAP(np.array(selected_features), np.array(other_features), data, target))
 
     """
     if selected_features.size == 0:
@@ -356,20 +347,18 @@ def DCSF(selected_features, free_features, X, y):
         Examples
         --------
         
-        from ITMO_FS.filters.multivariate import DCSF
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        selected_features = [1, 2]
-        other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
-        print(DCSF(np.array(selected_features), np.array(other_features), data, target))
+        >>> from ITMO_FS.filters.multivariate import DCSF
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
+        >>> print(DCSF(np.array(selected_features), np.array(other_features), data, target))
 
     """
     if selected_features.size == 0:
@@ -407,20 +396,19 @@ def CFR(selected_features, free_features, X, y):
         Examples
         --------
         
-        from ITMO_FS.filters.multivariate import CFR
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        selected_features = [1, 2]
-        other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
-        print(CFR(np.array(selected_features), np.array(other_features), data, target))
+        >>> from ITMO_FS.filters.multivariate import CFR
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, \
+n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
+        >>> print(CFR(np.array(selected_features), np.array(other_features), data, target))
 
     """
     if selected_features.size == 0:
@@ -458,20 +446,19 @@ def MRI(selected_features, free_features, X, y):
         Examples
         --------
         
-        from ITMO_FS.filters.multivariate import MRI
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        selected_features = [1, 2]
-        other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
-        print(MRI(np.array(selected_features), np.array(other_features), data, target))
+        >>> from ITMO_FS.filters.multivariate import MRI
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, \
+n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
+        >>> print(MRI(np.array(selected_features), np.array(other_features), data, target))
 
     """
     return generalizedCriteria(selected_features, free_features, X, y, 2 / (selected_features.size + 1),
@@ -513,20 +500,19 @@ def IWFS(selected_features, free_features, X, y):
         Examples
         --------
         
-        from ITMO_FS.filters.multivariate import IWFS
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        selected_features = [1, 2]
-        other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
-        print(IWFS(np.array(selected_features), np.array(other_features), data, target))
+        >>> from ITMO_FS.filters.multivariate import IWFS
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, \
+n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
+        >>> print(IWFS(np.array(selected_features), np.array(other_features), data, target))
 
     """
     if selected_features.size == 0:
@@ -569,20 +555,18 @@ def generalizedCriteria(selected_features, free_features, X, y, beta, gamma):
         Examples
         --------
         
-        from ITMO_FS.filters.multivariate import CFR
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        selected_features = [1, 2]
-        other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
-        print(generalizedCriteria(np.array(selected_features), np.array(other_features), data, target, 0.4, 0.3))
+        >>> from ITMO_FS.filters.multivariate import CFR
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, data.shape[1]) if i not in selected_features]
+        >>> print(generalizedCriteria(np.array(selected_features), np.array(other_features), data, target, 0.4, 0.3))
 
     """
     if selected_features.size == 0:

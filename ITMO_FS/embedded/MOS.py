@@ -26,13 +26,14 @@ class MOS(object):
         --------
         https://www.sciencedirect.com/science/article/pii/S0169743919306070
 
-        examples
+        Examples
         --------
-        dataset = make_classification(n_samples=100, n_features=20)
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        for i in range(50):  # create imbalance between classes
-            target[i] = 0
-        print(MOS().runMOSS(data, target))
+        >>> from sklearn.datasets import make_classification
+        >>> dataset = make_classification(n_samples=100, n_features=20)
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> for i in range(50):  # create imbalance between classes
+        ...     target[i] = 0
+        >>> print(MOS().runMOSS(data, target))
     """
 
     def __init__(self, model=SGDClassifier, loss='log',
@@ -47,6 +48,7 @@ class MOS(object):
     def runMOSS(self, X, y, l1_ratio=0.5, threshold=10e-4, epochs=1000, alphas=np.arange(0.0002, 0.02, 0.0002)):
         """
         Runs the MOSS algorithm on the specified dataset.
+
         Parameters
         ----------
         X : array-like, shape (n_samples,n_features)

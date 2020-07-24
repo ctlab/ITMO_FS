@@ -24,7 +24,7 @@ class MCFS(object):
 		--------
 		http://www.cad.zju.edu.cn/home/dengcai/Publication/Conference/2010_KDD-MCFS.pdf
 
-		examples
+		Examples
 		--------
 
 	"""

@@ -22,16 +22,15 @@ class RFS(object):
 		--------
 		https://papers.nips.cc/paper/3988-efficient-and-robust-feature-selection-via-joint-l21-norms-minimization.pdf
 
-		examples
+		Examples
 		--------
-		from ITMO_FS.filters.sparse import RFS
-		from sklearn.datasets import make_classification
-		import numpy as np
-
-		dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-		data, target = np.array(dataset[0]), np.array(dataset[1])
-		model = RFS(gamma=15, epsilon=1e-12)
-		print(model.run(data, target))
+		>>> from ITMO_FS.filters.sparse import RFS
+		>>> from sklearn.datasets import make_classification
+		>>> import numpy as np
+		>>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
+		>>> data, target = np.array(dataset[0]), np.array(dataset[1])
+		>>> model = RFS(gamma=15, epsilon=1e-12)
+		>>> print(model.run(data, target))
 	"""
 
 	def __init__(self, p, gamma=1, max_iterations=1000, epsilon=1e-5):
@@ -61,7 +60,7 @@ class RFS(object):
 			See Also
 			--------
 
-			examples
+			Examples
 			--------
 
 		"""

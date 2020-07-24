@@ -9,23 +9,25 @@ class VDM:
         Creates Value Difference Metric builder
         http://aura.abdn.ac.uk/bitstream/handle/2164/10951/payne_ecai_98.pdf?sequence=1
         https://www.jair.org/index.php/jair/article/view/10182
+
         Parameters
         ----------
         weighted: bool
             If weighted = False, modified version of metric which omits the weights is used
+
         See Also
         --------
-        examples
+
+        Examples
         --------
-        # >>> x = np.array([[0, 0, 0, 0],
-        # ...               [1, 0, 1, 1],
-        # ...               [1, 0, 0, 2]])
-        # >>>
-        # >>> y = np.array([0,
-        # ...               1,
-        # ...               1])
-        # >>> vdm = VDM()
-        # >>> vdm.run(x, y)
+        >>> x = np.array([[0, 0, 0, 0],
+        ...               [1, 0, 1, 1],
+        ...               [1, 0, 0, 2]])
+        >>> y = np.array([0,
+        ...               1,
+        ...               1])
+        >>> vdm = VDM()
+        >>> vdm.run(x, y)
         array([[0.         4.35355339 4.        ]
                [4.5        0.         0.5       ]
                [4.         0.35355339 0.        ]])
@@ -38,6 +40,7 @@ class VDM:
         """
             Generates metric for the data
             Complexity: O(n_features * n_samples^3) worst case, should be faster on a real data
+
             Parameters
             ----------
             x: array-like, shape (n_features, n_samples)

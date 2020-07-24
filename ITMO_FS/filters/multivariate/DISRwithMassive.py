@@ -34,15 +34,15 @@ class DISRWithMassive(DataChecker):
         --------
         http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.318.6576&rep=rep1&type=pdf
 
-        examples
+        Examples
         --------
-        from ITMO_FS.filters.multivariate import DISRWithMassive
-        import numpy as np
-
-        X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-        disr = DISRWithMassive(3)
-        print(disr.run(X, y))
+        >>> from ITMO_FS.filters.multivariate import DISRWithMassive
+        >>> import numpy as np
+        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
+[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> disr = DISRWithMassive(3)
+        >>> print(disr.fit_transform(X, y))
 
     """
 

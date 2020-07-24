@@ -20,14 +20,14 @@ class TraceRatioFisher(DataChecker):
         --------
         https://www.aaai.org/Papers/AAAI/2008/AAAI08-107.pdf
 
-        examples
+        Examples
         --------
-        from ITMO_FS.filters.multivariate.trace_ratio_fisher import TraceRatioFisher
-        from sklearn.datasets import make_classification
-
-        x, y = make_classification(1000, 100, n_informative = 10, n_redundant = 30, n_repeated = 10, shuffle = False)
-        tracer = TraceRatioFisher(10)
-        print(tracer.run(x, y)[0])
+        >>> from ITMO_FS.filters.multivariate.TraceRatioFisher import TraceRatioFisher
+        >>> from sklearn.datasets import make_classification
+        >>> x, y = make_classification(1000, 100, n_informative = 10,\
+n_redundant = 30, n_repeated = 10, shuffle = False)
+        >>> tracer = TraceRatioFisher(10)
+        >>> print(tracer.fit_transform(x, y)[0])
 
 
     """
@@ -55,7 +55,7 @@ class TraceRatioFisher(DataChecker):
             See Also
             --------
 
-            examples
+            Examples
             --------
 
         """

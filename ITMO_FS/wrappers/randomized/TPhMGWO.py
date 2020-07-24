@@ -35,14 +35,15 @@ class TPhMGWO(object):
 
         Examples
         --------
-        import numpy as np
-        from ITMO_FS.wrappers.randomized import TPhMGWO
-        from sklearn.datasets import make_classification
+        >>> import numpy as np
+        >>> from ITMO_FS.wrappers.randomized import TPhMGWO
+        >>> from sklearn.datasets import make_classification
 
-        tphmgwo = TPhMGWO()
-        x, y = make_classification(500, 50, n_informative = 10, n_redundant = 30, n_repeated = 10, shuffle = True)
-        result = tphmgwo.run(x, y)
-        print(np.where(result == 1))
+        >>> tphmgwo = TPhMGWO()
+        >>> x, y = make_classification(500, 50, n_informative = 10, \
+n_redundant = 30, n_repeated = 10, shuffle = True)
+        >>> result = tphmgwo.run(x, y)
+        >>> print(np.where(result == 1))
 
 
     """

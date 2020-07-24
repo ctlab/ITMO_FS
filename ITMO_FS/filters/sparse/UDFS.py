@@ -28,7 +28,7 @@ class UDFS(object):
 		--------
 		https://www.ijcai.org/Proceedings/11/Papers/267.pdf
 
-		examples
+		Examples
 		--------
 
 	"""
@@ -63,17 +63,17 @@ class UDFS(object):
 			See Also
 			--------
 
-			examples
+			Examples
 			--------
-			from ITMO_FS.filters.sparse import UDFS
-			from sklearn.datasets import make_classification
-			import numpy as np
-			
-			dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-			data, target = np.array(dataset[0]), np.array(dataset[1])
-			model = UDFS(p=5, c=2)
-			weights = model.run(data)
-			print(model.feature_ranking(weights))
+			>>> from ITMO_FS.filters.sparse import UDFS
+			>>> from sklearn.datasets import make_classification
+			>>> import numpy as np
+			>>> dataset = make_classification(n_samples=100, n_features=20, \
+n_informative=4, n_redundant=0, shuffle=False)
+			>>> data, target = np.array(dataset[0]), np.array(dataset[1])
+			>>> model = UDFS(p=5, c=2)
+			>>> weights = model.run(data)
+			>>> print(model.feature_ranking(weights))
 		"""
 
 		def construct_S(arr):
