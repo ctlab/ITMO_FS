@@ -14,12 +14,13 @@ class Mixed:
 
     Examples
     --------
-    from ITMO_FS.filters.univariate.measures import spearman_corr,pearson_corr
-    from ITMO_FS.hybrid.Mixed import Mixed
-    from sklearn.datasets import make_classification
-    x, y = make_classification(1000, 50, n_informative = 5, n_redundant = 3, n_repeated = 2, shuffle = True)
-    mixed = Mixed([spearman_corr, pearson_corr])
-    print(mixed.run(x, y, 20))
+    >>> from ITMO_FS.filters.univariate.measures import spearman_corr,pearson_corr
+    >>> from ITMO_FS.ensembles.ranking_based.Mixed import Mixed
+    >>> from sklearn.datasets import make_classification
+    >>> x, y = make_classification(1000, 50, n_informative = 5, n_redundant = 3, n_repeated = 2, shuffle = True)
+    >>> mixed = Mixed([spearman_corr, pearson_corr])
+    >>> mixed.fit(x, y)
+    >>> print(mixed.transform(x, 20))
     
     """
 

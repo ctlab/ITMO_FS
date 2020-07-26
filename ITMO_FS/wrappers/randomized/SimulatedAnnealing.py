@@ -14,31 +14,33 @@ class SimulatedAnnealing(object):
             Random seed used to initialize np.random.seed()
         iteration_number : integer
             number of iterations of algorithm
-        classifier : classifier used for training and testing on provided datasets
-            Note that algorithm implementation assumes that classifier has fit, predict methods
-            Default algorithm uses sklearn.neighbors.KNeighborsClassifier
+        classifier : Classifier instance
+            ``Classifier`` used for training and testing on provided datasets.
+
+            - Note that algorithm implementation assumes that classifier has fit, predict methods. Default algorithm \
+            uses ``sklearn.neighbors.KNeighborsClassifier``
+
         c : integer
-            constant c is used to control the rate of feature perturbation
+            constant c is used t o control the rate of feature perturbation
         init_number_of_features : float
             number of features to initialize start features subset,
             Note: by default (5-10) percents of number of features is used
         
-        See Also
-        --------
-        http://www.feat.engineering/simulated-annealing.html
+        Notes
+        -----
+        For more details see `this paper <http://www.feat.engineering/simulated-annealing.html/>`_.
 
-        examples
+        Examples
         --------
-        from sklearn.datasets import make_classification
-        from sklearn.model_selection import KFold
-        from ITMO_FS.wrappers.randomized import SimulatedAnnealing
-
-        x, y = make_classification(1000, 100, n_informative = 10, n_redundant = 30, n_repeated = 10, shuffle = False)
-        kf = KFold(n_splits=2)
-        sa = SimulatedAnnealing()
-        for train_index, test_index in kf.split(x):
-            sa.run(x[train_index], y[train_index], x[test_index], y[test_index])
-            print(sa.selected_features)
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.model_selection import KFold
+        >>> from ITMO_FS.wrappers.randomized import SimulatedAnnealing
+        >>> x, y = make_classification(1000, 100, n_informative = 10, n_redundant = 30, n_repeated = 10, shuffle = False)
+        >>> kf = KFold(n_splits=2)
+        >>> sa = SimulatedAnnealing()
+        >>> for train_index, test_index in kf.split(x):
+        ...    sa.fit(x[train_index], y[train_index], x[test_index], y[test_index])
+        ...    print(sa.selected_features)
 
         
     """

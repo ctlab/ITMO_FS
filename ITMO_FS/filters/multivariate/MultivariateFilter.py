@@ -10,6 +10,7 @@ from ...utils import DataChecker, generate_features
 class MultivariateFilter(TransformerMixin, DataChecker):
     """
         Provides basic functionality for multivariate filters.
+
         Parameters
         ----------
         measure : string or callable
@@ -27,20 +28,19 @@ class MultivariateFilter(TransformerMixin, DataChecker):
         
         Examples
         --------
-        from ITMO_FS.filters.multivariate import MultivariateFilter
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        model = MultivariateFilter('MRMR', 8)
-        model.fit(data, target)
-        print(model.selected_features)
+        >>> from ITMO_FS.filters.multivariate import MultivariateFilter
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, \
+n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> model = MultivariateFilter('MRMR', 8)
+        >>> model.fit(data, target)
+        >>> print(model.selected_features)
     """
 
     def __init__(self, measure, n_features, beta=None, gamma=None):
