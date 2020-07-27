@@ -29,20 +29,22 @@ class TPhMGWO(object):
             number of iterations of algorithm
         Mp : float
             probability of mutation
-        See Also
-        --------
-        https://www.sciencedirect.com/science/article/pii/S0957417419305263
+
+        Notes
+        -----
+        For more details see `this paper <https://www.sciencedirect.com/science/article/pii/S0957417419305263/>`_.
+
 
         Examples
         --------
-        import numpy as np
-        from ITMO_FS.wrappers.randomized import TPhMGWO
-        from sklearn.datasets import make_classification
-
-        tphmgwo = TPhMGWO()
-        x, y = make_classification(500, 50, n_informative = 10, n_redundant = 30, n_repeated = 10, shuffle = True)
-        result = tphmgwo.run(x, y)
-        print(np.where(result == 1))
+        >>> import numpy as np
+        >>> from ITMO_FS.wrappers.randomized import TPhMGWO
+        >>> from sklearn.datasets import make_classification
+        >>> tphmgwo = TPhMGWO()
+        >>> x, y = make_classification(500, 50, n_informative = 10, \
+n_redundant = 30, n_repeated = 10, shuffle = True)
+        >>> result = tphmgwo.run(x, y)
+        >>> print(np.where(result == 1))
 
 
     """

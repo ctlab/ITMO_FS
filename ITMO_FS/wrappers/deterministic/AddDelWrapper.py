@@ -28,7 +28,7 @@ class AddDelWrapper(object):
         --------
         Lecture about feature selection (ru), p.13 - http://www.ccas.ru/voron/download/Modeling.pdf
 
-        examples
+        Examples
         --------
         >>> from sklearn.metrics import accuracy_score
         >>> from sklearn import datasets,linear_model

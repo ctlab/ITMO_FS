@@ -8,9 +8,10 @@ from ...utils import generate_features
 class RecursiveElimination:
     """
         Performs a recursive feature elimination until the required number of features is reached.
+
         Parameters
         ----------
-        estimator: object
+        estimator : object
             A supervised learning estimator with a fit method that provides information about feature importance either
             through a coef_ attribute or through a feature_importances_ attribute.
         n_features : int
@@ -19,8 +20,7 @@ class RecursiveElimination:
         See Also
         --------
 
-
-        examples
+        Examples
         --------
 
         """
@@ -53,19 +53,18 @@ class RecursiveElimination:
             Guyon, I., Weston, J., Barnhill, S., & Vapnik, V., “Gene selection for cancer classification using support vector machines”, Mach. Learn., 46(1-3), 389–422, 2002.
             https://link.springer.com/article/10.1023/A:1012487302797
 
-            examples
+            Examples
             --------
-            from sklearn.datasets import make_classification
-            from wrappers import RecursiveElimination
-            from sklearn.svm import SVC
-            import numpy as np
-
-            dataset = make_classification(n_samples=1000, n_features=20)
-            data, target = np.array(dataset[0]), np.array(dataset[1])
-            model = SVC(kernel='linear')
-            rfe = RecursiveElimination(model, 5)
-            rfe.fit(data, target)
-            print("Resulting features: ", rfe.__features__)
+            >>> from sklearn.datasets import make_classification
+            >>> from ITMO_FS.wrappers import RecursiveElimination
+            >>> from sklearn.svm import SVC
+            >>> import numpy as np
+            >>> dataset = make_classification(n_samples=1000, n_features=20)
+            >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+            >>> model = SVC(kernel='linear')
+            >>> rfe = RecursiveElimination(model, 5)
+            >>> rfe.fit(data, target)
+            >>> print("Resulting features: ", rfe.__features__)
 
         """
         self.__features__ = generate_features(X)
