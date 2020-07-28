@@ -4,7 +4,6 @@ from ...utils.information_theory import matrix_mutual_information
 from ...utils import DataChecker, generate_features
 
 
-# TODO X and y transformation for DataFrame support
 class FCBFDiscreteFilter(DataChecker):
     """
         Creates FCBF (Fast Correlation Based filter) feature selection filter
@@ -20,7 +19,6 @@ class FCBFDiscreteFilter(DataChecker):
         -----
         For more details see `this paper <https://www.aaai.org/Papers/ICML/2003/ICML03-111.pdf/>`_.
 
-
         Examples
         --------
         >>> from ITMO_FS.filters.multivariate import FCBFDiscreteFilter
@@ -28,8 +26,7 @@ class FCBFDiscreteFilter(DataChecker):
         >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> fcbf = FCBFDiscreteFilter()
-        >>> print(fcbf.run(X, y))
-
+        >>> print(fcbf.fit_transform(X, y))
     """
 
     def __init__(self):
@@ -41,14 +38,15 @@ class FCBFDiscreteFilter(DataChecker):
 
             Parameters
             ----------
-            X : numpy array, shape (n_samples, n_features)
-
-            y : numpy array, shape (n_samples, )
-
+            X : array-like, shape (n_samples, n_features)
+                The training input samples.
+            y : array-like, shape (n_samples, )
+                The target values.
             feature_names : list of strings, optional
                 In case you want to define feature names
+
             Returns
-            ----------
+            -------
             None
         """
 
@@ -82,9 +80,7 @@ class FCBFDiscreteFilter(DataChecker):
 
             Returns
             -------
-
             Transformed 2D numpy array
-
         """
 
         if type(X) is np.ndarray:
@@ -109,5 +105,6 @@ class FCBFDiscreteFilter(DataChecker):
             -------
             X dataset sliced with features selected by the filter
         """
+        
         self.fit(X, y, feature_names)
         return self.transform(X)
