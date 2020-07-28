@@ -10,6 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 
 from sklearn.svm import SVC
+from sklearn.utils.estimator_checks import check_estimator
 
 from ITMO_FS.filters.univariate import *
 from ITMO_FS.filters.univariate.measures import GLOB_CR
@@ -219,6 +220,10 @@ class TestCases(unittest.TestCase):
         p.fit(X, y)
         assert 0 <= p.score(X, y) <= 1
 
+    def test_est(self):
+        univ_filter = UnivariateFilter('FechnerCorr', ('K best', 2))
+
+        assert check_estimator(univ_filter)
 
 if __name__ == "__main__":
     unittest.main()
