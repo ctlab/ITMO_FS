@@ -30,15 +30,15 @@ class UnivariateFilter(TransformerMixin, DataChecker):  # TODO ADD LOGGING
         Examples
         --------
 
-        from sklearn.datasets import make_classification
-        from ITMO_FS.filters.univariate import select_k_best
-        from ITMO_FS.filters.univariate import UnivariateFilter
-        from ITMO_FS.filters.univariate import f_ratio_measure
-
-        x, y = make_classification(1000, 100, n_informative = 10, n_redundant = 30, n_repeated = 10, shuffle = False)
-        ufilter = UnivariateFilter(f_ratio_measure, select_k_best(10))
-        ufilter.fit(x, y)
-        print(ufilter.selected_features)
+        >>> from sklearn.datasets import make_classification
+        >>> from ITMO_FS.filters.univariate import select_k_best
+        >>> from ITMO_FS.filters.univariate import UnivariateFilter
+        >>> from ITMO_FS.filters.univariate import f_ratio_measure
+        >>> x, y = make_classification(1000, 100, n_informative = 10, n_redundant = 30, \
+n_repeated = 10, shuffle = False)
+        >>> ufilter = UnivariateFilter(f_ratio_measure, select_k_best(10))
+        >>> ufilter.fit(x, y)
+        >>> print(ufilter.selected_features)
     """
 
     def __init__(self, measure, cutting_rule=("Best by percentage", 0.2)):
@@ -108,7 +108,6 @@ class UnivariateFilter(TransformerMixin, DataChecker):  # TODO ADD LOGGING
 
             Returns
             ------
-
             X dataset sliced with features selected by the filter
         """
         self.fit(X, y, feature_names, store_scores)
@@ -135,7 +134,7 @@ class UnivariateFilter(TransformerMixin, DataChecker):  # TODO ADD LOGGING
             None
         """
         X, y, feature_names = self._check_input(X, y, feature_names)
-        features = generate_features(X)
+        features = generate_features(X, feature_names)
         self.feature_names = dict(zip(features, feature_names))
         feature_scores = self.get_scores(X, y, features)
 

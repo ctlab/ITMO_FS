@@ -92,12 +92,11 @@ def f_ratio_measure(X, y):
 
     Examples
     --------
-    import sklearn.datasets as datasets
-    from ITMO_FS.filters.univariate import f_ratio_measure
-
-    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
-    scores = f_ratio_measure(X, y)
-    print(scores)
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import f_ratio_measure
+    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> scores = f_ratio_measure(X, y)
+    >>> print(scores)
     """
     return np.apply_along_axis(__calculate_F_ratio, 0, X, y)
 
@@ -131,6 +130,11 @@ def gini_index(X, y):
     scores = gini_index(X, y)
     print(scores)
 
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import gini_index
+    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> scores = gini_index(X, y)
+    >>> print(scores)
     """
 
     if X.shape[0] < 2:
@@ -166,13 +170,13 @@ def su_measure(X, y):
 
     Examples
     --------
-    import sklearn.datasets as datasets
-    from ITMO_FS.filters.univariate import su_measure
-
-    X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-    y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-    scores = su_measure(X, y)
-    print(scores)
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import su_measure
+    >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], \
+[1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+    >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+    >>> scores = su_measure(X, y)
+    >>> print(scores)
     """
     entropy_y = entropy(y)
     f_ratios = np.empty(X.shape[1])
@@ -206,12 +210,11 @@ def kendall_corr(X, y):
 
     Examples
     --------
-    import sklearn.datasets as datasets
-    from ITMO_FS.filters.univariate import kendall_corr
-
-    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
-    scores = kendall_corr(X, y)
-    print(scores)
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import kendall_corr
+    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> scores = kendall_corr(X, y)
+    >>> print(scores)
     """
 
     if len(X.shape) == 1:
@@ -254,12 +257,11 @@ def fechner_corr(X, y):
 
     Examples
     --------
-    import sklearn.datasets as datasets
-    from ITMO_FS.filters.univariate import fechner_corr
-
-    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
-    scores = fechner_corr(X, y)
-    print(scores)
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import fechner_corr
+    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> scores = fechner_corr(X, y)
+    >>> print(scores)
     """
 
     if len(X.shape) == 1:
@@ -347,12 +349,11 @@ def reliefF_measure(X, y, k_neighbors=1):
 
     Examples
     --------
-    import sklearn.datasets as datasets
-    from ITMO_FS.filters.univariate import realiefF_measure
-
-    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
-    scores = reliefF_measure(X, y)
-    print(scores)
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import reliefF_measure
+    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> scores = reliefF_measure(X, y)
+    >>> print(scores)
 
     """
     f_ratios = np.zeros(X.shape[1])
@@ -542,12 +543,11 @@ def spearman_corr(X, y):
 
     Examples
     --------
-    import sklearn.datasets as datasets
-    from ITMO_FS.filters.univariate import spearman_corr
-
-    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
-    scores = spearman_corr(X, y)
-    print(scores)
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import spearman_corr
+    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> scores = spearman_corr(X, y)
+    >>> print(scores)
 
     """
     n = X.shape[0]
@@ -596,12 +596,11 @@ def pearson_corr(X, y):
 
     Examples
     --------
-    import sklearn.datasets as datasets
-    from ITMO_FS.filters.univariate import pearson_corr
-
-    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
-    scores = pearson_corr(X, y)
-    print(scores)
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import pearson_corr
+    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> scores = pearson_corr(X, y)
+    >>> print(scores)
 
     """
     x_dev = X - np.mean(X, axis=0)
@@ -654,15 +653,14 @@ def laplacian_score(X, y, k_neighbors=5, t=1, metric=np.linalg.norm, **kwargs):
 
     Examples
     --------
-    import sklearn.datasets as datasets
-    from ITMO_FS.filters.univariate import laplacian_score
-
-    data = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
-    X = np.array(data[0])
-    y = np.array(data[1])
-    scores = laplacian_score(X, y)
-    features = sorted(range(len(scores)), key = lambda k: scores[k])
-    print(features)
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import laplacian_score
+    >>> data = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> X = np.array(data[0])
+    >>> y = np.array(data[1])
+    >>> scores = laplacian_score(X, y)
+    >>> features = sorted(range(len(scores)), key = lambda k: scores[k])
+    >>> print(features)
 
     """
     n, m = X.shape
@@ -716,13 +714,12 @@ def information_gain(X, y):
     
     Examples
     --------
-    import sklearn.datasets as datasets
-    from ITMO_FS.filters.univariate import information_gain
-
-    X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-    y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-    scores = information_gain(X, y)
-    print(scores)
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import information_gain
+    >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+    >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+    >>> scores = information_gain(X, y)
+    >>> print(scores)
 
     """
     entropy_x = entropy(y)
@@ -760,12 +757,11 @@ def anova(X, y):
 
     Examples
     --------
-    import sklearn.datasets as datasets
-    from ITMO_FS.filters.univariate import anova
-
-    X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
-    scores = anova(X, y)
-    print(scores)
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import anova
+    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> scores = anova(X, y)
+    >>> print(scores)
 
     """
     split_by_class = [X[y == k] for k in np.unique(y)]
@@ -902,14 +898,13 @@ def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
     
     Examples
     --------
-    
-    from ITMO_FS.filters.univariate import qpfs_filter
-    from sklearn.datasets import make_classification
 
-    x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-    y = np.array([1, 3, 2, 1, 2])
-    ranks = qpfs_filter(x, y)
-    print(ranks)
+    >>> from ITMO_FS.filters.univariate import qpfs_filter
+    >>> from sklearn.datasets import make_classification
+    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    >>> y = np.array([1, 3, 2, 1, 2])
+    >>> ranks = qpfs_filter(x, y)
+    >>> print(ranks)
 
     """
 
