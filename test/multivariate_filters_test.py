@@ -3,6 +3,7 @@ import unittest
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
+import numpy as np
 
 from ITMO_FS.filters.multivariate import *
 
@@ -11,8 +12,8 @@ np.random.seed(42)
 
 class TestCases(unittest.TestCase):
     data, target = np.random.randint(10, size=(100, 20)), np.random.randint(10, size=(100,))
-    feature_names = [''.join(['f', str(i)]) for i in range(data.shape[0])]
-    feature_names_override = [''.join(['g', str(i)]) for i in range(data.shape[0])]
+    feature_names = [''.join(['f', str(i)]) for i in range(data.shape[1])]
+    feature_names_override = [''.join(['g', str(i)]) for i in range(data.shape[1])]
 
     def test_FCBF(self):
         # FCBF

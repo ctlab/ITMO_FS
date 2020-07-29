@@ -4,16 +4,18 @@ from ...utils import generate_features, DataChecker
 
 
 class STIR(DataChecker):
-    """Feature selection using STIR algorithm.
+    """
+        Feature selection using STIR algorithm.
 
-    Algorithm taken from paper:
+        Algorithm taken from paper:
 
-    STatistical Inference Relief (STIR) feature selection
-    (https://academic.oup.com/bioinformatics/article/35/8/1358/5100883).
+        STatistical Inference Relief (STIR) feature selection
+        (https://academic.oup.com/bioinformatics/article/35/8/1358/5100883).
     """
 
     def __init__(self, n_features_to_keep=10):
-        """Sets up STIR to perform feature selection.
+        """
+            Sets up STIR to perform feature selection.
         """
 
         self.n_features_to_keep = n_features_to_keep
@@ -21,14 +23,17 @@ class STIR(DataChecker):
         self.top_features = None
 
     def max_diff(self, X):
-        """Computing max difference in each column.
+        """
+            Computes max difference in each column.
 
-        Args:
-            X (array-like<n_samples, n_features>): 
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features) 
                 matrix to compute column difference of.
 
-        Returns:
-            diff_vector (array-like<n_features>):
+            Returns
+            -------
+            diff_vector : array-like, shape (n_features)
                 column difference vector.
         """
 
@@ -37,17 +42,20 @@ class STIR(DataChecker):
         return diff_vector
 
     def distance_matrix(self, X):
-        """Computing distance matrix.
+        """
+            Computes the distance matrix.
 
-        Before calculating distance we center
-        matrix and normalize it.
+            Before calculating distance we center
+            matrix and normalize it.
 
-        Args:
-            X (array-like<n_samples, n_features>): 
-                matrix to compute column distance matrix of.
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features) 
+                matrix to compute column difference of.
 
-        Returns:
-            X_distances (array-like<n_samples, n_samples>):
+            Returns
+            -------
+            X_distances : array-like, shape (n_samples, n_samples)
                 distance matrix.
         """
 
@@ -63,19 +71,22 @@ class STIR(DataChecker):
         return X_distances
 
     def find_neighbors(self, X, y, k=1):
-        """Find the nearest hit/miss matrices.
+        """
+            Finds the nearest hit/miss matrices.
 
-        Args:
-            X (array-like<n_samples, n_features>): 
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features)
                 matrix to compute neighbors of.
-            y (array-like<n_samples>): 
+            y : array-like, shape (n_samples, )
                 vector of binary class status (usually -1/1).
-            k (int): number of constant nearest hits/misses.
-            sd_frac (float): multiplier of the standard deviation 
-                of the distances when subtracting from average.
+            k : int, optional
+                number of constant nearest hits/misses.
 
-        Returns:
-            hitmiss (array-like<2>): hitmiss[1] (hits) and hitmiss[2] (misses). 
+            Returns
+            -------
+            hitmiss : array-like, shape (2, )
+                hitmiss[1] (hits) and hitmiss[2] (misses). 
                 Each list has two columns: index is the first column (instances) 
                 in both lists. The second column is hit_index (nearest hits for 
                 the first column instance) for list [1] and miss_index 
@@ -111,16 +122,23 @@ class STIR(DataChecker):
         return hitmiss
 
     def fit(self, X, y, feature_names=None, k=1):
-        """Computes the feature importance scores from the training data.
+        """
+            Computes the feature importance scores from the training data.
 
-        Args:
-            X (array-like<n_samples, n_features>):
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features) 
                 Training instances to compute the feature importance scores from.
-            y (array-like<n_samples>):
+            y : array-like, shape (n_samples, )
                 Training labels.
             feature_names : list of strings, optional
                 In case you want to define feature names
-            k (int): number of constant nearest hits/misses.
+            k : int, optional
+                number of constant nearest hits/misses.
+
+            Returns
+            -------
+            None
         """
 
         features = generate_features(X)
@@ -166,41 +184,45 @@ class STIR(DataChecker):
         self.selected_features = features[np.argsort(self.feature_scores)[::-1][:self.n_features_to_keep]]
 
     def transform(self, X):
-        """Reduces the feature set down to the top `n_features_to_keep` features.
+        """
+            Reduces the feature set down to the top `n_features_to_keep` features.
 
-        Args:
-            X (array-like<n_samples, n_features>):
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features) 
                 Feature matrix to perform feature selection on.
 
-        Returns:
-            X_reduced (array-like<n_samples, n_features_to_keep>):
-                Reduced feature matrix.
-
+            Returns
+            -------
+            Transformed 2D numpy array
         """
+
         if type(X) is np.ndarray:
             return X[:, self.selected_features.astype(int)]
         else:
             return X[self.selected_features]
 
     def fit_transform(self, X, y, feature_names=None, k=1):
-        """Fits and transforms data.
+        """
+            Fits and transforms data.
 
-        Computes the feature importance scores from the training data, then
-        reduces the feature set down to the top 'n_features_to_keep' features.
+            Computes the feature importance scores from the training data, then
+            reduces the feature set down to the top 'n_features_to_keep' features.
 
-        Args:
-            X (array-like<n_samples, n_features>):
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features) 
                 Training instances to compute the feature importance scores from.
-            y (array-like<n_samples>):
+            y : array-like, shape (n_samples, )
                 Training labels.
             feature_names : list of strings, optional
                 In case you want to define feature names
-            k (int): number of constant nearest hits/misses.                
+            k : int, optional
+                number of constant nearest hits/misses.             
 
-        Returns:
-            X_reduced (array-like<n_samples, n_features_to_keep>):
-                Reduced feature matrix.
-
+            Returns
+            -------
+            Transformed 2D numpy array
         """
 
         self.fit(X, y, feature_names, k)
