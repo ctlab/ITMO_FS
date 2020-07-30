@@ -28,7 +28,7 @@ class AddDelWrapper(object):
         --------
         Lecture about feature selection (ru), p.13 - http://www.ccas.ru/voron/download/Modeling.pdf
 
-        examples
+        Examples
         --------
         >>> from sklearn.metrics import accuracy_score
         >>> from sklearn import datasets,linear_model
@@ -61,7 +61,6 @@ class AddDelWrapper(object):
     def __add(self, X, y, cv=3, silent=True):
 
         prev_score = 0
-        current_score = 0
         scores = []
 
         to_append = [i for i in range(X.shape[1])]  # list of features not used in final configuration

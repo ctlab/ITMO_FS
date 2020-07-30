@@ -32,9 +32,10 @@ def augmented_rvalue(X, y, k=7, theta=3):
         ------
         float - the augmented R-value for the dataset; the value is in the range [-1, 1].
 
-        See Also
-        --------
-        https://www.sciencedirect.com/science/article/pii/S0169743919306070
+        Notes
+        -----
+        For more details see `this paper <https://www.sciencedirect.com/science/article/pii/S0169743919306070>`_.
+
     """
     indicesNegative = [i for i, x in enumerate(y) if x == 0]
     indicesPositive = [i for i, x in enumerate(y) if x == 1]

@@ -20,12 +20,6 @@ Welcome to ITMO_FS!
    :caption: Documentation
 
    user_guide
-
-.. toctree::
-   :maxdepth: 2
-   :hidden:
-   :caption: API
-
    api
 
 
@@ -44,4 +38,12 @@ User guide of ITMO_FS
 
 The main documentation. This contains an in-depth description of all
 algorithms and how to apply them.
+
+`API Documentation <api.html>`_
+-------------------------------
+
+The exact API of all functions and classes, as given in the
+doctring. The API documents expected types and allowed features for
+all functions, and all parameters available for the algorithms.
+
 

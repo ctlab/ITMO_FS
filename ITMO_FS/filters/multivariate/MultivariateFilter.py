@@ -4,12 +4,11 @@ from sklearn.base import TransformerMixin
 from .measures import GLOB_MEASURE
 from ...utils import DataChecker, generate_features
 
-
-# TODO X and y transformation for DataFrame support
 # TODO Test interface!!!!
 class MultivariateFilter(TransformerMixin, DataChecker):
     """
         Provides basic functionality for multivariate filters.
+
         Parameters
         ----------
         measure : string or callable
@@ -27,20 +26,19 @@ class MultivariateFilter(TransformerMixin, DataChecker):
         
         Examples
         --------
-        from ITMO_FS.filters.multivariate import MultivariateFilter
-        from sklearn.datasets import make_classification
-        from sklearn.preprocessing import KBinsDiscretizer
-
-        import numpy as np
-
-        dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        data, target = np.array(dataset[0]), np.array(dataset[1])
-        est.fit(data)
-        data = est.transform(data)
-        model = MultivariateFilter('MRMR', 8)
-        model.fit(data, target)
-        print(model.selected_features)
+        >>> from ITMO_FS.filters.multivariate import MultivariateFilter
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> dataset = make_classification(n_samples=100, n_features=20, \
+n_informative=4, n_redundant=0, shuffle=False)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
+        >>> est.fit(data)
+        >>> data = est.transform(data)
+        >>> model = MultivariateFilter('MRMR', 8)
+        >>> model.fit(data, target)
+        >>> print(model.selected_features)
     """
 
     def __init__(self, measure, n_features, beta=None, gamma=None):
@@ -72,8 +70,8 @@ class MultivariateFilter(TransformerMixin, DataChecker):
             Returns
             ------
             None
-
         """
+
         features = generate_features(X)
         X, y, feature_names = self._check_input(X, y, feature_names)
         if self.__n_features > X.shape[1]:
@@ -106,7 +104,6 @@ class MultivariateFilter(TransformerMixin, DataChecker):
             ------
 
             Transformed 2D numpy array
-
         """
 
         if type(X) is np.ndarray:
@@ -134,5 +131,6 @@ class MultivariateFilter(TransformerMixin, DataChecker):
 
             X dataset sliced with features selected by the filter
         """
+        
         self.fit(X, y, feature_names)
         return self.transform(X)

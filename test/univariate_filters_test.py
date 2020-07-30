@@ -6,8 +6,11 @@ from scipy import stats
 from sklearn.datasets import load_iris
 from sklearn.datasets import make_classification, make_regression
 from sklearn.feature_selection import chi2, f_classif, mutual_info_classif
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
 
 from sklearn.svm import SVC
+from sklearn.utils.estimator_checks import check_estimator
 
 from ITMO_FS.filters.univariate import *
 from ITMO_FS.filters.univariate.measures import GLOB_CR
@@ -174,7 +177,8 @@ class TestCases(unittest.TestCase):
         univ_filter = UnivariateFilter('GiniIndex', cutting_rule=('K best', 2))
         univ_filter.fit(X, y)
         # print(univ_filter.feature_scores)
-        assert (-1 <= univ_filter.feature_scores).all()
+        scores = univ_filter.feature_scores.values()
+        assert all(score <= 1 for score in scores) and all(score >= 0 for score in scores)
 
     def test_single_class(self):
         X = np.array([[1, 2, 3], [1, 2, 3], [2, 2, 2], [1, 1, 1], [1, 2, 1]])
@@ -203,6 +207,36 @@ class TestCases(unittest.TestCase):
         univ_filter = UnivariateFilter('FechnerCorr')
         univ_filter.fit(X, y)
         assert univ_filter.selected_features == [0, 2, 3]
+
+    def test_pipeline(self):
+        iris_dataset = load_iris()
+        X = iris_dataset.data
+        y = iris_dataset.target
+        X = X.astype(int)
+
+        pipeline = Pipeline([('FS1', UnivariateFilter('FechnerCorr', ('K best', 2)))])
+        result = pipeline.fit_transform(X, y)
+        assert result.shape[0] == X.shape[0] and result.shape[1] == 2
+
+        p = Pipeline([('FS1', UnivariateFilter('FechnerCorr', ('K best', 2))), ('E1', LogisticRegression())])
+        p.fit(X, y)
+        assert 0 <= p.score(X, y) <= 1
+
+        p = Pipeline([('FS1', UnivariateFilter('FechnerCorr', ('K best', 3))),
+                      ('FS2', UnivariateFilter('PearsonCorr', ('K best', 1)))])
+
+        result = p.fit_transform(X, y)
+        assert result.shape[0] == X.shape[0] and result.shape[1] == 1
+
+        p = Pipeline([('FS1', UnivariateFilter('FechnerCorr', ('K best', 3))),
+                      ('FS2', UnivariateFilter('PearsonCorr', ('K best', 1))), ('E1', LogisticRegression())])
+        p.fit(X, y)
+        assert 0 <= p.score(X, y) <= 1
+
+    def test_est(self):
+        univ_filter = UnivariateFilter('FechnerCorr', ('K best', 2))
+
+        assert check_estimator(univ_filter)
 
 if __name__ == "__main__":
     unittest.main()
