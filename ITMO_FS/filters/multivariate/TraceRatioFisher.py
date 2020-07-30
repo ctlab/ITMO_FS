@@ -4,7 +4,6 @@ from scipy.sparse import *
 from ...utils import DataChecker, generate_features
 
 
-# TODO X and y transformation for DataFrame support
 # TODO requests changes for MultivariateFilter to be used there
 class TraceRatioFisher(DataChecker):
     """
@@ -20,17 +19,14 @@ class TraceRatioFisher(DataChecker):
         -----
         For more details see `this paper <https://www.aaai.org/Papers/AAAI/2008/AAAI08-107.pdf/>`_.
 
-
         Examples
         --------
-        >>> from ITMO_FS.filters.multivariate.TraceRatioFisher import TraceRatioFisher
+        >>> from ITMO_FS.filters.multivariate import TraceRatioFisher
         >>> from sklearn.datasets import make_classification
         >>> x, y = make_classification(1000, 100, n_informative = 10,\
 n_redundant = 30, n_repeated = 10, shuffle = False)
         >>> tracer = TraceRatioFisher(10)
-        >>> print(tracer.fit_transform(x, y)[0])
-
-
+        >>> print(tracer.fit_transform(x, y))
     """
 
     def __init__(self, n_selected_features):
@@ -60,6 +56,7 @@ n_redundant = 30, n_repeated = 10, shuffle = False)
             --------
 
         """
+
         features = generate_features(X)
         X, y, feature_names = self._check_input(X, y, feature_names)
         self.feature_names = dict(zip(features, feature_names))
@@ -108,9 +105,7 @@ n_redundant = 30, n_repeated = 10, shuffle = False)
 
             Returns
             ------
-
             Transformed 2D numpy array
-
         """
 
         if type(X) is np.ndarray:
@@ -133,8 +128,8 @@ n_redundant = 30, n_repeated = 10, shuffle = False)
 
             Returns
             ------
-
             X dataset sliced with features selected by the filter
         """
+
         self.fit(X, y, feature_names)
         return self.transform(X)

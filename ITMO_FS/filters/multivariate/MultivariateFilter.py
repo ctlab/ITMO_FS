@@ -4,8 +4,6 @@ from sklearn.base import TransformerMixin
 from .measures import GLOB_MEASURE
 from ...utils import DataChecker, generate_features
 
-
-# TODO X and y transformation for DataFrame support
 # TODO Test interface!!!!
 class MultivariateFilter(TransformerMixin, DataChecker):
     """
@@ -72,8 +70,8 @@ n_informative=4, n_redundant=0, shuffle=False)
             Returns
             ------
             None
-
         """
+
         features = generate_features(X)
         X, y, feature_names = self._check_input(X, y, feature_names)
         if self.__n_features > X.shape[1]:
@@ -106,7 +104,6 @@ n_informative=4, n_redundant=0, shuffle=False)
             ------
 
             Transformed 2D numpy array
-
         """
 
         if type(X) is np.ndarray:
@@ -134,5 +131,6 @@ n_informative=4, n_redundant=0, shuffle=False)
 
             X dataset sliced with features selected by the filter
         """
+        
         self.fit(X, y, feature_names)
         return self.transform(X)

@@ -22,6 +22,7 @@ def qpfs_body(X, y, fn, alpha=None, r=None, sigma=None, solv='quadprog',
     for i in range(1, class_size):  # Loop through classes
         Ck = np.where(y == i, 1, 0)  # Get array C(i) where C(k) is 1 when i = k and 0 otherwise
         F += priors[i - 1] * fn(XT, Ck)  # Counting F vector
+
     Q = fn(XT, XT).reshape(XT.shape[0], XT.shape[0])  # Counting dependency, using normalized mutual info score
     indices = np.random.random_integers(0, Q.shape[0] - 1,
                                         r)  # Taking random r indices according to Nystrom approximation
@@ -57,10 +58,7 @@ def qpfs_body(X, y, fn, alpha=None, r=None, sigma=None, solv='quadprog',
 def __filterBy(sigma, eigvals, U):
     if sigma is None:
         return eigvals, U
-    y = []
-    for i in range(len(eigvals)):
-        if eigvals[i] > sigma:
-            y.append(i)
+    y = np.where(eigvals > sigma)[0]
     return eigvals[y], U[:, y]
 
 
