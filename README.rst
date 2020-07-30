@@ -12,7 +12,7 @@ ITMO_FS
 
 Feature selection library in Python
 
-Package information: |Python 2.7| |Python 3.6| |License| |Docs|
+Package information: |Python 2.7| |Python 3.6| |License| |Docs| |CodeCov|
 
 
 Install with
@@ -55,3 +55,4 @@ https://itmo-fs.readthedocs.io/en/latest/
 .. |Python 3.6| image:: https://img.shields.io/badge/python-3.6-blue.svg
 .. |License| image:: https://img.shields.io/badge/license-BSD%20License-blue.svg
 .. |Docs| image:: https://readthedocs.org/projects/itmo-fs/badge/?version=latest
+.. |CodeCov| image:: https://codecov.io/gh/ctlab/ITMO_FS/branch/master/graph/badge.svg
