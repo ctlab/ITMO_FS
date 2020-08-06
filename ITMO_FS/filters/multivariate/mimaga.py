@@ -40,7 +40,7 @@ def decode_genes(mapping, chromosome, train, test):
     return np.array(filtered_train), np.array(filtered_test)
 
 
-def population_fitness(mapping, population, train, train_cl, test, test_cl, measure=partial(f1_score, average='macro')):
+def population_fitness(mapping, population, train, train_cl, test, test_cl, measure):
     """
     :param population: vector of chromosomes
     :return: vector of (chromosome code, chromosome fitness), max fitness, average fitness
@@ -180,7 +180,7 @@ class MIMAGA(object):
         counter = 0
         best_individual = [1 for _ in range(len(population[0]))]
         while counter < self._max_iter and f_max < self._f_target:
-            code_fitness, f_max, f_avg = population_fitness(mapping, population, train, train_cl, test, test_cl)
+            code_fitness, f_max, f_avg = population_fitness(mapping, population, train, train_cl, test, test_cl, partial(f1_score, average='macro'))
             if len(code_fitness) > max_size:
                 code_fitness = code_fitness[:max_size]
                 population = list(map(lambda x: x[0], code_fitness))
