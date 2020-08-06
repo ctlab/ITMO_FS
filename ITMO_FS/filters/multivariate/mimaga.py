@@ -112,6 +112,10 @@ class MIMAGA(object):
         :param k2: consts to determine crossover probability
         :param k3: consts to determine mutation probability
         :param k4: consts to determine mutation probability
+
+        See also
+        --------
+        https://www.sciencedirect.com/science/article/abs/pii/S0925231217304150
         """
         self._mim_size = mim_size
         self._pop_size = pop_size
