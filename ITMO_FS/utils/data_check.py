@@ -64,3 +64,11 @@ def check_scorer(scorer):
 
 def check_cutting_rule(cutting_rule):
     pass  # todo check cutting rule
+
+
+RESTRICTIONS = {'qpfs_filter': {'__select_k'}}
+
+
+def check_restrictions(measure_name, cutting_rule_name):
+    if measure_name in RESTRICTIONS.keys() and cutting_rule_name not in RESTRICTIONS[measure_name]:
+        raise KeyError('This measure %r doesn\'t support this cutting rule %r' % (measure_name, cutting_rule_name))

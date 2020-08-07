@@ -1,4 +1,5 @@
 import math
+from functools import partial
 
 import numpy as np
 from qpsolvers import solve_qp
@@ -15,15 +16,13 @@ def qpfs_body(X, y, fn, alpha=None, r=None, sigma=None, solv='quadprog',
     if r >= X.shape[1]:
         raise TypeError("r parameter should be less than the number of features")
     F = np.zeros(X.shape[1], dtype=np.double)  # F vector represents how each variable is correlated class
-    XT = X.T  # Transposed matrix X
     class_size = max(
         y) + 1  # Count the number of classes, we assume that class labels would be numbers from 1 to max(y)
     priors = np.histogram(y, bins=max(y))[0]  # Count prior probabilities of classes
     for i in range(1, class_size):  # Loop through classes
         Ck = np.where(y == i, 1, 0)  # Get array C(i) where C(k) is 1 when i = k and 0 otherwise
         F += priors[i - 1] * fn(X, Ck)  # Counting F vector
-
-    Q = fn(XT, XT).reshape(XT.shape[0], XT.shape[0])  # Counting dependency, using normalized mutual info score
+    Q = np.apply_along_axis(partial(fn, X), 0, X).reshape(X.shape[1], X.shape[1])
     indices = np.random.random_integers(0, Q.shape[0] - 1,
                                         r)  # Taking random r indices according to Nystrom approximation
     A = Q[indices][:, :r]  # A matrix for Nystrom(matrix of real numbers with size of [r, r])
