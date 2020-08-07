@@ -12,8 +12,6 @@ def _complementarity(x_i, x_j, y):
 def _chained_information(x_i, x_j, y):
     return mutual_information(x_i, y) + mutual_information(x_j, y) + _complementarity(x_i, x_j, y)
 
-
-# TODO X and y transformation for DataFrame support
 class DISRWithMassive(DataChecker):
     """
         Creates DISR (Double Input Symmetric Relevance) feature selection filter
@@ -35,7 +33,6 @@ class DISRWithMassive(DataChecker):
         For more details see `this paper
         <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.318.6576&rep=rep1&type=pdf/>`_.
 
-
         Examples
         --------
         >>> from ITMO_FS.filters.multivariate import DISRWithMassive
@@ -45,7 +42,6 @@ class DISRWithMassive(DataChecker):
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> disr = DISRWithMassive(3)
         >>> print(disr.fit_transform(X, y))
-
     """
 
     def __init__(self, expected_size=None):
@@ -72,10 +68,8 @@ class DISRWithMassive(DataChecker):
                 In case you want to define feature names
 
             Returns
-            ----------
-            selected_features : numpy array
-                selected pool of features
-
+            -------
+            None
         """
         
         features = generate_features(X)
@@ -132,10 +126,8 @@ class DISRWithMassive(DataChecker):
                 The training input samples.
 
             Returns
-            ------
-
+            -------
             Transformed 2D numpy array
-
         """
 
         if type(X) is np.ndarray:
@@ -157,9 +149,9 @@ class DISRWithMassive(DataChecker):
                 In case you want to define feature names
 
             Returns
-            ------
-
+            -------
             X dataset sliced with features selected by the filter
         """
+
         self.fit(X, y, feature_names)
         return self.transform(X)
