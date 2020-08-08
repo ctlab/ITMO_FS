@@ -54,7 +54,7 @@ class FCBFDiscreteFilter(DataChecker):
         X, y, feature_names = self._check_input(X, y, feature_names)
         free_features = generate_features(X)
         self.feature_names = dict(zip(features, feature_names))
-        self.selected_features = np.array([], dtype='object')
+        self.selected_features = np.array([], dtype='int')
         # TODO Add exit of the loop when all differences are positive and are not updated
         #  (e.g. it happens when we get same max_index twice).
         max_index = -1
@@ -67,7 +67,7 @@ class FCBFDiscreteFilter(DataChecker):
             redundancy = matrix_mutual_information(X[:, free_features], X[:, max_index])
             difference = relevance - redundancy
             free_features = np.delete(free_features, np.where(difference <= 0.)[0])
-        self.selected_features = features[self.selected_features.astype(int)]
+        self.selected_features = features[self.selected_features]
 
     def transform(self, X):
         """
@@ -84,7 +84,7 @@ class FCBFDiscreteFilter(DataChecker):
         """
 
         if type(X) is np.ndarray:
-            return X[:, self.selected_features.astype(int)]
+            return X[:, self.selected_features]
         else:
             return X[self.selected_features]
 

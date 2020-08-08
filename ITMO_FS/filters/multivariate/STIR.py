@@ -28,7 +28,7 @@ class STIR(DataChecker):
 
             Parameters
             ----------
-            X : array-like, shape (n_samples, n_features) 
+            X : array-like, shape (n_samples, n_features)
                 matrix to compute column difference of.
 
             Returns
@@ -198,7 +198,7 @@ class STIR(DataChecker):
         """
 
         if type(X) is np.ndarray:
-            return X[:, self.selected_features.astype(int)]
+            return X[:, self.selected_features]
         else:
             return X[self.selected_features]
 

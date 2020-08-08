@@ -109,7 +109,7 @@ n_redundant = 30, n_repeated = 10, shuffle = False)
         """
 
         if type(X) is np.ndarray:
-            return X[:, self.selected_features.astype(int)]
+            return X[:, self.selected_features]
         else:
             return X[self.selected_features]
 
