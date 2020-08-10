@@ -50,7 +50,7 @@ n_informative=4, n_redundant=0, shuffle=False)
         else:
             self.measure = measure
         self.__n_features = n_features
-        self.selected_features = np.array([], dtype='object')
+        self.selected_features = np.array([], dtype='int')
         self.beta = beta
         self.gamma = gamma
 
@@ -89,7 +89,7 @@ n_informative=4, n_redundant=0, shuffle=False)
             to_add = np.argmax(values)
             self.selected_features = np.append(self.selected_features, free_features[to_add])
             free_features = np.delete(free_features, to_add)
-        self.selected_features = features[self.selected_features.astype(int)]
+        self.selected_features = features[self.selected_features]
 
     def transform(self, X):
         """
@@ -107,7 +107,7 @@ n_informative=4, n_redundant=0, shuffle=False)
         """
 
         if type(X) is np.ndarray:
-            return X[:, self.selected_features.astype(int)]
+            return X[:, self.selected_features]
         else:
             return X[self.selected_features]
 
@@ -131,6 +131,6 @@ n_informative=4, n_redundant=0, shuffle=False)
 
             X dataset sliced with features selected by the filter
         """
-        
+
         self.fit(X, y, feature_names)
         return self.transform(X)

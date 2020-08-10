@@ -5,38 +5,8 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
-
-
-def marginal_entropy(x):
-    x_counter = {xi: 0 for xi in x}
-    for xi in x:
-        x_counter[xi] += 1
-    probs = np.array(list(map(lambda xi: x_counter[xi] / len(x), x)))
-    nonzero_probs = probs[np.where(probs > 0)]
-    entropy = -sum(nonzero_probs * np.log(nonzero_probs))
-    return entropy
-
-
-def conditional_entropy(x, y):
-    y_counter = {yi: 0 for yi in y}
-    x_by_y_counter = {yi: {xi: 0 for xi in x} for yi in y}
-    for i in range(len(x)):
-        xi = x[i]
-        yi = y[i]
-        y_counter[yi] += 1
-        x_by_y_counter[yi][xi] += 1
-    entropy = 0.
-    for yi in y_counter.keys():
-        x_yi = x_by_y_counter[yi].values()
-        x_by_yi = np.array(list(map(lambda xi: xi / y_counter[yi], x_yi)))
-        nonzero_probs = x_by_yi[np.where(x_by_yi > 0)]
-        yi_entropy = -sum(nonzero_probs * np.log(nonzero_probs))
-        entropy += (y_counter[yi] / len(y)) * yi_entropy
-    return entropy
-
-
-def mutual_information(x, y):
-    return marginal_entropy(x) - conditional_entropy(x, y)
+from functools import partial
+from ...utils.information_theory import *
 
 
 def genes_mutual_information(genes):
@@ -70,7 +40,7 @@ def decode_genes(mapping, chromosome, train, test):
     return np.array(filtered_train), np.array(filtered_test)
 
 
-def population_fitness(mapping, population, train, train_cl, test, test_cl):
+def population_fitness(mapping, population, train, train_cl, test, test_cl, measure):
     """
     :param population: vector of chromosomes
     :return: vector of (chromosome code, chromosome fitness), max fitness, average fitness
@@ -84,7 +54,7 @@ def population_fitness(mapping, population, train, train_cl, test, test_cl):
             continue
         clf.fit(filtered_train.transpose(), train_cl)
         predicted_classes = clf.predict(filtered_test.transpose())
-        f = f1_score(test_cl, predicted_classes)
+        f = measure(test_cl, predicted_classes)
         code_fitness.append((population[i], f))
         f_sum += f
     code_fitness.sort(key=lambda p: p[1], reverse=True)
@@ -142,6 +112,10 @@ class MIMAGA(object):
         :param k2: consts to determine crossover probability
         :param k3: consts to determine mutation probability
         :param k4: consts to determine mutation probability
+
+        See also
+        --------
+        https://www.sciencedirect.com/science/article/abs/pii/S0925231217304150
         """
         self._mim_size = mim_size
         self._pop_size = pop_size
@@ -162,7 +136,7 @@ class MIMAGA(object):
         g_num, _ = genes.shape
         mi_vector = genes_mutual_information(genes)
         seq_nums = [i for i in range(g_num)]
-        target_sequence = list(map(lambda p: p[1], sorted(zip(mi_vector, seq_nums))))[:self.mim_size]
+        target_sequence = list(map(lambda p: p[1], sorted(zip(mi_vector, seq_nums))))[:self._mim_size]
         return target_sequence
 
     # AGA
@@ -210,7 +184,7 @@ class MIMAGA(object):
         counter = 0
         best_individual = [1 for _ in range(len(population[0]))]
         while counter < self._max_iter and f_max < self._f_target:
-            code_fitness, f_max, f_avg = population_fitness(mapping, population, train, train_cl, test, test_cl)
+            code_fitness, f_max, f_avg = population_fitness(mapping, population, train, train_cl, test, test_cl, partial(f1_score, average='macro'))
             if len(code_fitness) > max_size:
                 code_fitness = code_fitness[:max_size]
                 population = list(map(lambda x: x[0], code_fitness))
@@ -230,12 +204,11 @@ class MIMAGA(object):
     def mimaga_filter(self, genes, classes):
         """
         The main function to run algorithm
-        :param genes: initial dataset in format: features are rows, samples are columns
+        :param genes: initial dataset in format: samples are rows, features are columns
         :param classes: distribution pf initial dataset
         :return: filtered with MIMAGA dataset, fitness value
         """
-        genes_T = genes.transpose()
-        train_set, test_set, train_classes, test_classes = train_test_split(genes_T, classes, test_size=0.33)
+        train_set, test_set, train_classes, test_classes = train_test_split(genes, classes, test_size=0.33)
         filtered_indexes = self._mim_filter(train_set.transpose())
         index_map = dict(zip([i for i in range(self._mim_size)], filtered_indexes))
 
@@ -245,6 +218,6 @@ class MIMAGA(object):
         result_genes, _ = decode_genes(index_map, best, train_set.transpose(), test_set.transpose())
         return result_genes, max_fitness
 
-
+# TODO: optimize everything bcs this works for hours
 # mimaga = MIMAGA(30, 20, 20, 0.8, 0.6, 0.3, 0.9, 0.001)
 # res_dataset, fitness = mimaga.mimaga_filter(dataset, distribution)
