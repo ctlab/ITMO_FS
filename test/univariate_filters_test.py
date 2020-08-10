@@ -117,14 +117,13 @@ class TestCases(unittest.TestCase):
         # Univariate filter
         data, target = self.wide_classification[0], self.wide_classification[1]
         f = UnivariateFilter(pearson_corr, select_k_best(50))
-        f.fit(pd.DataFrame(data), pd.DataFrame(target),feature_names=[str(i) + ' column' for i in data.columns])
+        f.fit(pd.DataFrame(data), pd.DataFrame(target), feature_names=[str(i) + ' column' for i in data.columns])
         df = f.transform(pd.DataFrame(data))
 
         f = UnivariateFilter(pearson_corr, select_k_best(50))
         f.fit(data, target)
         arr = f.transform(data)
         np.testing.assert_array_equal(df.values, arr)
-
 
     def test_chi2(self):
         iris_dataset = load_iris()
@@ -237,6 +236,32 @@ class TestCases(unittest.TestCase):
         univ_filter = UnivariateFilter('FechnerCorr', ('K best', 2))
 
         assert check_estimator(univ_filter)
+
+    def test_qpfs_restrictions(self):
+        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, GLOB_CR['Best by value'](0.5))
+        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, GLOB_CR['Worst by percentage'](0.5))
+        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, GLOB_CR['Best by percentage'](0.5))
+
+        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, ('Worst by value', 0.5))
+        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, ('Best by value', 0.5))
+        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, ('Worst by percentage', 0.2))
+        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, ('Best by percentage', 0.2))
+
+        UnivariateFilter(qpfs_filter, GLOB_CR['K best'](2))
+        UnivariateFilter(qpfs_filter, GLOB_CR['K worst'](2))
+
+        UnivariateFilter(qpfs_filter, ('K best', 2))
+        UnivariateFilter(qpfs_filter, ('K worst', 2))
+
+        univ_filter = UnivariateFilter(qpfs_filter, ('K best', 2))
+        iris_dataset = load_iris()
+        X = iris_dataset.data
+        y = iris_dataset.target
+
+        univ_filter.fit(X, y)
+
+        print(univ_filter.selected_features)
 
 if __name__ == "__main__":
     unittest.main()

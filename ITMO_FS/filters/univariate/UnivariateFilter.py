@@ -1,11 +1,11 @@
 from numpy import ndarray
-from sklearn.base import TransformerMixin
+from sklearn.base import TransformerMixin, BaseEstimator
 
 from .measures import GLOB_CR, GLOB_MEASURE
-from ...utils import DataChecker, generate_features
+from ...utils import DataChecker, generate_features, check_restrictions
 
 
-class UnivariateFilter(TransformerMixin, DataChecker):  # TODO ADD LOGGING
+class UnivariateFilter(BaseEstimator, TransformerMixin, DataChecker):  # TODO ADD LOGGING
     """
         Basic interface for using univariate measures for feature selection.
         List of available measures is in ITMO_FS.filters.univariate.measures, also you can
@@ -65,8 +65,7 @@ n_repeated = 10, shuffle = False)
         else:
             raise KeyError("%r isn't a cutting rule function or string" % cutting_rule)
 
-        self.feature_scores = None
-        self.selected_features = None
+        check_restrictions(self.measure.__name__, self.cutting_rule.__name__)
 
     def get_scores(self, X, y, feature_names):
         """
