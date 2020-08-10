@@ -5,6 +5,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 import numpy as np
 
+from sklearn.utils.estimator_checks import check_estimator
+
 from ITMO_FS.filters.multivariate import *
 
 np.random.seed(42)
@@ -128,6 +130,10 @@ class TestCases(unittest.TestCase):
         for f in [FCBFDiscreteFilter(), DISRWithMassive(), MultivariateFilter(MIM, 10), TraceRatioFisher(10), STIR(10)]:
             arr = f.fit_transform(dfX, pd.DataFrame(self.target), feature_names=self.feature_names)
             assert np.all([feature in self.feature_names for feature in f.get_feature_names()])
+
+    def test_est(self):
+        for f in [FCBFDiscreteFilter(), DISRWithMassive(), MultivariateFilter(MIM, 10), TraceRatioFisher(10), STIR(10)]:
+            assert check_estimator(f)
 
 
 if __name__ == "__main__":

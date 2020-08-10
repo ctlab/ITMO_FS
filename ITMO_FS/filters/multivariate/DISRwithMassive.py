@@ -131,7 +131,7 @@ class DISRWithMassive(DataChecker):
         """
 
         if type(X) is np.ndarray:
-            return X[:, self.selected_features.astype(int)]
+            return X[:, self.selected_features]
         else:
             return X[self.selected_features]
 
