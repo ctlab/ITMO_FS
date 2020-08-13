@@ -20,7 +20,8 @@ class Mixed:
     >>> x, y = make_classification(1000, 50, n_informative = 5, n_redundant = 3, n_repeated = 2, shuffle = True)
     >>> mixed = Mixed([spearman_corr, pearson_corr])
     >>> mixed.fit(x, y)
-    >>> print(mixed.transform(x, 20))
+    >>> mixed.transform(x, 20).shape
+    (1000, 20)
     
     """
 

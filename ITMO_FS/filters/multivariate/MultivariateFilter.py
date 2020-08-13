@@ -27,18 +27,20 @@ class MultivariateFilter(TransformerMixin, DataChecker):
         Examples
         --------
         >>> from ITMO_FS.filters.multivariate import MultivariateFilter
-        >>> from sklearn.datasets import make_classification
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> dataset = make_classification(n_samples=100, n_features=20, \
-n_informative=4, n_redundant=0, shuffle=False)
+
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
-        >>> est.fit(data)
-        >>> data = est.transform(data)
-        >>> model = MultivariateFilter('MRMR', 8)
-        >>> model.fit(data, target)
-        >>> print(model.selected_features)
+        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
+[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> est.fit(X)
+        KBinsDiscretizer(encode='ordinal', n_bins=10)
+        >>> data = est.transform(X)
+        >>> model = MultivariateFilter('MIM', 3)
+        >>> model.fit(X, y)
+        >>> model.selected_features
+        array([4, 0, 1])
     """
 
     def __init__(self, measure, n_features, beta=None, gamma=None):

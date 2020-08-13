@@ -26,7 +26,12 @@ class FCBFDiscreteFilter(DataChecker):
         >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> fcbf = FCBFDiscreteFilter()
-        >>> print(fcbf.fit_transform(X, y))
+        >>> fcbf.fit_transform(X, y)
+        array([[1],
+               [2],
+               [3],
+               [4],
+               [5]])
     """
 
     def __init__(self):

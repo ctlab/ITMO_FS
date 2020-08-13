@@ -1,8 +1,7 @@
-class DataChecker():
-    def __init__(self):
-        pass
+class DataChecker:
 
-    def _check_input(self, X, y=None, feature_names=None):
+    @staticmethod
+    def _check_input(X, y=None, feature_names=None):
         if feature_names is None:
             if hasattr(X, 'columns'):
                 feature_names = X.columns

@@ -43,6 +43,7 @@ n_repeated = 10, shuffle = False)
 
     def __init__(self, measure, cutting_rule=("Best by percentage", 0.2)):
         # TODO Check measure and cutting_rule
+        super().__init__()
         if type(measure) is str:
             try:
                 self.measure = GLOB_MEASURE[measure]
