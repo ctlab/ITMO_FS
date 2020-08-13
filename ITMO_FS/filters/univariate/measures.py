@@ -94,7 +94,8 @@ def f_ratio_measure(X, y):
     --------
     >>> import sklearn.datasets as datasets
     >>> from ITMO_FS.filters.univariate import f_ratio_measure
-    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = f_ratio_measure(X, y)
     >>> print(scores)
     """
@@ -132,7 +133,8 @@ def gini_index(X, y):
 
     >>> import sklearn.datasets as datasets
     >>> from ITMO_FS.filters.univariate import gini_index
-    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = gini_index(X, y)
     >>> print(scores)
     """
@@ -172,9 +174,8 @@ def su_measure(X, y):
     --------
     >>> import sklearn.datasets as datasets
     >>> from ITMO_FS.filters.univariate import su_measure
-    >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], \
-[1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-    >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+    >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = su_measure(X, y)
     >>> print(scores)
     """
@@ -212,7 +213,8 @@ def kendall_corr(X, y):
     --------
     >>> import sklearn.datasets as datasets
     >>> from ITMO_FS.filters.univariate import kendall_corr
-    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = kendall_corr(X, y)
     >>> print(scores)
     """
@@ -259,7 +261,8 @@ def fechner_corr(X, y):
     --------
     >>> import sklearn.datasets as datasets
     >>> from ITMO_FS.filters.univariate import fechner_corr
-    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = fechner_corr(X, y)
     >>> print(scores)
     """
@@ -351,7 +354,8 @@ def reliefF_measure(X, y, k_neighbors=1):
     --------
     >>> import sklearn.datasets as datasets
     >>> from ITMO_FS.filters.univariate import reliefF_measure
-    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = reliefF_measure(X, y)
     >>> print(scores)
 
@@ -545,10 +549,11 @@ def spearman_corr(X, y):
     --------
     >>> import sklearn.datasets as datasets
     >>> from ITMO_FS.filters.univariate import spearman_corr
-    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = spearman_corr(X, y)
-    >>> print(scores)
-
+    >>> scores
+    array([-0.4 ,  0.3 , -0.3 , -0.2 ,  0.65])
     """
     n = X.shape[0]
     c = 6 / (n * (n - 1) * (n + 1))
@@ -598,10 +603,10 @@ def pearson_corr(X, y):
     --------
     >>> import sklearn.datasets as datasets
     >>> from ITMO_FS.filters.univariate import pearson_corr
-    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
-    >>> scores = pearson_corr(X, y)
-    >>> print(scores)
-
+    >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    >>> y = np.array([1, 3, 2, 1, 2])
+    >>> pearson_corr(X, y)
+    array([-0.13363062,  0.32732684, -0.56694671, -0.28571429,  0.53452248])
     """
     x_dev = X - np.mean(X, axis=0)
     y_dev = y - np.mean(y, axis=0)

@@ -27,18 +27,20 @@ class MultivariateFilter(TransformerMixin, DataChecker):
         Examples
         --------
         >>> from ITMO_FS.filters.multivariate import MultivariateFilter
-        >>> from sklearn.datasets import make_classification
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> dataset = make_classification(n_samples=100, n_features=20, \
-n_informative=4, n_redundant=0, shuffle=False)
+
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
-        >>> est.fit(data)
-        >>> data = est.transform(data)
-        >>> model = MultivariateFilter('MRMR', 8)
-        >>> model.fit(data, target)
-        >>> print(model.selected_features)
+        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
+[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> est.fit(X)
+        KBinsDiscretizer(encode='ordinal', n_bins=10)
+        >>> data = est.transform(X)
+        >>> model = MultivariateFilter('MIM', 3)
+        >>> model.fit(X, y)
+        >>> model.selected_features
+        array([4, 0, 1])
     """
 
     def __init__(self, measure, n_features, beta=None, gamma=None):
@@ -50,7 +52,7 @@ n_informative=4, n_redundant=0, shuffle=False)
         else:
             self.measure = measure
         self.__n_features = n_features
-        self.selected_features = np.array([], dtype='object')
+        self.selected_features = np.array([], dtype='int')
         self.beta = beta
         self.gamma = gamma
 
@@ -89,7 +91,7 @@ n_informative=4, n_redundant=0, shuffle=False)
             to_add = np.argmax(values)
             self.selected_features = np.append(self.selected_features, free_features[to_add])
             free_features = np.delete(free_features, to_add)
-        self.selected_features = features[self.selected_features.astype(int)]
+        self.selected_features = features[self.selected_features]
 
     def transform(self, X):
         """
@@ -107,7 +109,7 @@ n_informative=4, n_redundant=0, shuffle=False)
         """
 
         if type(X) is np.ndarray:
-            return X[:, self.selected_features.astype(int)]
+            return X[:, self.selected_features]
         else:
             return X[self.selected_features]
 
@@ -131,6 +133,6 @@ n_informative=4, n_redundant=0, shuffle=False)
 
             X dataset sliced with features selected by the filter
         """
-        
+
         self.fit(X, y, feature_names)
         return self.transform(X)

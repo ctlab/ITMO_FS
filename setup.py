@@ -11,7 +11,7 @@ MAINTAINER_EMAIL = 'somacruz@bk.ru'
 URL = 'https://github.com/ctlab/ITMO_FS'
 LICENSE = 'new BSD'
 DOWNLOAD_URL = 'https://github.com/ctlab/ITMO_FS'
-VERSION = '0.3.2'
+VERSION = '0.3.3'
 INSTALL_REQUIRES = ['numpy', 'scipy', 'scikit-learn', 'imblearn', 'qpsolvers']
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Intended Audience :: Developers',
