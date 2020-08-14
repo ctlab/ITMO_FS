@@ -1,8 +1,7 @@
 import numpy as np
-from numpy import array, abs
 
 def normalize(x):
-    x = abs(array(x))
+    x = np.abs(np.array(x))
     max_ = max(x)
     min_ = max(x)
     return (x - min_) / (max_ - min_)
@@ -12,6 +11,8 @@ def cartesian(rw, cl):  # returns cartesian product for passed numpy arrays as t
     tmp = np.array(np.meshgrid(rw, cl)).T.reshape(len(rw) * len(cl), 2)
     return tmp.T[0], tmp.T[1]
 
+def weight_func(model):
+    return model.coef_[0]
 
 def augmented_rvalue(X, y, k=7, theta=3):
     """
@@ -37,18 +38,20 @@ def augmented_rvalue(X, y, k=7, theta=3):
         For more details see `this paper <https://www.sciencedirect.com/science/article/pii/S0169743919306070>`_.
 
     """
-    indicesNegative = [i for i, x in enumerate(y) if x == 0]
-    indicesPositive = [i for i, x in enumerate(y) if x == 1]
-    R0, R1 = 0, 0
-    for elem in indicesNegative:
-        nearest = knn(X, y, elem, k)
-        R0 += np.sign(list(map(lambda x: y[x], nearest)).count(1) - theta)
-    R0 /= len(indicesNegative)
-    for elem in indicesPositive:
-        nearest = knn(X, y, elem, k)
-        R1 += np.sign(list(map(lambda x: y[x], nearest)).count(0) - theta)
-    R1 /= len(indicesPositive)
-    return (R0 * len(indicesPositive) + R1 * len(indicesNegative)) / len(X)
+    unique, counts = np.unique(y, return_counts=True)
+    freq = sorted(list(zip(unique, counts)), key=lambda x: x[1], reverse=True)
+    Rs = []
+    Cs = []
+
+    for label, frequency in freq:
+        Cs.append(frequency)
+        count = 0
+        for elem in [i for i, x in enumerate(y) if x == label]:
+            nearest = knn(X, y, elem, k) # TODO: should probably rewrite this using sklearn's knn or pairwise_distances
+            count += np.sign(max(k - list(map(lambda x: y[x], nearest)).count(label) - theta, 0))
+        Rs.append(count / frequency)
+    Cs = Cs[::-1]
+    return np.dot(Rs, Cs) / len(X)
 
 
 def knn(X, y, index, k, allClasses=True):
