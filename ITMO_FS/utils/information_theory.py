@@ -33,15 +33,8 @@ def interaction_information(x, y, z):
 
 
 def elog(x):
-    if x <= 0. or x >= 1.:
-        return 0
-    else:
-        return x * log(x)
+    return x * log(x) if 0. < x < 1. else 0.
 
 
 def entropy(x):
-    d = defaultdict(int)
-    for obj in x:
-        d[obj] += 1
-    probs = map(lambda z: float(z) / len(x), d.values())
-    return -sum(map(elog, probs))
+    return log(len(x)) - fsum(v * log(v) for v in Counter(x).values()) / len(x)

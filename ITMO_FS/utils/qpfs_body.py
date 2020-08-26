@@ -7,7 +7,7 @@ from scipy.linalg import sqrtm
 
 
 def qpfs_body(X, y, fn, alpha=None, r=None, sigma=None, solv='quadprog',
-              metric_for_complex=lambda x: math.sqrt(x.imag ** 2 + x.real ** 2)):
+              metric_for_complex=complex.__abs__):
     # TODO understand why complex double appears
     # TODO find suitable r parameter value
     # TODO find suitable sigma parameter value
