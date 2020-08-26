@@ -45,10 +45,7 @@ def interaction_information(x, y, z):
 
 
 def elog(x):
-    if x <= 0. or x >= 1.:
-        return 0
-    else:
-        return x * log(x)
+    return x * log(x) if 0. < x < 1. else 0.
 
 
 def entropy(x):
