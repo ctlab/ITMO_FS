@@ -1,5 +1,5 @@
-from math import log
-from collections import defaultdict
+from math import fsum, log
+from collections import Counter, defaultdict
 
 import numpy as np
 
@@ -49,8 +49,4 @@ def elog(x):
 
 
 def entropy(x):
-    d = defaultdict(int)
-    for obj in x:
-        d[obj] += 1
-    probs = map(lambda z: float(z) / len(x), d.values())
-    return -sum(map(elog, probs))
+    return log(len(x)) - fsum(v * log(v) for v in Counter(x).values()) / len(x)
