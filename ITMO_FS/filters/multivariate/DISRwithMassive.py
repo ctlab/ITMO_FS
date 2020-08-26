@@ -41,7 +41,12 @@ class DISRWithMassive(DataChecker):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> disr = DISRWithMassive(3)
-        >>> print(disr.fit_transform(X, y))
+        >>> disr.fit_transform(X, y)
+        array([[1, 2, 1],
+               [2, 2, 2],
+               [1, 3, 3],
+               [3, 1, 4],
+               [4, 4, 5]])
     """
 
     def __init__(self, expected_size=None):
@@ -131,7 +136,7 @@ class DISRWithMassive(DataChecker):
         """
 
         if type(X) is np.ndarray:
-            return X[:, self.selected_features.astype(int)]
+            return X[:, self.selected_features]
         else:
             return X[self.selected_features]
 

@@ -22,11 +22,16 @@ class TraceRatioFisher(DataChecker):
         Examples
         --------
         >>> from ITMO_FS.filters.multivariate import TraceRatioFisher
-        >>> from sklearn.datasets import make_classification
-        >>> x, y = make_classification(1000, 100, n_informative = 10,\
-n_redundant = 30, n_repeated = 10, shuffle = False)
-        >>> tracer = TraceRatioFisher(10)
-        >>> print(tracer.fit_transform(x, y))
+        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
+[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> tracer = TraceRatioFisher(3)
+        >>> tracer.fit_transform(X, y)
+        array([[1, 1, 2],
+               [2, 2, 2],
+               [3, 1, 3],
+               [4, 3, 1],
+               [5, 4, 4]])
     """
 
     def __init__(self, n_selected_features):
@@ -109,7 +114,7 @@ n_redundant = 30, n_repeated = 10, shuffle = False)
         """
 
         if type(X) is np.ndarray:
-            return X[:, self.selected_features.astype(int)]
+            return X[:, self.selected_features]
         else:
             return X[self.selected_features]
 

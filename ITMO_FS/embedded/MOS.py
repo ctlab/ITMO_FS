@@ -31,11 +31,15 @@ class MOS(DataChecker):
         >>> from ITMO_FS.embedded import MOS
         >>> import numpy as np
         >>> from sklearn.datasets import make_classification
+        >>> from sklearn.linear_model import LogisticRegression
         >>> dataset = make_classification(n_samples=100, n_features=20)
         >>> data, target = np.array(dataset[0]), np.array(dataset[1])
         >>> for i in range(50):  # create imbalance between classes
         ...     target[i] = 0
-        >>> print(MOS().fit_transform(data, target))
+        >>> m=MOS()
+        >>> m.fit(data, target)
+        >>> m.transform(data).shape[0]
+        100
     """
 
     def __init__(self, model=SGDClassifier, loss='log',
@@ -47,7 +51,8 @@ class MOS(DataChecker):
         rnd.seed = seed
         self.selected_features = None
 
-    def fit(self, X, y, l1_ratio=0.5, threshold=10e-4, epochs=1000, alphas=np.arange(0.0002, 0.02, 0.0002), sampling=True, feature_names=None):
+    def fit(self, X, y, l1_ratio=0.5, threshold=10e-4, epochs=1000, alphas=np.arange(0.0002, 0.02, 0.0002),
+            sampling=True, feature_names=None):
         """
             Runs the MOS algorithm on the specified dataset.
 
@@ -85,7 +90,7 @@ class MOS(DataChecker):
         min_b = []
         for a in alphas:  # TODO: do a little more research on the range of lambdas
             model = self.model(loss=self.loss, random_state=rnd.seed, penalty='elasticnet',
-                               alpha=a, l1_ratio=l1_ratio, max_iter=epochs)
+                               alpha=a, l1_ratio=l1_ratio, max_iter=epochs)  # TODO Change that to more abstract type
             model.fit(X, y)
             b = model.coef_[0]
             rvalue = augmented_rvalue(X[:, [i for i in range(X.shape[1]) if np.abs(b[i]) > threshold]], y)
@@ -113,7 +118,8 @@ class MOS(DataChecker):
         else:
             return X[self.selected_features]
 
-    def fit_transform(self, X, y, l1_ratio=0.5, threshold=10e-4, epochs=1000, alphas=np.arange(0.0002, 0.02, 0.0002), sampling=True, feature_names=None):
+    def fit_transform(self, X, y, l1_ratio=0.5, threshold=10e-4, epochs=1000, alphas=np.arange(0.0002, 0.02, 0.0002),
+                      sampling=True, feature_names=None):
         """
             Fits the algorithm and transforms given dataset X.
 
@@ -144,4 +150,3 @@ class MOS(DataChecker):
 
         self.fit(X, y, feature_names=feature_names)
         return self.transform(X)
-

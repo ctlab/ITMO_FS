@@ -56,3 +56,4 @@ https://itmo-fs.readthedocs.io/en/latest/
 .. |License| image:: https://img.shields.io/badge/license-BSD%20License-blue.svg
 .. |Docs| image:: https://readthedocs.org/projects/itmo-fs/badge/?version=latest
 .. |CodeCov| image:: https://codecov.io/gh/ctlab/ITMO_FS/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/ctlab/ITMO_FS
