@@ -1,27 +1,15 @@
 from math import log
 from collections import defaultdict
+from itertools import groupby
+from operator import itemgetter
 
 import numpy as np
 
 
-def builder_dict():
-    return defaultdict(int)
-
 def conditional_entropy(x_j, y):
     # H(Y|X)
-    count_x = defaultdict(int)
-    dict_y_by_x = defaultdict(builder_dict)
-    for i in range(len(y)):
-        x_val = x_j[i]
-        y_val = y[i]
-        count_x[x_val] += 1
-        dict_y_by_x[x_val][y_val] += 1
-    entropy = 0.0
-    for x_key in count_x.keys():
-        cur_dict = dict_y_by_x[x_key]
-        part_entropy = sum(map(lambda num_y: elog(num_y / count_x[x_key]), cur_dict.values()))
-        entropy += count_x[x_key] / len(x_j) * part_entropy
-    return -entropy
+    buf = [[e[1] for e in g] for _, g in groupby(sorted(zip(x_j, y)), itemgetter(0))]
+    return fsum(entropy(group) * len(group) for group in buf) / len(x_j)
 
 
 def matrix_mutual_information(x, y):
@@ -45,15 +33,8 @@ def interaction_information(x, y, z):
 
 
 def elog(x):
-    if x <= 0. or x >= 1.:
-        return 0
-    else:
-        return x * log(x)
+    return x * log(x) if 0. < x < 1. else 0.
 
 
 def entropy(x):
-    d = defaultdict(int)
-    for obj in x:
-        d[obj] += 1
-    probs = map(lambda z: float(z) / len(x), d.values())
-    return -sum(map(elog, probs))
+    return log(len(x)) - fsum(v * log(v) for v in Counter(x).values()) / len(x)

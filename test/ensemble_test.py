@@ -20,10 +20,10 @@ class MyTestCase(unittest.TestCase):
                    pearson_corr]
         ensemble = Mixed(filters)
         ensemble.fit(data, target)
-        ensemble.transform(data, 100)
         ensemble.transform(data, 100, borda_fusion)
-        self.assertEqual(True, True)
         d = [{'f' + str(i): i for i in range(100)}.items()] * 5
+        self.assertEqual(borda_fusion(d, 100), ['f' + str(i) for i in reversed(range(100))])
+        ensemble.transform(data, 100)
         self.assertEqual(borda_fusion(d, 100), ['f' + str(i) for i in reversed(range(100))])
 
 
