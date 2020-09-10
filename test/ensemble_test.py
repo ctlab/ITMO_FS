@@ -2,6 +2,7 @@ import unittest
 
 from sklearn.datasets import make_classification, make_regression
 
+from ITMO_FS.ensembles.measure_based import *
 from ITMO_FS.ensembles.ranking_based import *
 from ITMO_FS.filters.univariate import *
 
@@ -25,6 +26,30 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(borda_fusion(d, 100), ['f' + str(i) for i in reversed(range(100))])
         ensemble.transform(data, 100)
         self.assertEqual(borda_fusion(d, 100), ['f' + str(i) for i in reversed(range(100))])
+
+    def test_weight_based_ensemble(self):
+        data, target = self.wide_classification[0], self.wide_classification[1]
+        filters = [UnivariateFilter(gini_index),
+                   UnivariateFilter(fechner_corr),
+                   UnivariateFilter(spearman_corr),
+                   UnivariateFilter(pearson_corr)]
+        ensemble = WeightBased(filters)
+        ensemble.fit(data, target)
+
+        weights = [0.5, 0.5, 0.5, 0.5]
+        ensemble.transform(data, select_k_best(100), weights=weights)
+        features = {}
+        for f, w in zip(filters, weights):
+
+            f.fit(data, target)
+            for k, v in f.feature_scores.items():
+                if features.get(k) is int:
+                    features[k] += v * w
+                else:
+                    features[k] = v * w
+
+        d = [i for i in select_k_best(100)(features)]
+        self.assertEqual(d, ensemble.selected_features)
 
 
 if __name__ == '__main__':
