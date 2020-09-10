@@ -13,7 +13,6 @@ def check_features(features, size):
     if all(isinstance(x, str) for x in features):
         if len(features) != size:
             raise IndexError("Shapes mismatch {} and {}".format(len(features), size))
-        return
     else:
         raise TypeError("Features should be strings")
 
