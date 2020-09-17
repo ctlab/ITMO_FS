@@ -3,6 +3,7 @@ from math import exp
 from math import log
 
 import numpy as np
+import pandas as pd
 from scipy import sparse as sp
 from scipy.sparse import lil_matrix
 from sklearn.preprocessing import MinMaxScaler
@@ -789,6 +790,67 @@ def anova(X, y):
     return np.array(f)
 
 
+def modified_t_score(X, y):
+    """
+    Calculate the Modified T-score for each feature.
+    
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples. There can be only 2 classes.
+
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, ). The higher the better.
+
+    See Also
+    --------
+
+    For more details see paper <https://dergipark.org.tr/en/download/article-file/261247>.
+
+    Examples
+    --------
+
+    >>> import sklearn.datasets as datasets
+    >>> import numpy as np
+    >>> from ITMO_FS.filters.univariate import modified_t_score
+    >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    >>> y = np.array([1, 1, 2, 1, 2])
+    >>> scores = modified_t_score(X, y)
+    >>> print(scores)
+
+    """
+
+    classes = np.unique(y)
+
+    size_class0 = y[y == classes[0]].size
+    size_class1 = y[y == classes[1]].size
+
+    mean_class0 = np.mean(X[y == classes[0]], axis = 0)
+    mean_class0 = np.nan_to_num(mean_class0)
+    mean_class1 = np.mean(X[y == classes[1]], axis = 0)
+    mean_class1 = np.nan_to_num(mean_class1)
+
+    std_class0 = np.std(X[y == classes[0]], axis = 0)
+    std_class0 = np.nan_to_num(std_class0)
+    std_class1 = np.std(X[y == classes[1]], axis = 0)
+    std_class1 = np.nan_to_num(std_class1)
+
+    corr_with_y = np.apply_along_axis(lambda feature : abs(np.corrcoef(feature,y)[0][1]), 0, X)
+    corr_with_y = np.nan_to_num(corr_with_y)
+
+    corr_with_others = abs(pd.DataFrame(X).corr()).fillna(0).to_numpy()
+    mean_of_corr_with_others = (corr_with_others.sum(axis = 1) - corr_with_others.diagonal())/corr_with_others.size
+
+    t_score_numerator = abs(mean_class0 - mean_class1)
+    t_score_denominator = np.sqrt((size_class0 * np.square(std_class0) + size_class1*np.square(std_class1))/(size_class0 + size_class1))
+    modificator = corr_with_y/mean_of_corr_with_others
+
+    modified_t_score = t_score_numerator / t_score_denominator * modificator
+    return modified_t_score
+
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
                 "GiniIndex": gini_index,
@@ -799,7 +861,8 @@ GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "KendallCorr": kendall_corr,
                 "ReliefF": reliefF_measure,
                 "Chi2": chi2_measure,
-                "InformationGain": information_gain}
+                "InformationGain": information_gain,
+                "ModifiedTScore": modified_t_score}
 
 
 def select_best_by_value(value):
