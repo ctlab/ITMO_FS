@@ -842,6 +842,7 @@ def modified_t_score(X, y):
     corr_with_y = np.nan_to_num(corr_with_y)
 
     corr_with_others = abs(pd.DataFrame(X).corr()).fillna(0).to_numpy()
+
     mean_of_corr_with_others = (corr_with_others.sum(axis = 1) - corr_with_others.diagonal())/corr_with_others.size
 
     t_score_numerator = abs(mean_class0 - mean_class1)
@@ -849,6 +850,8 @@ def modified_t_score(X, y):
     modificator = corr_with_y/mean_of_corr_with_others
 
     modified_t_score = t_score_numerator / t_score_denominator * modificator
+    modified_t_score = np.nan_to_num(modified_t_score)
+    
     return modified_t_score
 
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,

@@ -145,6 +145,13 @@ class TestCases(unittest.TestCase):
         true_res = f_classif(X, y)[0]
         np.testing.assert_allclose(res, true_res)
 
+    def test_modified_t_score(self):
+        X, y = self.wide_classification[0], self.wide_classification[1]
+
+        res = modified_t_score(X, y)
+        
+        assert all(score >= 0 for score in scores) and all(not np.isnan(score) for score in scores)
+
     def test_igain(self):
         iris_dataset = load_iris()
         X = iris_dataset.data
