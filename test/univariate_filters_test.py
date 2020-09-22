@@ -146,7 +146,7 @@ class TestCases(unittest.TestCase):
         true_res = f_classif(X, y)[0]
         np.testing.assert_allclose(res, true_res)
 
-    def test_modified_t_score(self):
+    def test_modified_t_score_by_hand_small(self):
         X = np.array([[5, 1, 3, 2], [4, 2, 2, 1], [3, 3, 4, 1], [2, 2, 3, 1], [1, 1, 5, 2]])
         y = np.array([1, 1, 2, 2, 2])
         scores = modified_t_score(X, y)
@@ -158,9 +158,31 @@ class TestCases(unittest.TestCase):
                                      (sqrt(3)/(2*sqrt(7)))    / ((0              + 3/(2*sqrt(91)) + 4/sqrt(21)      ) / 3),
                                      (3*sqrt(3)/(2*sqrt(13))) / ((5/(2*sqrt(13)) + 3/(2*sqrt(91)) + sqrt(3)/sqrt(13)) / 3),
                                      (1/6)                    / ((0              + 4/sqrt(21)     + sqrt(3)/sqrt(13)) / 3)])
-
         true_scores = true_numerator / true_denominator * true_modificator
+
         np.testing.assert_allclose(scores, true_scores)
+
+    def test_modified_t_score_univariate_filter_small(self):
+        X = np.array([[5, 1, 3, 2], [4, 2, 2, 1], [3, 3, 4, 1], [2, 2, 3, 1], [1, 1, 5, 2]])
+        y = np.array([1, 1, 2, 2, 2])
+
+        univ_filter = UnivariateFilter('ModifiedTScore', cutting_rule=('K best', 2))
+        univ_filter.fit(X, y)
+
+        assert univ_filter.selected_features == [0, 2]
+
+    def test_modified_t_score_univariate_filter_wide(self):
+        data, target = self.wide_classification[0], self.wide_classification[1]
+
+        for i in [5, 10, 20]:
+            univ_filter = UnivariateFilter('ModifiedTScore', select_k_best(i))
+
+            univ_filter.fit(data, target)
+            scores = univ_filter.feature_scores.values()
+            assert all(score >= 0 for score in scores) and all(not np.isnan(score) for score in scores)
+
+            res = univ_filter.transform(data)
+            assert i == res.shape[1]
 
     def test_igain(self):
         iris_dataset = load_iris()
