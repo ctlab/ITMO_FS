@@ -3,7 +3,6 @@ from math import exp
 from math import log
 
 import numpy as np
-import pandas as pd
 from scipy import sparse as sp
 from scipy.sparse import lil_matrix
 from sklearn.preprocessing import MinMaxScaler
@@ -841,9 +840,10 @@ def modified_t_score(X, y):
     corr_with_y = np.apply_along_axis(lambda feature : abs(np.corrcoef(feature,y)[0][1]), 0, X)
     corr_with_y = np.nan_to_num(corr_with_y)
 
-    corr_with_others = abs(pd.DataFrame(X).corr()).fillna(0).to_numpy()
+    corr_with_others = abs(np.corrcoef(X, rowvar = False))
+    corr_with_others = np.nan_to_num(corr_with_others)
 
-    mean_of_corr_with_others = (corr_with_others.sum(axis = 1) - corr_with_others.diagonal())/corr_with_others.size
+    mean_of_corr_with_others = (corr_with_others.sum(axis = 1) - corr_with_others.diagonal())/(len(corr_with_others) - 1)
 
     t_score_numerator = abs(mean_class0 - mean_class1)
     t_score_denominator = np.sqrt((size_class0 * np.square(std_class0) + size_class1*np.square(std_class1))/(size_class0 + size_class1))
