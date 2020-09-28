@@ -2,7 +2,8 @@ import numpy as np
 
 from ITMO_FS.utils.information_theory import mutual_information, conditional_mutual_information
 
-def run(dataset, k):
+
+def _run(dataset, k):
     """
     :param dataset: inital dataset
     :param k: number of features used
@@ -38,15 +39,27 @@ class CIFE(object):
     def __init__(self):
         pass
 
-    def extraction(self, dataset):
-        copies_num, features_num = dataset.shape
+    def fit(self, X, y=None):
+        """
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Training instances to compute.
+
+        Returns
+        -------
+        ans_list : list
+        List of selected features.
+        """
+        copies_num, features_num = X.shape
         matrix = np.zeros((features_num - 1, copies_num))
         for i in range(features_num - 1):
             for j in range(copies_num):
-                matrix[i][j] = dataset[j][i]
+                matrix[i][j] = X[j][i]
         ans_list = [0]
         for i in range(1, features_num):
-            next_def = run(dataset, i)
+            next_def = _run(matrix, i)
             if next_def not in ans_list:
                 ans_list.append(next_def)
         return ans_list
