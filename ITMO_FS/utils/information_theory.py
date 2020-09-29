@@ -1,6 +1,6 @@
-from math import log
-from collections import defaultdict
+from collections import Counter
 from itertools import groupby
+from math import log, fsum
 from operator import itemgetter
 
 import numpy as np

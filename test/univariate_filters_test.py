@@ -1,6 +1,5 @@
 import unittest
 
-import numpy as np
 import pandas as pd
 from scipy import stats
 from sklearn.datasets import load_iris
@@ -8,14 +7,11 @@ from sklearn.datasets import make_classification, make_regression
 from sklearn.feature_selection import chi2, f_classif, mutual_info_classif
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
-
-from sklearn.svm import SVC
 from sklearn.utils.estimator_checks import check_estimator
 
 from ITMO_FS.filters.univariate import *
 from ITMO_FS.filters.univariate.measures import GLOB_CR
 from ITMO_FS.utils.information_theory import *
-from sklearn.model_selection import KFold
 
 np.random.seed(42)
 
@@ -262,6 +258,7 @@ class TestCases(unittest.TestCase):
         univ_filter.fit(X, y)
 
         print(univ_filter.selected_features)
+
 
 if __name__ == "__main__":
     unittest.main()
