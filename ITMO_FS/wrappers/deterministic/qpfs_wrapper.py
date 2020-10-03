@@ -4,6 +4,7 @@ from ITMO_FS.utils.qpfs_body import qpfs_body
 
 def qpfs_wrapper(X, y, alpha, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
     """
+    #TODO rewrite to the proper notation
     Performs Quadratic Programming Feature Selection algorithm.
     Note that this realization requires labels to start from 1 and be numberical.
     This is function for wrapper based on qpfs so alpha parameter must be specified, in case you don't know alpha parameter
