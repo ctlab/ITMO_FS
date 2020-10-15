@@ -45,9 +45,8 @@ jobs:
           paths:
             - ./venv
           command: |
-            pip install pytest
-            pip install pytest-filedata
-            python -m pytest
+            pipenv run python manage.py test
+
       - store_artifacts:
           path: test-reports
           destination: test-reports
