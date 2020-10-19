@@ -45,7 +45,7 @@ jobs:
           paths:
             - ./venv
           command: |
-            pipenv run python manage.py test
+            pipenv run pytest
 
       - store_artifacts:
           path: test-reports
