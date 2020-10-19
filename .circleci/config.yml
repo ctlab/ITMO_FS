@@ -25,11 +25,13 @@ jobs:
             conda update --yes --quiet conda
             conda create -n testenv --yes --quiet python=3
             source activate testenv
-            conda install --yes pip numpy scipy scikit-learn matplotlib sphinx sphinx_rtd_theme numpydoc pillow
+            conda install --yes pip numpy scipy scikit-learn matplotlib sphinx sphinx_rtd_theme numpydoc pillow pytest
             pip install sphinx-gallery
             pip install .
             cd docs
             make html
+            pytest
+
       - save_cache:
           paths:
             - ./venv
@@ -40,12 +42,7 @@ jobs:
       # other common Python testing frameworks include pytest and nose
       # https://pytest.org
       # https://nose.readthedocs.io
-      - run:
-          name: run tests
-          paths:
-            - ./venv
-          command: |
-            pipenv run pytest
+
 
       - store_artifacts:
           path: test-reports
