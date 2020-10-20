@@ -47,6 +47,7 @@ jobs:
           paths:
             - ./venv
           command: |
+             pip install -r requirements.txt
              pip install pytest
              pytest .
 
