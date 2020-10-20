@@ -47,9 +47,11 @@ jobs:
           paths:
             - ./venv
           command: |
-             pip install -r requirements.txt
-             pip install pytest
-             pytest .
+            pip install -r requirements.txt
+            pip install pandas sphinx_rtd_theme
+            pip install pandas зфтвфы
+            pip install pytest
+            pytest .
 
       - store_artifacts:
           path: test-reports
