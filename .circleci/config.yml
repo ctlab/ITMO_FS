@@ -48,7 +48,7 @@ jobs:
             - ./venv
           command: |
              pip install pytest
-             python pytest test
+             pytest .
 
       - store_artifacts:
           path: test-reports
