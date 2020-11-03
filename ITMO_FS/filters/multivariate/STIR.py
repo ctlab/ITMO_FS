@@ -1,11 +1,17 @@
 import numpy as np
 from sklearn.metrics import pairwise_distances
-from ...utils import generate_features, DataChecker
+from ...utils import generate_features, BaseTransformer
 
-
-class STIR(DataChecker):
+class STIR(BaseTransformer):
     """
         Feature selection using STIR algorithm.
+
+        Parameters
+        ----------
+        n_features : int
+            Number of features to select.
+        k : int
+            number of constant nearest hits/misses.
 
         Algorithm taken from paper:
 
@@ -13,14 +19,9 @@ class STIR(DataChecker):
         (https://academic.oup.com/bioinformatics/article/35/8/1358/5100883).
     """
 
-    def __init__(self, n_features_to_keep=10):
-        """
-            Sets up STIR to perform feature selection.
-        """
-
-        self.n_features_to_keep = n_features_to_keep
-        self.feature_scores = None
-        self.top_features = None
+    def __init__(self, n_features, k=1):
+        self.n_features = n_features
+        self.k = k
 
     def max_diff(self, X):
         """
@@ -70,7 +71,7 @@ class STIR(DataChecker):
 
         return X_distances
 
-    def find_neighbors(self, X, y, k=1):
+    def find_neighbors(self, X, y):
         """
             Finds the nearest hit/miss matrices.
 
@@ -108,20 +109,20 @@ class STIR(DataChecker):
                                                 nearest_matrix)))
             nearest_misses = np.array(list(filter(lambda row: row[1] != nearest_matrix[0, 1],
                                                   nearest_matrix)))
-            k_nearest_hits = [row[0] for row in nearest_hits[1: (k + 1)]]
-            k_nearest_misses = [row[0] for row in nearest_misses[:k]]
+            k_nearest_hits = [row[0] for row in nearest_hits[1: (self.k + 1)]]
+            k_nearest_misses = [row[0] for row in nearest_misses[:self.k]]
 
-            indexes += [i for j in range(k)]
+            indexes += [i for j in range(self.k)]
             hits += k_nearest_hits
             misses += k_nearest_misses
 
         # TODO: this sometimes fails when all class labels are different or when k != 1 is used
         hitmiss = np.array([np.column_stack((indexes, hits)),
-                            np.column_stack((indexes, misses))])
+                            np.column_stack((indexes, misses))], dtype='int')
 
         return hitmiss
 
-    def fit(self, X, y, feature_names=None, k=1):
+    def _fit(self, X, y):
         """
             Computes the feature importance scores from the training data.
 
@@ -129,26 +130,27 @@ class STIR(DataChecker):
             ----------
             X : array-like, shape (n_samples, n_features) 
                 Training instances to compute the feature importance scores from.
-            y : array-like, shape (n_samples, )
+            y : array-like, shape (n_samples)
                 Training labels.
-            feature_names : list of strings, optional
-                In case you want to define feature names
-            k : int, optional
-                number of constant nearest hits/misses.
 
             Returns
             -------
             None
         """
 
-        features = generate_features(X)
-        X, y, feature_names = self._check_input(X, y, feature_names)
-        new_features = generate_features(X)
-        self.feature_names = dict(zip(features, feature_names))
+        if self.n_features > self.n_features_:
+            raise ValueError("Cannot select %d features with n_features = %d" % (self.n_features, self.n_features_))
+
         n_samples = X.shape[0]
-        n_features = X.shape[1]
-        weights = np.zeros(n_features)
-        neighbors_index = self.find_neighbors(X, y, k)
+
+        if self.k >= n_samples:
+            raise ValueError("Cannot select %d nearest neighbors with n_samples = %d" % (self.k, n_samples))
+
+        new_features = generate_features(X)
+        n_samples = X.shape[0]
+        weights = np.zeros(self.n_features_)
+        neighbors_index = self.find_neighbors(X, y)
+
         #range_vec = np.array(self.max_diff(X)) # TODO: probably should convert to float64 and add division by zero check
         range_vec = np.array(self.max_diff(X)).astype('float64')
         range_vec[range_vec == 0] = 1e-14
@@ -180,50 +182,5 @@ class STIR(DataChecker):
 
             weights[feature_index] = mu_misses - mu_hits
 
-        self.feature_scores = weights * one_over_m * 1000
-        self.selected_features = features[np.argsort(self.feature_scores)[::-1][:self.n_features_to_keep]]
-
-    def transform(self, X):
-        """
-            Reduces the feature set down to the top `n_features_to_keep` features.
-
-            Parameters
-            ----------
-            X : array-like, shape (n_samples, n_features) 
-                Feature matrix to perform feature selection on.
-
-            Returns
-            -------
-            Transformed 2D numpy array
-        """
-
-        if type(X) is np.ndarray:
-            return X[:, self.selected_features]
-        else:
-            return X[self.selected_features]
-
-    def fit_transform(self, X, y, feature_names=None, k=1):
-        """
-            Fits and transforms data.
-
-            Computes the feature importance scores from the training data, then
-            reduces the feature set down to the top 'n_features_to_keep' features.
-
-            Parameters
-            ----------
-            X : array-like, shape (n_samples, n_features) 
-                Training instances to compute the feature importance scores from.
-            y : array-like, shape (n_samples, )
-                Training labels.
-            feature_names : list of strings, optional
-                In case you want to define feature names
-            k : int, optional
-                number of constant nearest hits/misses.             
-
-            Returns
-            -------
-            Transformed 2D numpy array
-        """
-
-        self.fit(X, y, feature_names, k)
-        return self.transform(X)
+        self.feature_scores_ = weights * one_over_m * 1000
+        self.selected_features_ = np.argsort(self.feature_scores_)[::-1][:self.n_features]
