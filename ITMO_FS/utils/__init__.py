@@ -3,3 +3,4 @@ from .functions import *
 from .information_theory import *
 from .qpfs_body import qpfs_body
 from .base_transformer import BaseTransformer, DataChecker
+from .base_wrapper import BaseWrapper
