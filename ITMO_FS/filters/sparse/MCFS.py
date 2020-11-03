@@ -2,23 +2,24 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from sklearn.linear_model import Lars
 from scipy.linalg import eigh
+from ...utils import BaseTransformer
 
 
-class MCFS(object):
+class MCFS(BaseTransformer):
     """
         Performs the Unsupervised Feature Selection for Multi-Cluster Data algorithm.
 
         Parameters
         ----------
-        d : int
+        n_features : int
             Number of features to select.
-        k : int, optional
+        k : int
             Amount of clusters to find.
-        p : int, optional
+        p : int
             Amount of nearest neighbors to use while building the graph.
-        scheme : str, either '0-1', 'heat' or 'dot', optional
+        scheme : str, either '0-1', 'heat' or 'dot'
             Weighting scheme to use while building the graph.
-        sigma : float, optional
+        sigma : float
             Parameter for heat weighting scheme. Ignored if scheme is not 'heat'.
 
         Notes
@@ -28,8 +29,21 @@ class MCFS(object):
 
         Examples
         --------
-
+        >>> from ITMO_FS.filters.sparse import MCFS
+        >>> import numpy as np
+        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
+[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> model = MCFS(3)
+        >>> model.fit_transform(X)
     """
+
+    def __init__(self, n_features, k=2, p=3, scheme='heat', sigma=1):
+        self.n_features = n_features
+        self.k = k
+        self.p = p
+        self.scheme = scheme
+        self.sigma = sigma
 
     def __scheme_01(self, x1, x2):
         return 1
@@ -37,24 +51,10 @@ class MCFS(object):
     def __scheme_heat(self, x1, x2):
         return np.exp(-np.linalg.norm(x1 - x2) ** 2 / (self.sigma ** 2))
 
-    def ___scheme_dot(self, x1, x2):
-        return (x1 / np.linalg.norm(x1)).dot(x2 / np.linalg.norm(x2))
+    def __scheme_dot(self, x1, x2):
+        return (x1 / np.linalg.norm(x1 + 1e-10)).dot(x2 / np.linalg.norm(x2 + 1e-10))
 
-    def __init__(self, d, k=5, p=5, scheme='dot', sigma=1):
-        if scheme not in ['0-1', 'heat', 'dot']:
-            raise KeyError('scheme should be either 0-1, heat or dot; %r passed' % scheme)
-        if scheme == '0-1':
-            self.scheme = self.__scheme_01
-        elif scheme == 'heat':
-            self.scheme = self.__scheme_heat
-        else:
-            self.scheme = self.__scheme_dot
-        self.d = d
-        self.k = k
-        self.p = p
-        self.sigma = sigma
-
-    def run(self, X, y=None):
+    def _fit(self, X, y):
         """
             Fits filter
 
@@ -62,64 +62,51 @@ class MCFS(object):
             ----------
             X : numpy array, shape (n_samples, n_features)
                 The training input samples.
-            y : numpy array, optional
+            y : numpy array
                 The target values (ignored).
 
             Returns
             ----------
-            W : array-like, shape (n_features, k)
-                Feature weight matrix.
-
-            See Also
-            --------
-
-            examples
-            --------
-            from ITMO_FS.filters.sparse import MCFS
-            from sklearn.datasets import make_classification
-            import numpy as np
-
-            dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-            data, target = np.array(dataset[0]), np.array(dataset[1])
-            model = MCFS(d=5, k=2, scheme='heat')
-            weights = model.run(data, target)
-            print(model.feature_ranking(weights))
-
+            None
         """
-        n_samples, n_features = X.shape
+
+        if self.scheme not in ['0-1', 'heat', 'dot']:
+            raise KeyError('scheme should be either 0-1, heat or dot; %r passed' % self.scheme)
+        if self.scheme == '0-1':
+            scheme = self.__scheme_01
+        elif self.scheme == 'heat':
+            scheme = self.__scheme_heat
+        else:
+            scheme = self.__scheme_dot
+
+        if self.n_features > self.n_features_:
+            raise ValueError("Cannot select %d features with n_features = %d" % (self.n_features, self.n_features_))
+
+        n_samples = X.shape[0]
+
+        if self.k > n_samples:
+            raise ValueError("Cannot find %d clusters with n_samples = %d" % (self.k, n_samples))
+
+        if self.p >= n_samples:
+            raise ValueError("Cannot select %d nearest neighbors with n_samples = %d" % (self.p, n_samples))
+
         graph = NearestNeighbors(n_neighbors=self.p + 1, algorithm='ball_tree').fit(X).kneighbors_graph(X).toarray()
         graph = graph + graph.T
 
         indices = [[(i, j) for j in range(n_samples)] for i in range(n_samples)]
-        func = np.vectorize(lambda xy: graph[xy[0]][xy[1]] * self.scheme(X[xy[0]], X[xy[1]]), signature='(1)->()')
+        func = np.vectorize(lambda xy: graph[xy[0]][xy[1]] * scheme(X[xy[0]], X[xy[1]]), signature='(1)->()')
         W = func(indices)
 
         D = np.diag(W.sum(axis=0))
         L = D - W
         eigvals, Y = eigh(type=1, a=L, b=D, eigvals=(0, self.k - 1))
 
-        weights = np.zeros((n_features, self.k))
+        weights = np.zeros((self.n_features_, self.k))
         for i in range(self.k):
-            clf = Lars(n_nonzero_coefs=self.d)
+            clf = Lars(n_nonzero_coefs=self.n_features)
             clf.fit(X, Y[:, i])
             weights[:, i] = clf.coef_
 
-        return weights
-
-    def feature_ranking(self, W):
-        """
-            Calculate the MCFS score for a feature weight matrix.
-
-            Parameters
-            ----------
-            W : array-like, shape (n_features, k)
-                Feature weight matrix.
-
-            Returns
-            -------
-            indices : array-like, shape (d)
-                Indices of d selected features.
-        """
-        mcfs_score = W.max(axis=1)
+        mcfs_score = weights.max(axis=1)
         ranking = np.argsort(mcfs_score)[::-1]
-        return ranking[:self.d]
+        self.selected_features_ = ranking[:self.n_features]

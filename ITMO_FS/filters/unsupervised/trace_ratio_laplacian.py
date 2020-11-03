@@ -1,17 +1,18 @@
 import numpy as np
 from sklearn.metrics.pairwise import pairwise_distances
 from scipy.sparse import *
+from ...utils import BaseTransformer
 
 
 # TODO requests changes for MultivariateFilter to be used there
-class TraceRatioLaplacian(object):
+class TraceRatioLaplacian(BaseTransformer):
     """
         Creates TraceRatio(similarity based) feature selection filter
         performed in unsupervised way, i.e laplacian version
 
         Parameters
         ----------
-        n_selected_features : int
+        n_features : int
             Amount of features to filter
         k : int
             number of neighbours to use for knn
@@ -31,17 +32,17 @@ class TraceRatioLaplacian(object):
         >>> x, y = make_classification(1000, 100, n_informative = 10, \
 n_redundant = 30, n_repeated = 10, shuffle = False)
         >>> tracer = TraceRatioLaplacian(10)
-        >>> print(tracer.run(x, y)[0])
+        >>> tracer.fit_transform(x, y)
 
 
     """
 
-    def __init__(self, n_selected_features, k=5, t=1):
-        self.n_selected_features = n_selected_features
+    def __init__(self, n_features, k=5, t=1):
+        self.n_features = n_features
         self.k = k
         self.t = t
 
-    def run(self, X, y):
+    def _fit(self, X, y):
         """
             Fits filter
 
@@ -54,18 +55,14 @@ n_redundant = 30, n_repeated = 10, shuffle = False)
 
             Returns
             ----------
-            feature_indices : numpy array
-                array of feature indices in X
-
-            See Also
-            --------
-
-            Examples
-            --------
-
+            None
         """
 
         n_samples = X.shape[0]
+
+        if self.k >= n_samples:
+            raise ValueError("Cannot select %d nearest neighbors with n_samples = %d" % (self.k, n_samples))
+
         Distances = pairwise_distances(X)
         Distances **= 2
         Distances_NN = np.sort(Distances, axis=1)[:, 0:self.k + 1]
@@ -93,12 +90,14 @@ n_redundant = 30, n_repeated = 10, shuffle = False)
         e = np.absolute(np.diag(E))
         b = np.absolute(np.diag(B))
         b[b == 0] = 1e-14
-        features_indices = np.argsort(np.divide(b, e))[::-1][0:self.n_selected_features]
-        lam = np.sum(b[features_indices]) / np.sum(e[features_indices])
+        self.selected_features_ = np.argsort(np.divide(b, e))[::-1][0:self.n_features]
+        lam = np.sum(b[self.selected_features_]) / np.sum(e[self.selected_features_])
         prev_lam = 0
         while (lam - prev_lam >= 1e-3):
             score = b - lam * e
-            features_indices = np.argsort(score)[::-1][0:self.n_selected_features]
+            self.selected_feaatures_ = np.argsort(score)[::-1][0:self.n_features]
             prev_lam = lam
-            lam = np.sum(b[features_indices]) / np.sum(e[features_indices])
-        return features_indices, score, lam
+            lam = np.sum(b[self.selected_features_]) / np.sum(e[self.selected_features_])
+        self.score_ = score
+        self.lam_ = lam
+        #return features_indices, score, lam

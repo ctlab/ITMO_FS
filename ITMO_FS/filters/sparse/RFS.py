@@ -1,21 +1,21 @@
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
-from ...utils import l21_norm, matrix_norm
+from ...utils import l21_norm, matrix_norm, BaseTransformer
 
 
-class RFS(object):
+class RFS(BaseTransformer):
     """
         Performs the Robust Feature Selection via Joint L2,1-Norms Minimization algorithm.
 
         Parameters
         ----------
-        p : int
+        n_features : int
             Number of features to select.
-        gamma : float, optional
+        gamma : float
             Regularization parameter.
-        max_iterations : int, optional
+        max_iterations : int
             Maximum amount of iterations to perform.
-        epsilon : positive float, optional
+        epsilon : positive float
             Specifies the needed residual between the target functions from consecutive iterations. If the residual
             is smaller than epsilon, the algorithm is considered to have converged.
 
@@ -33,18 +33,16 @@ class RFS(object):
         >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
         >>> data, target = np.array(dataset[0]), np.array(dataset[1])
         >>> model = RFS(gamma=15, epsilon=1e-12)
-        >>> print(model.run(data, target))
+        >>> model.fit_transform(data, target)
     """
 
-    def __init__(self, p, gamma=1, max_iterations=1000, epsilon=1e-5):
-        self.p = p
+    def __init__(self, n_features, gamma=1, max_iterations=1000, epsilon=1e-5):
+        self.n_features = n_features
         self.gamma = gamma
         self.max_iterations = max_iterations
-        if epsilon < 0:
-            raise ValueError("Epsilon should be positive, %d passed" % epsilon)
         self.epsilon = epsilon
 
-    def run(self, X, y):
+    def _fit(self, X, y):
         """
             Fits the algorithm.
 
@@ -57,25 +55,23 @@ class RFS(object):
 
             Returns
             ----------
-            W : array-like, shape (n_features, n_classes)
-                Feature weight matrix.
-
-            See Also
-            --------
-
-            Examples
-            --------
-
+            None
         """
+
+        if self.epsilon < 0:
+            raise ValueError("Epsilon should be positive, %d passed" % self.epsilon)
+
+        if self.n_features > self.n_features_:
+            raise ValueError("Cannot select %d features with n_features = %d" % (self.n_features, self.n_features_))
 
         if len(y.shape) == 2:
             Y = y
         else:
             Y = OneHotEncoder().fit_transform(y.reshape(-1, 1)).toarray()
 
-        n_samples, n_features = X.shape
+        n_samples = X.shape[0]
         A = np.append(X, self.gamma * np.eye(n_samples), axis=1)
-        D = np.eye(n_samples + n_features)
+        D = np.eye(n_samples + self.n_features_)
 
         previous_target = 0
         for step in range(self.max_iterations):
@@ -86,27 +82,11 @@ class RFS(object):
             diag[diag < 1e-10] = 1e-10  # prevents division by zero
             D = np.diag(1 / diag)
 
-            target = l21_norm(X.dot(U[:n_features]) - Y) + self.gamma * l21_norm(U[:n_features])
+            target = l21_norm(X.dot(U[:self.n_features_]) - Y) + self.gamma * l21_norm(U[:self.n_features_])
             if step > 0 and abs(target - previous_target) < self.epsilon:
                 break
             previous_target = target
 
-        return U[:n_features]
-
-    def feature_ranking(self, W):
-        """
-            Calculate the RFS score for a feature weight matrix.
-
-            Parameters
-            ----------
-            W : array-like, shape (n_features, c)
-                Feature weight matrix.
-
-            Returns
-            -------
-            indices : array-like, shape(p)
-                Indices of p selected features.
-        """
-        ndfs_score = matrix_norm(W)
-        ranking = np.argsort(ndfs_score)[::-1]
-        return ranking[:self.p]
+        rfs_score = matrix_norm(U[:self.n_features_])
+        ranking = np.argsort(rfs_score)[::-1]
+        self.selected_features_ = ranking[:self.n_features]
