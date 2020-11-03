@@ -65,7 +65,6 @@ class MOS(BaseTransformer):
         self.weight_func = weight_func
         self.loss = loss
         self.seed = seed
-        rnd.seed = seed
         self.l1_ratio = l1_ratio
         self.threshold = threshold
         self.epochs = epochs
@@ -79,7 +78,7 @@ class MOS(BaseTransformer):
 
             Parameters
             ----------
-            X : array-like, shape (n_samples,n_features)
+            X : array-like, shape (n_samples, n_features)
                 The input samples.
             y : array-like, shape (n_samples)
                 The classes for the samples.
@@ -98,6 +97,7 @@ class MOS(BaseTransformer):
             except ValueError as e:
                 print('Couldn\'t perform SMOTE because n_neighbors is bigger than amount of instances in one of the classes.')
                 raise(e)
+
         min_rvalue = 1
         min_b = []
         model = clone(self.model)
