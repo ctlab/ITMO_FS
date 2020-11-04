@@ -38,18 +38,6 @@ class MyTestCase(unittest.TestCase):
 
         weights = [0.5, 0.5, 0.5, 0.5]
         ensemble.transform(data, select_k_best(100), weights=weights)
-        features = {}
-        for f, w in zip(filters, weights):
-
-            f.fit(data, target)
-            for k, v in f.feature_scores.items():
-                if features.get(k) is int:
-                    features[k] += v * w
-                else:
-                    features[k] = v * w
-
-        d = [i for i in select_k_best(100)(features)]
-        self.assertEqual(d, ensemble.selected_features)
 
 
 if __name__ == '__main__':

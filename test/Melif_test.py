@@ -23,7 +23,7 @@ class MyTestCase(unittest.TestCase):
     estimator = SVC()
     ensemble = WeightBased(filters)
 
-    melif = Melif(ensemble, f1_score, verbose=True)
+    melif = Melif(ensemble, f1_score, verbose=False)
 
     def test_wide(self):
         data, target = self.wide_classification[0], self.wide_classification[1]

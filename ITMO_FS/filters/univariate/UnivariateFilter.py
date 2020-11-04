@@ -38,7 +38,6 @@ class UnivariateFilter(BaseEstimator, TransformerMixin, DataChecker):  # TODO AD
 n_repeated = 10, shuffle = False)
         >>> ufilter = UnivariateFilter(f_ratio_measure, select_k_best(10))
         >>> ufilter.fit(x, y)
-        >>> print(ufilter.selected_features)
     """
 
     def __init__(self, measure, cutting_rule=("Best by percentage", 1.0)):
