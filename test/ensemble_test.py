@@ -8,6 +8,7 @@ from sklearn.metrics import f1_score
 from sklearn.model_selection import KFold
 from sklearn.svm import SVC
 
+from ITMO_FS.ensembles.measure_based import *
 from ITMO_FS.ensembles.ranking_based import *
 from ITMO_FS.filters.univariate import *
 
@@ -26,10 +27,23 @@ class MyTestCase(unittest.TestCase):
                    pearson_corr]
         ensemble = Mixed(filters)
         ensemble.fit(data, target)
-        ensemble.transform(data, 100)
         ensemble.transform(data, 100, borda_fusion)
         d = [{'f' + str(i): i for i in range(100)}.items()] * 5
         self.assertEqual(borda_fusion(d, 100), ['f' + str(i) for i in reversed(range(100))])
+        ensemble.transform(data, 100)
+        self.assertEqual(borda_fusion(d, 100), ['f' + str(i) for i in reversed(range(100))])
+
+    def test_weight_based_ensemble(self):
+        data, target = self.wide_classification[0], self.wide_classification[1]
+        filters = [UnivariateFilter(gini_index),
+                   UnivariateFilter(fechner_corr),
+                   UnivariateFilter(spearman_corr),
+                   UnivariateFilter(pearson_corr)]
+        ensemble = WeightBased(filters)
+        ensemble.fit(data, target)
+
+        weights = [0.5, 0.5, 0.5, 0.5]
+        ensemble.transform(data, select_k_best(100), weights=weights)
 
     def test_benching_ensembles(self):
         datasets = [make_classification(n_samples=2000, n_features=20 * i, n_informative=i, n_redundant=5 * i) for i in

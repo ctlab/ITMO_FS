@@ -38,12 +38,21 @@ class UnivariateFilter(BaseEstimator, TransformerMixin, DataChecker):  # TODO AD
 n_repeated = 10, shuffle = False)
         >>> ufilter = UnivariateFilter(f_ratio_measure, select_k_best(10))
         >>> ufilter.fit(x, y)
-        >>> print(ufilter.selected_features)
     """
 
-    def __init__(self, measure, cutting_rule=("Best by percentage", 0.2)):
-        self.measure = measure
-        self.cutting_rule = cutting_rule
+
+    def __init__(self, measure, cutting_rule=("Best by percentage",  0.2)):
+        # TODO Check measure and cutting_rule
+        super().__init__()
+        if type(measure) is str:
+            try:
+                self.measure = GLOB_MEASURE[measure]
+            except KeyError:
+                raise KeyError("No %r measure yet" % measure)
+        elif hasattr(measure, '__call__'):
+            self.measure = measure
+        else:
+            raise KeyError("%r isn't a measure function or string" % measure)
 
     def __apply_cr(self):
         if type(self.cutting_rule) is tuple:
@@ -168,6 +177,6 @@ n_repeated = 10, shuffle = False)
         else:
             return X[self.selected_features]
 
-    def __repr__(self):
+    def __repr__(self, **kwargs):
         return "Univariate filter with measure {} and cutting rule {}".format(self.measure.__name__,
                                                                               self.cutting_rule.__name__)

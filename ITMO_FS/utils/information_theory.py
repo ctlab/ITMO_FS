@@ -1,27 +1,15 @@
-from math import fsum, log
-from collections import Counter, defaultdict
+from collections import Counter
+from itertools import groupby
+from math import log, fsum
+from operator import itemgetter
 
 import numpy as np
 
 
-def builder_dict():
-    return defaultdict(int)
-
 def conditional_entropy(x_j, y):
     # H(Y|X)
-    count_x = defaultdict(int)
-    dict_y_by_x = defaultdict(builder_dict)
-    for i in range(len(y)):
-        x_val = x_j[i]
-        y_val = y[i]
-        count_x[x_val] += 1
-        dict_y_by_x[x_val][y_val] += 1
-    entropy = 0.0
-    for x_key in count_x.keys():
-        cur_dict = dict_y_by_x[x_key]
-        part_entropy = sum(map(lambda num_y: elog(num_y / count_x[x_key]), cur_dict.values()))
-        entropy += count_x[x_key] / len(x_j) * part_entropy
-    return -entropy
+    buf = [[e[1] for e in g] for _, g in groupby(sorted(zip(x_j, y)), itemgetter(0))]
+    return fsum(entropy(group) * len(group) for group in buf) / len(x_j)
 
 
 def matrix_mutual_information(x, y):
