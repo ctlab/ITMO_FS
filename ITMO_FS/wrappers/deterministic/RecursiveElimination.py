@@ -82,9 +82,9 @@ class RecursiveElimination:
             if coefs.ndim > 1:
                 coefs = coefs.sum(axis=0)
 
-            least_important = self.__features__[np.argmin(coefs)]
+            least_important = np.argmin(coefs)
 
-            self.__features__.remove(least_important)
+            self.__features__ = np.delete(self.__features__, least_important)
 
     def predict(self, X):
         self.__estimator__.predict(X[:, self.__features__])
