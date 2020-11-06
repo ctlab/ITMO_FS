@@ -273,15 +273,34 @@ class TestCases(unittest.TestCase):
         assert check_estimator(univ_filter)
 
     def test_qpfs_restrictions(self):
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, GLOB_CR['Best by value'](0.5))
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, GLOB_CR['Worst by value'](0.5))
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, GLOB_CR['Worst by percentage'](0.5))
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, GLOB_CR['Best by percentage'](0.5))
+        iris_dataset = load_iris()
+        X = iris_dataset.data
+        y = iris_dataset.target
+        X = X.astype(int)
 
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, ('Worst by value', 0.5))
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, ('Best by value', 0.5))
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, ('Worst by percentage', 0.2))
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, ('Best by percentage', 0.2))
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Best by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
 
         UnivariateFilter(qpfs_filter, GLOB_CR['K best'](2))
         UnivariateFilter(qpfs_filter, GLOB_CR['K worst'](2))

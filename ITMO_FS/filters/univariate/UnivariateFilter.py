@@ -40,7 +40,8 @@ n_repeated = 10, shuffle = False)
         >>> ufilter.fit(x, y)
     """
 
-    def __init__(self, measure, cutting_rule=("Best by percentage", 1.0)):
+
+    def __init__(self, measure, cutting_rule=("Best by percentage",  0.2)):
         # TODO Check measure and cutting_rule
         super().__init__()
         if type(measure) is str:
@@ -53,19 +54,31 @@ n_repeated = 10, shuffle = False)
         else:
             raise KeyError("%r isn't a measure function or string" % measure)
 
-        if type(cutting_rule) is tuple:
-            cutting_rule_name = cutting_rule[0]
-            cutting_rule_value = cutting_rule[1]
+    def __apply_cr(self):
+        if type(self.cutting_rule) is tuple:
+            cutting_rule_name = self.cutting_rule[0]
+            cutting_rule_value = self.cutting_rule[1]
             try:
                 self.cutting_rule = GLOB_CR[cutting_rule_name](cutting_rule_value)
             except KeyError:
                 raise KeyError("No %r cutting rule yet" % cutting_rule_name)
-        elif hasattr(cutting_rule, '__call__'):
-            self.cutting_rule = cutting_rule
+        elif hasattr(self.cutting_rule, '__call__'):
+            self.cutting_rule = self.cutting_rule
         else:
-            raise KeyError("%r isn't a cutting rule function or string" % cutting_rule)
+            raise KeyError("%r isn't a cutting rule function or string" % self.cutting_rule)
 
         check_restrictions(self.measure.__name__, self.cutting_rule.__name__)
+
+    def __apply_ms(self):
+        if type(self.measure) is str:
+            try:
+                self.measure = GLOB_MEASURE[self.measure]
+            except KeyError:
+                raise KeyError("No %r measure yet" % self.measure)
+        elif hasattr(self.measure, '__call__'):
+            self.measure = self.measure
+        else:
+            raise KeyError("%r isn't a measure function or string" % self.measure)
 
     def get_scores(self, X, y, feature_names):
         """
@@ -85,6 +98,7 @@ n_repeated = 10, shuffle = False)
             dictionary of format: key - feature_names, values - feature scores
 
         """
+        self.__apply_ms()
         return dict(zip(feature_names, self.measure(X, y)))
 
     def fit_transform(self, X, y=None, feature_names=None, store_scores=False, **fit_params):
@@ -132,6 +146,10 @@ n_repeated = 10, shuffle = False)
             ------
             None
         """
+
+        self.__apply_ms()
+        self.__apply_cr()
+
         X, y, feature_names = self._check_input(X, y, feature_names)
         features = generate_features(X, feature_names)
         self.feature_names = dict(zip(features, feature_names))
