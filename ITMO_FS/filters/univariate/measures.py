@@ -20,6 +20,7 @@ def _wrapped_partial(func, *args, **kwargs):
 
 
 def fit_criterion_measure(X, y):
+    ##todo comments
     x = np.asarray(X)  # Converting input data to numpy array
     y = np.asarray(y.reshape((-1,)))
     if len(x.shape) == 2:
@@ -98,6 +99,7 @@ def f_ratio_measure(X, y):
     >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = f_ratio_measure(X, y)
     >>> print(scores)
+    [ 0.96        0.37333333  0.5         0.1725     13.26      ]
     """
     return np.apply_along_axis(__calculate_F_ratio, 0, X, y)
 
@@ -137,6 +139,7 @@ def gini_index(X, y):
     >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = gini_index(X, y)
     >>> print(scores)
+    [0.05555556 0.44444444 0.05555556 0.16666667 0.62962963]
     """
 
     if X.shape[0] < 2:
@@ -178,6 +181,7 @@ def su_measure(X, y):
     >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = su_measure(X, y)
     >>> print(scores)
+    [0.82173546 0.67908587 0.79187567 0.73717549 0.86172942]
     """
     entropy_y = entropy(y)
     f_ratios = np.empty(X.shape[1])
@@ -189,6 +193,14 @@ def su_measure(X, y):
 
 
 # TODO CONCORDATION COEF
+
+def _kendall_corr(X, y):
+    k_corr = 0.0
+    for i in range(len(X)):
+        for j in range(i + 1, len(X)):
+            k_corr += np.sign(X[i] - X[j]) * np.sign(y[i] - y[j])
+    return k_corr
+
 
 def kendall_corr(X, y):
     """
@@ -217,22 +229,17 @@ def kendall_corr(X, y):
     >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = kendall_corr(X, y)
     >>> print(scores)
+    [-0.1  0.2 -0.4 -0.2  0.2]
     """
 
     if len(X.shape) == 1:
-        k_corr = 0.0
-        for i in range(len(X)):
-            for j in range(i + 1, len(X)):
-                k_corr += np.sign(X[i] - X[j]) * np.sign(y[i] - y[j])
+        k_corr = _kendall_corr(X, y)
         return float(2 * k_corr) / (len(X) * (len(X) - 1))
     else:
         res = []
         for var in range(X.shape[1]):
             x = X[:, var]
-            k_corr = 0.0
-            for i in range(len(x)):
-                for j in range(i + 1, len(x)):
-                    k_corr += np.sign(x[i] - x[j]) * np.sign(y[i] - y[j])
+            k_corr = _kendall_corr(x, y)
             k_corr = float(2 * k_corr) / (len(x) * (len(x) - 1))
             res.append(k_corr)
         return np.array(res)
@@ -265,6 +272,7 @@ def fechner_corr(X, y):
     >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = fechner_corr(X, y)
     >>> print(scores)
+    [-0.2  0.2 -0.5 -0.2 -0.2]
     """
 
     if len(X.shape) == 1:
@@ -358,7 +366,7 @@ def reliefF_measure(X, y, k_neighbors=1):
     >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = reliefF_measure(X, y)
     >>> print(scores)
-
+    [-0.13333333 -0.41666667  0.17916667 -0.275       0.46666667]
     """
     f_ratios = np.zeros(X.shape[1])
     classes, counts = np.unique(y, return_counts=True)
@@ -458,6 +466,7 @@ def chi2_measure(X, y):
     https://en.wikipedia.org/wiki/Chi-squared_test
 
     Examples
+    ##TODO examples
     --------
     """
 
@@ -662,13 +671,11 @@ def laplacian_score(X, y, k_neighbors=5, t=1, metric=np.linalg.norm, **kwargs):
     --------
     >>> import sklearn.datasets as datasets
     >>> from ITMO_FS.filters.univariate import laplacian_score
-    >>> data = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
-    >>> X = np.array(data[0])
-    >>> y = np.array(data[1])
+    >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+    >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
     >>> scores = laplacian_score(X, y)
-    >>> features = sorted(range(len(scores)), key = lambda k: scores[k])
-    >>> print(features)
-
+    >>> scores
+    array([1.98983619, 1.22248371,        nan, 0.79710221, 1.90648048])
     """
     n, m = X.shape
     k_neighbors = min(k_neighbors, n - 1)
@@ -727,7 +734,7 @@ def information_gain(X, y):
     >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
     >>> scores = information_gain(X, y)
     >>> print(scores)
-
+    [1.33217904 1.33217904 0.         0.67301167 1.60943791]
     """
     entropy_x = entropy(y)
     cond_entropy = np.apply_along_axis(conditional_entropy, 0, X, y)
@@ -766,10 +773,10 @@ def anova(X, y):
     --------
     >>> import sklearn.datasets as datasets
     >>> from ITMO_FS.filters.univariate import anova
-    >>> X, y = datasets.make_classification(n_samples=200, n_features=7, shuffle=False)
+    >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+    >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
     >>> scores = anova(X, y)
     >>> print(scores)
-
     """
     split_by_class = [X[y == k] for k in np.unique(y)]
     num_classes = len(np.unique(y))
@@ -821,6 +828,7 @@ def modified_t_score(X, y):
     >>> y = np.array([1, 1, 2, 1, 2])
     >>> scores = modified_t_score(X, y)
     >>> print(scores)
+    [1.68968099 0.12148022 0.39653932 0.17682997 2.04387142]
 
     """
 
@@ -829,32 +837,35 @@ def modified_t_score(X, y):
     size_class0 = y[y == classes[0]].size
     size_class1 = y[y == classes[1]].size
 
-    mean_class0 = np.mean(X[y == classes[0]], axis = 0)
+    mean_class0 = np.mean(X[y == classes[0]], axis=0)
     mean_class0 = np.nan_to_num(mean_class0)
-    mean_class1 = np.mean(X[y == classes[1]], axis = 0)
+    mean_class1 = np.mean(X[y == classes[1]], axis=0)
     mean_class1 = np.nan_to_num(mean_class1)
 
-    std_class0 = np.std(X[y == classes[0]], axis = 0)
+    std_class0 = np.std(X[y == classes[0]], axis=0)
     std_class0 = np.nan_to_num(std_class0)
-    std_class1 = np.std(X[y == classes[1]], axis = 0)
+    std_class1 = np.std(X[y == classes[1]], axis=0)
     std_class1 = np.nan_to_num(std_class1)
 
-    corr_with_y = np.apply_along_axis(lambda feature : abs(np.corrcoef(feature,y)[0][1]), 0, X)
+    corr_with_y = np.apply_along_axis(lambda feature: abs(np.corrcoef(feature, y)[0][1]), 0, X)
     corr_with_y = np.nan_to_num(corr_with_y)
 
-    corr_with_others = abs(np.corrcoef(X, rowvar = False))
+    corr_with_others = abs(np.corrcoef(X, rowvar=False))
     corr_with_others = np.nan_to_num(corr_with_others)
 
-    mean_of_corr_with_others = (corr_with_others.sum(axis = 1) - corr_with_others.diagonal())/(len(corr_with_others) - 1)
+    mean_of_corr_with_others = (corr_with_others.sum(axis=1) - corr_with_others.diagonal()) / (
+            len(corr_with_others) - 1)
 
     t_score_numerator = abs(mean_class0 - mean_class1)
-    t_score_denominator = np.sqrt((size_class0 * np.square(std_class0) + size_class1*np.square(std_class1))/(size_class0 + size_class1))
-    modificator = corr_with_y/mean_of_corr_with_others
+    t_score_denominator = np.sqrt(
+        (size_class0 * np.square(std_class0) + size_class1 * np.square(std_class1)) / (size_class0 + size_class1))
+    modificator = corr_with_y / mean_of_corr_with_others
 
     modified_t_score = t_score_numerator / t_score_denominator * modificator
     modified_t_score = np.nan_to_num(modified_t_score)
-    
+
     return modified_t_score
+
 
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
@@ -866,6 +877,8 @@ GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "KendallCorr": kendall_corr,
                 "ReliefF": reliefF_measure,
                 "Chi2": chi2_measure,
+                "Anova": anova,
+                "LaplacianScore": laplacian_score,
                 "InformationGain": information_gain,
                 "ModifiedTScore": modified_t_score}
 

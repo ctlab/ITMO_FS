@@ -27,6 +27,8 @@ class MyTestCase(unittest.TestCase):
 
     melif = Melif(estimator, select_k_best(1500), ensemble, scorer=f1_score, verbose=True)
 
+
+
     def test_wide(self):
         data, target = self.wide_classification[0], self.wide_classification[1]
 

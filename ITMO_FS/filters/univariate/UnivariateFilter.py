@@ -44,6 +44,33 @@ n_repeated = 10, shuffle = False)
         self.measure = measure
         self.cutting_rule = cutting_rule
 
+    def __apply_cr(self):
+        if type(self.cutting_rule) is tuple:
+            cutting_rule_name = self.cutting_rule[0]
+            cutting_rule_value = self.cutting_rule[1]
+            try:
+                cutting_rule = GLOB_CR[cutting_rule_name](cutting_rule_value)
+            except KeyError:
+                raise KeyError("No %r cutting rule yet" % cutting_rule_name)
+        elif hasattr(self.cutting_rule, '__call__'):
+            cutting_rule = self.cutting_rule
+        else:
+            raise KeyError("%r isn't a cutting rule function or string" % self.cutting_rule)
+        return cutting_rule
+
+    def __apply_ms(self):
+        if type(self.measure) is str:
+            try:
+                measure = GLOB_MEASURE[self.measure]
+            except KeyError:
+                raise KeyError("No %r measure yet" % self.measure)
+        elif hasattr(self.measure, '__call__'):
+            measure = self.measure
+        else:
+            raise KeyError("%r isn't a measure function or string" % self.measure)
+        return measure
+
+
     def _fit(self, X, y, store_scores=True):
         """
             Fits the filter.
@@ -63,27 +90,8 @@ n_repeated = 10, shuffle = False)
             None
         """
 
-        if type(self.measure) is str:
-            try:
-                measure = GLOB_MEASURE[self.measure]
-            except KeyError:
-                raise KeyError("No %r measure yet" % self.measure)
-        elif hasattr(self.measure, '__call__'):
-            measure = self.measure
-        else:
-            raise KeyError("%r isn't a measure function or string" % self.measure)
-
-        if type(self.cutting_rule) is tuple:
-            cutting_rule_name = self.cutting_rule[0]
-            cutting_rule_value = self.cutting_rule[1]
-            try:
-                cutting_rule = GLOB_CR[cutting_rule_name](cutting_rule_value)
-            except KeyError:
-                raise KeyError("No %r cutting rule yet" % cutting_rule_name)
-        elif hasattr(self.cutting_rule, '__call__'):
-            cutting_rule = self.cutting_rule
-        else:
-            raise KeyError("%r isn't a cutting rule function or string" % self.cutting_rule)
+        measure = self.__apply_ms()
+        cutting_rule = self.__apply_cr()
 
         check_restrictions(measure.__name__, cutting_rule.__name__)
 

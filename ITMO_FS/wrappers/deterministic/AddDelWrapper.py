@@ -205,6 +205,7 @@ class AddDelWrapper(object):
         if return_feature_names:
             features = list(columns[features])
 
+        self.__features__ = features
         self._estimator.fit(X[:, features], y)
 
     def predict(self, X):
