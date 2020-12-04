@@ -1,7 +1,7 @@
 import unittest
+from math import sqrt
 
 import pandas as pd
-from math import sqrt
 from scipy import stats
 from sklearn.datasets import load_iris
 from sklearn.datasets import make_classification, make_regression
@@ -148,12 +148,13 @@ class TestCases(unittest.TestCase):
         scores = modified_t_score(X, y)
 
         # true_scores was calculated by hand
-        true_numerator = np.array([5/2,1/2,3/2,1/6])
-        true_denominator = np.sqrt(np.array([1/2,1/2,1/2,7/30]))
-        true_modificator = np.array([(sqrt(3)/2)              / ((0              + 5/(2*sqrt(13)) + 0               ) / 3), 
-                                     (sqrt(3)/(2*sqrt(7)))    / ((0              + 3/(2*sqrt(91)) + 4/sqrt(21)      ) / 3),
-                                     (3*sqrt(3)/(2*sqrt(13))) / ((5/(2*sqrt(13)) + 3/(2*sqrt(91)) + sqrt(3)/sqrt(13)) / 3),
-                                     (1/6)                    / ((0              + 4/sqrt(21)     + sqrt(3)/sqrt(13)) / 3)])
+        true_numerator = np.array([5 / 2, 1 / 2, 3 / 2, 1 / 6])
+        true_denominator = np.sqrt(np.array([1 / 2, 1 / 2, 1 / 2, 7 / 30]))
+        true_modificator = np.array([(sqrt(3) / 2) / ((0 + 5 / (2 * sqrt(13)) + 0) / 3),
+                                     (sqrt(3) / (2 * sqrt(7))) / ((0 + 3 / (2 * sqrt(91)) + 4 / sqrt(21)) / 3),
+                                     (3 * sqrt(3) / (2 * sqrt(13))) / (
+                                                 (5 / (2 * sqrt(13)) + 3 / (2 * sqrt(91)) + sqrt(3) / sqrt(13)) / 3),
+                                     (1 / 6) / ((0 + 4 / sqrt(21) + sqrt(3) / sqrt(13)) / 3)])
         true_scores = true_numerator / true_denominator * true_modificator
 
         np.testing.assert_allclose(scores, true_scores)
@@ -273,15 +274,34 @@ class TestCases(unittest.TestCase):
         assert check_estimator(univ_filter)
 
     def test_qpfs_restrictions(self):
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, GLOB_CR['Best by value'](0.5))
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, GLOB_CR['Worst by value'](0.5))
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, GLOB_CR['Worst by percentage'](0.5))
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, GLOB_CR['Best by percentage'](0.5))
+        iris_dataset = load_iris()
+        X = iris_dataset.data
+        y = iris_dataset.target
+        X = X.astype(int)
 
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, ('Worst by value', 0.5))
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, ('Best by value', 0.5))
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, ('Worst by percentage', 0.2))
-        self.assertRaises(KeyError, UnivariateFilter, qpfs_filter, ('Best by percentage', 0.2))
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Best by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
+
+        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
+        self.assertRaises(KeyError, univ_filter.fit, X, y)
 
         UnivariateFilter(qpfs_filter, GLOB_CR['K best'](2))
         UnivariateFilter(qpfs_filter, GLOB_CR['K worst'](2))

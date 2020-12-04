@@ -1,6 +1,12 @@
+import time
 import unittest
+import numpy as np
+from collections import defaultdict
 
 from sklearn.datasets import make_classification, make_regression
+from sklearn.metrics import f1_score
+from sklearn.model_selection import KFold
+from sklearn.svm import SVC
 
 from ITMO_FS.ensembles.measure_based import *
 from ITMO_FS.ensembles.ranking_based import *
@@ -38,19 +44,80 @@ class MyTestCase(unittest.TestCase):
 
         weights = [0.5, 0.5, 0.5, 0.5]
         ensemble.transform(data, select_k_best(100), weights=weights)
-        features = {}
-        for f, w in zip(filters, weights):
 
-            f.fit(data, target)
-            for k, v in f.feature_scores.items():
-                if features.get(k) is int:
-                    features[k] += v * w
-                else:
-                    features[k] = v * w
+    def test_benching_ensembles(self):
+        datasets = [make_classification(n_samples=2000, n_features=20 * i, n_informative=i, n_redundant=5 * i) for i in
+                    [2, 10, 20, 50, 100, 200, 500, 1000]]
 
-        d = [i for i in select_k_best(100)(features)]
-        self.assertEqual(d, ensemble.selected_features)
+        filters = [gini_index,
+                   fechner_corr,
+                   spearman_corr,
+                   pearson_corr]
 
+        kfold = KFold(n_splits=10)
+        for dataset in datasets:
+            X, y = dataset
+            k = int(X.shape[1] * 0.1)
+
+            time_ens_start = []
+            time_ens_end = []
+
+            time_filter_start = defaultdict(list)
+            time_filter_end = defaultdict(list)
+
+            scores_ens = []
+            scores_filters = defaultdict(list)
+            scores_no_fs = []
+
+            for train_index, test_index in kfold.split(X):
+                svm = SVC()
+                svm.fit(X[train_index], y[train_index])
+                y_pred = svm.predict(X[test_index])
+                scores_no_fs.append(f1_score(y[test_index], y_pred))
+
+                time_ens_start.append(time.time())
+                ensemble = Mixed(filters)
+                ensemble.fit(X[train_index], y[train_index])
+                X_transformed = ensemble.transform(X, k, borda_fusion)
+                time_ens_end.append(time.time())
+
+                svm = SVC()
+                svm.fit(X_transformed[train_index], y[train_index])
+                y_pred = svm.predict(X_transformed[test_index])
+                scores_ens.append(f1_score(y[test_index], y_pred))
+
+                for filter in filters:
+                    time_filter_start[filter.__name__].append(time.time())
+                    univ_filter = UnivariateFilter(filter, cutting_rule=("K best", k))
+                    univ_filter.fit(X[train_index], y[train_index])
+                    X_transformed = univ_filter.transform(X)
+                    time_filter_end[filter.__name__].append(time.time())
+
+                    svm = SVC()
+                    svm.fit(X_transformed[train_index], y[train_index])
+                    y_pred = svm.predict(X_transformed[test_index])
+                    scores_filters[filter.__name__].append(f1_score(y[test_index], y_pred))
+
+            print('Dataset size', X.shape)
+
+            sum_time = 0
+            for filter in filters:
+                filter_dif = np.array(time_filter_end[filter.__name__]) - np.array(time_filter_start[filter.__name__])
+                print('Filter ' + filter.__name__ + ' time', np.mean(filter_dif), np.std(filter_dif))
+                sum_time += np.mean(filter_dif)
+
+            ens_dif = np.array(time_ens_end) - np.array(time_ens_start)
+            print('Ensemble time', np.mean(ens_dif), np.std(ens_dif))
+            print('Sum of filter time', sum_time)
+
+            print('No fs score', np.mean(scores_no_fs), np.std(scores_no_fs))
+
+            for filter in filters:
+                print('Filter ' + filter.__name__ + ' time', np.mean(scores_filters[filter.__name__]),
+                      np.std(scores_filters[filter.__name__]))
+
+            print('Ensemble score', np.mean(scores_ens), np.std(scores_ens))
+            print()
 
 if __name__ == '__main__':
     unittest.main()

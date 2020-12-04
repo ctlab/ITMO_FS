@@ -1,3 +1,4 @@
+import datetime
 import unittest
 
 import pandas as pd
@@ -5,7 +6,6 @@ from sklearn.datasets import make_classification, make_regression
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-
 from ITMO_FS.ensembles import WeightBased
 from ITMO_FS.filters import *
 from ITMO_FS.hybrid.Melif import Melif
@@ -23,7 +23,7 @@ class MyTestCase(unittest.TestCase):
     estimator = SVC()
     ensemble = WeightBased(filters)
 
-    melif = Melif(ensemble, f1_score, verbose=True)
+    melif = Melif(ensemble, f1_score, verbose=False)
 
     def test_wide(self):
         data, target = self.wide_classification[0], self.wide_classification[1]
@@ -39,6 +39,32 @@ class MyTestCase(unittest.TestCase):
         self.melif.fit(train_data, train_target, self.estimator, select_k_best(1500),
                        feature_names=[str(i) + ' column' for i in data.columns])
         print(f1_score(test_target, self.melif.predict(test_data)))
+
+    def test_R(self):
+        data = pd.read_csv('C:\\Users\\SomaC\\PycharmProjects\\machinka\\mlrcheck\\boston_corrected.csv')
+        target = 'class'
+        features = data.loc[:, data.columns != 'b'].columns
+        # data[target]=data[target].apply(lambda x: 0 if x<=0 else 1)
+        ks = [int(i * 500) for i in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]]
+        print()
+        for j in ks:
+            print('|' + str(j) + '|')
+            start = datetime.datetime.now()
+            f = UnivariateFilter(pearson_corr, select_k_best(j))
+            f.fit(data[features], data[target])
+            print('|', datetime.datetime.now() - start, '|')
+            start = datetime.datetime.now()
+            f = UnivariateFilter(spearman_corr, select_k_best(j))
+            f.fit(data[features], data[target])
+            print('|', datetime.datetime.now() - start, '|')
+            # start = datetime.datetime.now()
+            # f = UnivariateFilter(chi2_measure, select_k_best(j))
+            # f.fit(data[features], data[target])
+            # print('|', datetime.datetime.now() - start, '|')
+            start = datetime.datetime.now()
+            f = UnivariateFilter(information_gain, select_k_best(j))
+            f.fit(data[features], data[target])
+            print('|', datetime.datetime.now() - start, '|')
 
 
 if __name__ == '__main__':

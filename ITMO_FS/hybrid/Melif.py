@@ -4,18 +4,22 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.utils.validation import check_X_y
 
+from ITMO_FS.ensembles import WeightBased
 from ITMO_FS.utils.data_check import *
 
 
 class Melif(object):
 
     def __init__(self, filter_ensemble, scorer=None, verbose=False):  # TODO scorer name
+        if filter_ensemble is list:
+            filter_ensemble=WeightBased(filter_ensemble)
         self.ensemble = filter_ensemble
         self.__score = scorer
         self.best_score = 0
         self.best_point = []
         self.best_f = {}
         self.verbose = verbose
+
 
     def fit(self, X, y, estimator, cutting_rule, test_size=0.3, delta=0.5, feature_names=None, points=None):
         """
