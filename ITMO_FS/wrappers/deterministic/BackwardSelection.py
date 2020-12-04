@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import numpy as np
-from sklearn.model_selection import cross_val_score
 
 from ...utils import generate_features
 
@@ -39,7 +38,7 @@ class BackwardSelection:
         self.__measure = measure
         self.selected_features = None
 
-    def fit(self, X, y, cv=3):
+    def fit(self, train_X, train_y, val_X, val_y):
         """
             Fits wrapper.
 
@@ -70,9 +69,10 @@ n_informative=4, n_redundant=0, shuffle=False)
             >>> model = BackwardSelection(LogisticRegression(), 15, 'f1_macro')
             >>> model.fit(data, target)
             >>> print(model.selected_features)
+            [ 1  2  3 10 15]
 
         """
-        self.selected_features = generate_features(X)
+        self.selected_features = generate_features(train_X)
         target_size = len(self.selected_features) - self.__n_features
 
         while len(self.selected_features) != target_size:
@@ -80,8 +80,8 @@ n_informative=4, n_redundant=0, shuffle=False)
             to_delete = 0
             for i in range(len(self.selected_features)):
                 iteration_features = np.delete(self.selected_features, i)
-                iteration_measure = cross_val_score(self.__estimator, X[:, iteration_features], y, cv=cv,
-                                                    scoring=self.__measure).mean()
+                self.__estimator.fit(train_X[:, iteration_features], train_y)
+                iteration_measure = self.__measure(self.__estimator.predict(val_X[:, iteration_features]), val_y)
                 if iteration_measure > max_measure:
                     max_measure = iteration_measure
                     to_delete = i

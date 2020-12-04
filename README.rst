@@ -1,7 +1,7 @@
 .. -*- mode: rst -*-
 
 
-.. image:: docs/logos/itmo_small_white_eng.png
+.. image:: docs/logos/logo_itmo_fs_itog_colour.jpg
   :scale: 10 %
   :target: https://en.itmo.ru/
 

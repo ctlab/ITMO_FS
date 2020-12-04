@@ -173,7 +173,7 @@ def CIFE(selected_features, free_features, X, y):
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, X.shape[1]) if i not in selected_features]
         >>> CIFE(np.array(selected_features), np.array(other_features), X, y)
-        array([2.77258872e-01, 2.22044605e-16, 2.77258872e-01])
+        array([0.27725887, 0.        , 0.27725887])
     """
     return generalizedCriteria(selected_features, free_features, X, y, 1, 1)
 
@@ -312,7 +312,7 @@ def ICAP(selected_features, free_features, X, y):
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, X.shape[1]) if i not in selected_features]
         >>> ICAP(np.array(selected_features), np.array(other_features), X, y)
-        array([2.77258872e-01, 2.22044605e-16, 2.77258872e-01])
+        array([0.27725887, 0.        , 0.27725887])
     """
     if selected_features.size == 0:
         return matrix_mutual_information(X, y)

@@ -1,7 +1,7 @@
 import unittest
+from math import sqrt
 
 import pandas as pd
-from math import sqrt
 from scipy import stats
 from sklearn.datasets import load_iris
 from sklearn.datasets import make_classification, make_regression
@@ -148,12 +148,13 @@ class TestCases(unittest.TestCase):
         scores = modified_t_score(X, y)
 
         # true_scores was calculated by hand
-        true_numerator = np.array([5/2,1/2,3/2,1/6])
-        true_denominator = np.sqrt(np.array([1/2,1/2,1/2,7/30]))
-        true_modificator = np.array([(sqrt(3)/2)              / ((0              + 5/(2*sqrt(13)) + 0               ) / 3), 
-                                     (sqrt(3)/(2*sqrt(7)))    / ((0              + 3/(2*sqrt(91)) + 4/sqrt(21)      ) / 3),
-                                     (3*sqrt(3)/(2*sqrt(13))) / ((5/(2*sqrt(13)) + 3/(2*sqrt(91)) + sqrt(3)/sqrt(13)) / 3),
-                                     (1/6)                    / ((0              + 4/sqrt(21)     + sqrt(3)/sqrt(13)) / 3)])
+        true_numerator = np.array([5 / 2, 1 / 2, 3 / 2, 1 / 6])
+        true_denominator = np.sqrt(np.array([1 / 2, 1 / 2, 1 / 2, 7 / 30]))
+        true_modificator = np.array([(sqrt(3) / 2) / ((0 + 5 / (2 * sqrt(13)) + 0) / 3),
+                                     (sqrt(3) / (2 * sqrt(7))) / ((0 + 3 / (2 * sqrt(91)) + 4 / sqrt(21)) / 3),
+                                     (3 * sqrt(3) / (2 * sqrt(13))) / (
+                                                 (5 / (2 * sqrt(13)) + 3 / (2 * sqrt(91)) + sqrt(3) / sqrt(13)) / 3),
+                                     (1 / 6) / ((0 + 4 / sqrt(21) + sqrt(3) / sqrt(13)) / 3)])
         true_scores = true_numerator / true_denominator * true_modificator
 
         np.testing.assert_allclose(scores, true_scores)
