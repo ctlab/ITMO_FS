@@ -1,34 +1,28 @@
 import numpy as np
+from sklearn.utils import check_array
+from ...utils import BaseTransformer, generate_features, apply_cr
+from ...filters.univariate.measures import GLOB_CR, GLOB_MEASURE
+from sklearn.utils.validation import check_is_fitted
 
 
-class BestSum:  ## TODO refactor , not stable
+class BestSum(BaseTransformer):  ## TODO refactor , not stable
 
     def __init__(self, models, cutting_rule):
         self.models = models
         self.cutting_rule = cutting_rule
-        self.features = None
 
-    def fit(self, x, y, feature_names=None):
-        try:
-            feature_names = x.columns
-        except AttributeError:
-            if feature_names is None:
-                feature_names = list(range(x.shape[1]))
+    def _fit(self, X, y):
+        feature_names = generate_features(X)
         self.features = dict(zip(feature_names, np.zeros(len(feature_names))))
         for model in self.models:
-            model.fit(x, y)
-            for i, k in enumerate(model.selected_features):
-                self.features[k] += (model.best_score - self.features[k]) / (i + 1)
+            model.fit(X, y)
+            for i, k in enumerate(model.selected_features_):
+                self.features[k] += (model.best_score_ - self.features[k]) / (i + 1)
+        self.selected_features_ = apply_cr(self.cutting_rule)(self.features)
 
-    def cut(self, cutting_rule=None):
-        if cutting_rule is None:
-            return self.cutting_rule(self.features)
-        return cutting_rule(self.features)
-
-    def predict(self, X):
-        new = self.cut(self.features)
-        n = len(self.models)
-        result = np.zeros((X.shape[0], n))
-        for i, model in enumerate(self.models):
-            result[:, i] = model.predict(X[:, new])
-        return np.array([1 if i else 0 for i in result.sum(axis=1) / n > 0.5])
+    #def predict(self, X):
+    #    n = len(self.models)
+    #    result = np.zeros((X.shape[0], n))
+    #    for i, model in enumerate(self.models):
+    #        result[:, i] = model.predict(X[:, self.selected_features_])
+    #    return np.array([1 if i else 0 for i in result.sum(axis=1) / n > 0.5])

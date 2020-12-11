@@ -1,7 +1,7 @@
 from numpy import ndarray
 
 from .measures import GLOB_CR, GLOB_MEASURE
-from ...utils import BaseTransformer, generate_features, check_restrictions
+from ...utils import BaseTransformer, generate_features, check_restrictions, apply_cr
 
 
 class UnivariateFilter(BaseTransformer):  # TODO ADD LOGGING
@@ -44,20 +44,6 @@ n_repeated = 10, shuffle = False)
         self.measure = measure
         self.cutting_rule = cutting_rule
 
-    def __apply_cr(self):
-        if type(self.cutting_rule) is tuple:
-            cutting_rule_name = self.cutting_rule[0]
-            cutting_rule_value = self.cutting_rule[1]
-            try:
-                cutting_rule = GLOB_CR[cutting_rule_name](cutting_rule_value)
-            except KeyError:
-                raise KeyError("No %r cutting rule yet" % cutting_rule_name)
-        elif hasattr(self.cutting_rule, '__call__'):
-            cutting_rule = self.cutting_rule
-        else:
-            raise KeyError("%r isn't a cutting rule function or string" % self.cutting_rule)
-        return cutting_rule
-
     def __apply_ms(self):
         if type(self.measure) is str:
             try:
@@ -91,7 +77,7 @@ n_repeated = 10, shuffle = False)
         """
 
         measure = self.__apply_ms()
-        cutting_rule = self.__apply_cr()
+        cutting_rule = apply_cr(self.cutting_rule)
 
         check_restrictions(measure.__name__, cutting_rule.__name__)
 
