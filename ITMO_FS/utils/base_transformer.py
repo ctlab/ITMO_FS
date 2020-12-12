@@ -3,10 +3,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 import pandas as pd
 
-class DataChecker:
-    def __init__(self):
-        pass
-
 class BaseTransformer(TransformerMixin, BaseEstimator):
     def __init__(self):
         pass
