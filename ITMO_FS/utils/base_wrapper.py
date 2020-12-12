@@ -29,7 +29,4 @@ class BaseWrapper(BaseTransformer):
             raise ValueError('Shape of input is different from what was seen'
                              'in `fit`')
 
-        if type(X) is pd.DataFrame:
-            return self._estimator.predict(X[X.columns[self.selected_features_]])
-        else:
-            return self._estimator.predict(X_[:, self.selected_features_])
+        return self._estimator.predict(X_[:, self.selected_features_])
