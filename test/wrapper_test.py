@@ -16,6 +16,7 @@ from sklearn.metrics import make_scorer
 from ITMO_FS import RecursiveElimination, BackwardSelection, AddDelWrapper, SequentialForwardSelection, \
     HillClimbingWrapper, SimulatedAnnealing, TPhMGWO
 from ITMO_FS.utils.information_theory import *
+from ITMO_FS.utils import test_scorer
 
 np.random.seed(42)
 
