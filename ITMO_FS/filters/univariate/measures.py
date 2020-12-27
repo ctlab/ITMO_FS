@@ -6,6 +6,7 @@ import numpy as np
 from scipy import sparse as sp
 from scipy.sparse import lil_matrix
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics.pairwise import euclidean_distances
 
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.information_theory import conditional_entropy
@@ -405,6 +406,68 @@ def reliefF_measure(X, y, k_neighbors=1):
     # between 0 and 1 for both discrete and continuous features.
     with np.errstate(divide='ignore', invalid="ignore"):  # todo
         return f_ratios / (np.amax(X, axis=0) - np.amin(X, axis=0))
+
+def relief_measure(X, y, m=None):
+    """
+    Counts Relief measure for each feature.
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+    m : int, optional
+        Amount of iterations to do. If not specified, n_samples iterations would be performed.
+    
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, )
+
+    See Also
+    --------
+    R.J. Urbanowicz et al. Relief-based feature selection: Introduction and review
+    Journal of Biomedical Informatics 85 (2018) 189–203
+
+    Examples
+    --------
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import reliefF_measure
+    >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    >>> y = np.array([1, 3, 2, 1, 2])
+    >>> scores = reliefF_measure(X, y)
+    >>> print(scores)
+    """
+    weights = np.zeros(X.shape[1])
+    classes, counts = np.unique(y, return_counts=True)
+    if len(classes) == 1:
+        raise ValueError('Cannot calculate relief measure with 1 class')
+
+    n_samples = X.shape[0]
+    n_features = X.shape[1]
+    if m is None:
+        m = n_samples
+
+    X_normalized = (X - np.min(X, axis=0)) / (np.max(X, axis=0) - np.min(X, axis=0))
+    dm = euclidean_distances(X_normalized, X_normalized)
+    indices = np.random.randint(n_samples, size=m)
+    for i in indices:
+        if counts[classes == y[i]][0] == 1:
+            continue
+        distances = dm[i]
+        order = np.argsort(distances)[1:]
+
+        for index in order:
+            if y[index] == y[i]:
+                weights -= np.square(X_normalized[i] - X_normalized[index])
+                break
+
+        for index in order:
+            if y[index] != y[i]:
+                weights -= np.square(X_normalized[i] - X_normalized[index])
+                break
+
+    return weights / m
 
 
 def __label_binarize(y):
@@ -880,7 +943,8 @@ GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "Anova": anova,
                 "LaplacianScore": laplacian_score,
                 "InformationGain": information_gain,
-                "ModifiedTScore": modified_t_score}
+                "ModifiedTScore": modified_t_score,
+                "Relief": relief_measure}
 
 
 def select_best_by_value(value):
