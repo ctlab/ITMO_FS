@@ -3,11 +3,13 @@ from copy import copy
 from importlib import reload
 
 import numpy as np
+from sklearn.base import clone
 from sklearn.metrics import make_scorer
 from sklearn.model_selection import cross_val_score
+from ...utils import BaseWrapper
 
 
-class AddDelWrapper(object):
+class AddDelWrapper(BaseWrapper):
     """
         Creates add-del feature wrapper
 
@@ -15,14 +17,18 @@ class AddDelWrapper(object):
         ----------
         estimator: object
             A supervised learning estimator with a fit method
-        score : callable
+        scorer : callable
             A callable function which will be used to estimate score
-        score : boolean
+        cv : int
+            Number of splits in cross-validation
+        maximize : boolean
             maximize = True if bigger values are better for score function
         seed: int
             Seed for python random
         best_score : float
             The best score of given metric on the feature combination after add-del procedure
+        silent : boolean
+            If silent=False then prints all the scores during add-del procedure
 
         See Also
         --------
@@ -48,17 +54,15 @@ class AddDelWrapper(object):
         >>> add_del.fit(X, y)
     """
 
-    def __init__(self, estimator, score, maximize=True, seed=42):
-        if not hasattr(estimator, 'fit'):
-            raise TypeError("estimator should be an estimator implementing "
-                            "'fit' method, %r was passed" % estimator)
-        self._estimator = estimator
-        self.score = score
+    def __init__(self, estimator, scorer, cv=3, maximize=True, seed=42, silent=True):
+        self.estimator = estimator
+        self.scorer = scorer
+        self.cv = cv
         self.maximize = maximize
-        rnd.seed(seed)
-        self.best_score = 0.0
+        self.seed = seed
+        self.silent = silent
 
-    def __add(self, X, y, cv=3, silent=True):
+    def __add(self, X, y, cv, silent):
 
         prev_score = 0
         scores = []
@@ -71,7 +75,7 @@ class AddDelWrapper(object):
             appended.append(feature)
 
             current_score = abs(np.mean(cross_val_score(self._estimator, X[:, appended], y,
-                                                        scoring=make_scorer(self.score,
+                                                        scoring=make_scorer(self.scorer,
                                                                             greater_is_better=self.maximize),
                                                         cv=cv)))
             scores.append(current_score)
@@ -95,10 +99,10 @@ class AddDelWrapper(object):
 
         return appended
 
-    def __del(self, X, y, features, cv=3, silent=True):
+    def __del(self, X, y, features, cv, silent):
 
         prev_score = abs(np.mean(cross_val_score(self._estimator, X[:, features], y,
-                                                 scoring=make_scorer(self.score, greater_is_better=self.maximize),
+                                                 scoring=make_scorer(self.scorer, greater_is_better=self.maximize),
                                                  cv=cv)))
         current_score = 0
         scores = [prev_score]
@@ -110,10 +114,13 @@ class AddDelWrapper(object):
 
         for feature in iter_features:
 
+            if len(features) == 1:
+                break
+
             features.remove(feature)
 
             current_score = abs(np.mean(cross_val_score(self._estimator, X[:, features], y,
-                                                        scoring=make_scorer(self.score,
+                                                        scoring=make_scorer(self.scorer,
                                                                             greater_is_better=self.maximize),
                                                         cv=cv)))
             scores.append(current_score)
@@ -143,7 +150,7 @@ class AddDelWrapper(object):
 
         return features, res_score
 
-    def fit(self, X, y, cv=3, silent=True):  ##TODO with fit predict
+    def _fit(self, X, y, silent=True):
         """
            Fits wrapper.
 
@@ -153,60 +160,28 @@ class AddDelWrapper(object):
                The training input samples.
            y : numpy array of pandas Series, shape (n_samples, )
                The target values.
-           cv=3 : int
-               Number of splits in cross-validation
-           silent=True : boolean
-               If silent=False then prints all the scores during add-del procedure
 
            Returns:
            ----------
-           features : list
-               List of feature after add-del procedure
+           None
 
-           See Also
-           --------
+        """
 
-           examples
-           --------
-           :param silent:
-           :param y:
-           :param X:
-           :param cv:
+        if not hasattr(self.estimator, 'fit'):
+            raise TypeError("estimator should be an estimator implementing "
+                            "'fit' method, %r was passed" % self._estimator)
+        self._estimator = clone(self.estimator)
+        self.best_score_ = 0.0
 
-       """
-
-        return_feature_names = False
-
-        try:
-            import pandas
-
-            if isinstance(X, pandas.DataFrame):
-                return_feature_names = True
-                columns = np.array(X.columns)
-                return_feature_names = True
-            else:
-                pandas = reload(pandas)
-        except ImportError:
-            pass
-
-        X = np.array(X)
-        y = np.array(y).ravel()
-
-        if not silent:
+        if not self.silent:
             print('add trial')
-        features = self.__add(X, y, cv, silent)
+        features = self.__add(X, y, self.cv, self.silent)
 
-        if not silent:
+        if not self.silent:
             print('del trial')
 
-        features, score = self.__del(X, y, features, cv, silent)
-        self.best_score = score
-
-        if return_feature_names:
-            features = list(columns[features])
-
-        self.__features__ = features
-        self._estimator.fit(X[:, features], y)
-
-    def predict(self, X):
-        return self._estimator.predict(X)
+        features, score = self.__del(X, y, features, self.cv, self.silent)
+        self.best_score_ = score
+        
+        self.selected_features_ = features
+        self._estimator.fit(X[:, self.selected_features_], y)

@@ -2,10 +2,10 @@ import numpy as np
 from sklearn.base import TransformerMixin
 
 from .measures import GLOB_MEASURE
-from ...utils import DataChecker, generate_features
+from ...utils import BaseTransformer, generate_features
 
 # TODO Test interface!!!!
-class MultivariateFilter(TransformerMixin, DataChecker):
+class MultivariateFilter(BaseTransformer):
     """
         Provides basic functionality for multivariate filters.
 
@@ -39,24 +39,17 @@ class MultivariateFilter(TransformerMixin, DataChecker):
         >>> data = est.transform(X)
         >>> model = MultivariateFilter('MIM', 3)
         >>> model.fit(X, y)
-        >>> model.selected_features
+        >>> model.selected_features_
         array([4, 0, 1])
     """
 
     def __init__(self, measure, n_features, beta=None, gamma=None):
-        if type(measure) is str:
-            try:
-                self.measure = GLOB_MEASURE[measure]
-            except KeyError:
-                raise KeyError("No %r measure yet" % measure)
-        else:
-            self.measure = measure
-        self.__n_features = n_features
-        self.selected_features = np.array([], dtype='int')
+        self.measure = measure
+        self.n_features = n_features
         self.beta = beta
         self.gamma = gamma
 
-    def fit(self, X, y, feature_names=None):
+    def _fit(self, X, y):
         """
             Fits the filter.
 
@@ -64,75 +57,32 @@ class MultivariateFilter(TransformerMixin, DataChecker):
             ----------
             X : array-like, shape (n_samples, n_features)
                 The training input samples.
-            y : array-like, shape (n_samples, )
+            y : array-like, shape (n_samples)
                 The target values.
-            feature_names : list of strings, optional
-                In case you want to define feature names
 
             Returns
             ------
             None
         """
 
-        features = generate_features(X)
-        X, y, feature_names = self._check_input(X, y, feature_names)
-        if self.__n_features > X.shape[1]:
-            raise ValueError("Cannot select %d features out of %d" % (self.__n_features, X.shape[1]))
+        if type(self.measure) is str:
+            try:
+                self.measure = GLOB_MEASURE[self.measure]
+            except KeyError:
+                raise KeyError("No %r measure yet" % self.measure)
+        
+        if self.n_features > self.n_features_:
+            raise ValueError("Cannot select %d features with n_features = %d" % (self.n_features, self.n_features_))
         free_features = generate_features(X)
-        self.feature_names = dict(zip(features, feature_names))
-        while len(self.selected_features) != self.__n_features:
+        self.selected_features_ = np.array([], dtype='int')
+        while len(self.selected_features_) != self.n_features:
             if self.beta is None:
-                values = self.measure(self.selected_features, free_features, X, y)
+                values = self.measure(self.selected_features_, free_features, X, y)
             else:
                 if self.gamma is not None:
-                    values = self.measure(self.selected_features, free_features, X, y, self.beta, self.gamma)
+                    values = self.measure(self.selected_features_, free_features, X, y, self.beta, self.gamma)
                 else:
-                    values = self.measure(self.selected_features, free_features, X, y, self.beta)
+                    values = self.measure(self.selected_features_, free_features, X, y, self.beta)
             to_add = np.argmax(values)
-            self.selected_features = np.append(self.selected_features, free_features[to_add])
+            self.selected_features_ = np.append(self.selected_features_, free_features[to_add])
             free_features = np.delete(free_features, to_add)
-        self.selected_features = features[self.selected_features]
-
-    def transform(self, X):
-        """
-            Transform given data by slicing it with selected features.
-
-            Parameters
-            ----------
-            X : array-like, shape (n_samples, n_features)
-                The training input samples.
-
-            Returns
-            ------
-
-            Transformed 2D numpy array
-        """
-
-        if type(X) is np.ndarray:
-            return X[:, self.selected_features]
-        else:
-            return X[self.selected_features]
-
-    def fit_transform(self, X, y=None, feature_names=None, **fit_params):
-        """
-            Fits the filter and transforms given dataset X.
-
-            Parameters
-            ----------
-            X : array-like, shape (n_features, n_samples)
-                The training input samples.
-            y : array-like, shape (n_samples, ), optional
-                The target values.
-            feature_names : list of strings, optional
-                In case you want to define feature names
-            **fit_params :
-                dictonary of measure parameter if needed.
-
-            Returns
-            ------
-
-            X dataset sliced with features selected by the filter
-        """
-
-        self.fit(X, y, feature_names)
-        return self.transform(X)

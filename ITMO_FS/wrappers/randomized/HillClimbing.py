@@ -1,29 +1,35 @@
 import random
+import numpy as np
 
-from sklearn.model_selection import cross_validate
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import make_scorer
+from sklearn.base import clone
 
+from ...utils import generate_features, BaseWrapper
 
-class HillClimbingWrapper:
-    def __init__(self, estimator, scorer):
-        self._scorer = scorer
-        self._estimator = estimator
-        self.features = None
+class HillClimbingWrapper(BaseWrapper):
 
-    def fit(self, x, y, feature_names=None, cv=3):
-        try:
-            feature_names = x.columns
-        except AttributeError:
-            if feature_names is None:
-                feature_names = list(range(x.shape[1]))
+    def __init__(self, estimator, scorer, seed=42, cv=3):
+        self.estimator = estimator
+        self.scorer = scorer
+        self.seed = seed
+        self.cv = cv
 
-        features = [random.choice(feature_names)]
-        score = cross_validate(self._estimator, x[:, features], y, cv=cv, scoring=self._scorer)
+    def _fit(self, X, y):
+        if not hasattr(self.estimator, 'fit'):
+            raise TypeError("estimator should be an estimator implementing "
+                            "'fit' method, %r was passed" % self.estimator)
+
+        self._estimator = clone(self.estimator)
+        random.seed(self.seed)
+
+        features = generate_features(X)
+
+        self.selected_features_ = [random.choice(features)]
+        score = np.mean(cross_val_score(self._estimator, X[:, self.selected_features_], y, cv=self.cv, scoring=make_scorer(self.scorer)))
         old_score = 0
-        while score > old_score:
-            features += [random.choice(set(feature_names) - set(features))]
+        while score > old_score and len(self.selected_features_) != len(features):
+            self.selected_features_ += [random.choice(list(set(features) - set(self.selected_features_)))]
             old_score = score
-            score = cross_validate(self._estimator, x[:, features], y, cv=cv, scoring=self._scorer)
-        self.features = features
-
-    def predict(self, X):
-        return self._estimator.predict(X[:, self.features])
+            score = np.mean(cross_val_score(self._estimator, X[:, self.selected_features_], y, cv=self.cv, scoring=make_scorer(self.scorer)))
+        self._estimator.fit(X[:, self.selected_features_], y)

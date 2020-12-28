@@ -110,18 +110,6 @@ class TestCases(unittest.TestCase):
         # arr = f.run(data, target)
         # np.testing.assert_array_equal(df, arr)
 
-    def test_df_feature_names(self):
-        # Univariate filter
-        data, target = self.wide_classification[0], self.wide_classification[1]
-        f = UnivariateFilter(pearson_corr, select_k_best(50))
-        f.fit(pd.DataFrame(data), pd.DataFrame(target), feature_names=[str(i) + ' column' for i in data.columns])
-        df = f.transform(pd.DataFrame(data))
-
-        f = UnivariateFilter(pearson_corr, select_k_best(50))
-        f.fit(data, target)
-        arr = f.transform(data)
-        np.testing.assert_array_equal(df.values, arr)
-
     def test_chi2(self):
         iris_dataset = load_iris()
         X = iris_dataset.data
@@ -166,7 +154,7 @@ class TestCases(unittest.TestCase):
         univ_filter = UnivariateFilter('ModifiedTScore', cutting_rule=('K best', 2))
         univ_filter.fit(X, y)
 
-        assert univ_filter.selected_features == [0, 2]
+        assert univ_filter.selected_features_ == [0, 2]
 
     def test_modified_t_score_univariate_filter_wide(self):
         data, target = self.wide_classification[0], self.wide_classification[1]
@@ -175,13 +163,13 @@ class TestCases(unittest.TestCase):
             univ_filter = UnivariateFilter('ModifiedTScore', select_k_best(i))
 
             univ_filter.fit(data, target)
-            scores = univ_filter.feature_scores.values()
+            scores = univ_filter.feature_scores_.values()
             assert all(score >= 0 for score in scores) and all(not np.isnan(score) for score in scores)
 
             res = univ_filter.transform(data)
             assert i == res.shape[1]
 
-    def test_igain(self):
+    def test_igain(self):  # TODO: wrong values
         iris_dataset = load_iris()
         X = iris_dataset.data
         y = iris_dataset.target
@@ -211,8 +199,8 @@ class TestCases(unittest.TestCase):
         y = np.array([1, 2, 1, 3, 1, 1])
         univ_filter = UnivariateFilter('GiniIndex', cutting_rule=('K best', 2))
         univ_filter.fit(X, y)
-        # print(univ_filter.feature_scores)
-        scores = univ_filter.feature_scores.values()
+        # print(univ_filter.feature_scores_)
+        scores = univ_filter.feature_scores_.values()
         assert all(score <= 1 for score in scores) and all(score >= 0 for score in scores)
 
     def test_single_class(self):
@@ -227,21 +215,21 @@ class TestCases(unittest.TestCase):
         X = iris_dataset.data
         y = iris_dataset.target
         X = X.astype(int)
-        univ_filter = UnivariateFilter('FechnerCorr', cutting_rule=('K best', 10))
+        univ_filter = UnivariateFilter('FechnerCorr', cutting_rule=('K best', 2))
         univ_filter.fit(X, y)
-        # print(univ_filter.selected_features)
-        # univ_filter = UnivariateFilter('PearsonCorr', cutting_rule=('K best', 10))
+        # print(univ_filter.selected_features_)
+        # univ_filter = UnivariateFilter('PearsonCorr', cutting_rule=('K best', 2))
         # univ_filter.fit(X, y)
-        # print(univ_filter.selected_features)
+        # print(univ_filter.selected_features_)
 
-    def test_def_cr(self):
+    def test_def_cr(self):  # TODO: wrong values
         iris_dataset = load_iris()
         X = iris_dataset.data
         y = iris_dataset.target
         X = X.astype(int)
         univ_filter = UnivariateFilter('FechnerCorr')
         univ_filter.fit(X, y)
-        assert univ_filter.selected_features == [0, 2, 3]
+        assert univ_filter.selected_features_ == [0, 2, 3]
 
     def test_pipeline(self):
         iris_dataset = load_iris()
@@ -271,52 +259,21 @@ class TestCases(unittest.TestCase):
     def test_est(self):
         univ_filter = UnivariateFilter('FechnerCorr', ('K best', 2))
 
-        assert check_estimator(univ_filter)
+        check_estimator(univ_filter)
 
     def test_qpfs_restrictions(self):
         iris_dataset = load_iris()
         X = iris_dataset.data
         y = iris_dataset.target
-        X = X.astype(int)
+        for cutting_rule in [GLOB_CR['Best by value'](0.5), GLOB_CR['Worst by value'](0.5), GLOB_CR['Worst by percentage'](0.5), 
+            GLOB_CR['Best by percentage'](0.5), ('Worst by value', 0.5), ('Best by value', 0.5), ('Worst by percentage', 0.2),
+            ('Best by percentage', 0.2)]:
+            f = UnivariateFilter(qpfs_filter, cutting_rule)
+            self.assertRaises(KeyError, f.fit, X, y)
 
-        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Best by value'](0.5))
-        self.assertRaises(KeyError, univ_filter.fit, X, y)
-
-        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
-        self.assertRaises(KeyError, univ_filter.fit, X, y)
-
-        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
-        self.assertRaises(KeyError, univ_filter.fit, X, y)
-
-        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
-        self.assertRaises(KeyError, univ_filter.fit, X, y)
-
-        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
-        self.assertRaises(KeyError, univ_filter.fit, X, y)
-
-        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
-        self.assertRaises(KeyError, univ_filter.fit, X, y)
-
-        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
-        self.assertRaises(KeyError, univ_filter.fit, X, y)
-
-        univ_filter = UnivariateFilter(qpfs_filter, GLOB_CR['Worst by value'](0.5))
-        self.assertRaises(KeyError, univ_filter.fit, X, y)
-
-        UnivariateFilter(qpfs_filter, GLOB_CR['K best'](2))
-        UnivariateFilter(qpfs_filter, GLOB_CR['K worst'](2))
-
-        UnivariateFilter(qpfs_filter, ('K best', 2))
-        UnivariateFilter(qpfs_filter, ('K worst', 2))
-
-        univ_filter = UnivariateFilter(qpfs_filter, ('K best', 2))
-        iris_dataset = load_iris()
-        X = iris_dataset.data
-        y = iris_dataset.target
-
-        univ_filter.fit(X, y)
-
-        print(univ_filter.selected_features)
+        for cutting_rule in [GLOB_CR['K best'](2), GLOB_CR['K worst'](2), ('K best', 2), ('K worst', 2)]:
+            f = UnivariateFilter(qpfs_filter, cutting_rule)
+            f.fit(X, y)
 
 
 if __name__ == "__main__":

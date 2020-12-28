@@ -6,9 +6,11 @@ from sklearn.datasets import make_classification, make_regression
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
+from sklearn.utils.estimator_checks import check_estimator
 from ITMO_FS.ensembles import WeightBased
 from ITMO_FS.filters import *
 from ITMO_FS.hybrid.Melif import Melif
+from ITMO_FS.utils import test_scorer
 
 
 class MyTestCase(unittest.TestCase):
@@ -20,24 +22,25 @@ class MyTestCase(unittest.TestCase):
                UnivariateFilter(pearson_corr),
                UnivariateFilter(spearman_corr)]
 
-    estimator = SVC()
+    estimator = SVC(random_state=42)
     ensemble = WeightBased(filters)
 
-    melif = Melif(ensemble, f1_score, verbose=False)
+    melif = Melif(estimator, select_k_best(1500), ensemble, scorer=f1_score, verbose=True)
+
+
 
     def test_wide(self):
         data, target = self.wide_classification[0], self.wide_classification[1]
 
         train_data, test_data, train_target, test_target = train_test_split(data, target)
-        self.melif.fit(train_data, train_target, self.estimator, select_k_best(1500))
+        self.melif.fit(train_data, train_target)
 
         print(f1_score(test_target, self.melif.predict(test_data)))
 
     def test_wide_pd(self):
         data, target = pd.DataFrame(self.wide_classification[0]), pd.DataFrame(self.wide_classification[1])
         train_data, test_data, train_target, test_target = train_test_split(data, target)
-        self.melif.fit(train_data, train_target, self.estimator, select_k_best(1500),
-                       feature_names=[str(i) + ' column' for i in data.columns])
+        self.melif.fit(train_data, train_target)
         print(f1_score(test_target, self.melif.predict(test_data)))
 
     def test_R(self):
@@ -65,6 +68,10 @@ class MyTestCase(unittest.TestCase):
             f = UnivariateFilter(information_gain, select_k_best(j))
             f.fit(data[features], data[target])
             print('|', datetime.datetime.now() - start, '|')
+
+    def test_est(self):
+        melif = Melif(self.estimator, select_k_best(2), self.ensemble, scorer=test_scorer)
+        check_estimator(melif)
 
 
 if __name__ == '__main__':

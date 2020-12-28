@@ -1,17 +1,17 @@
-class FilterWrapperHybrid:
+from ..utils import BaseWrapper
+from sklearn.base import clone
+
+class FilterWrapperHybrid(BaseWrapper):
 
     def __init__(self, filter_, wrapper):
-        self._filter = filter_
-        self._wrapper = wrapper
-        self.selected_features = None
-        self.best_score = None
+        self.filter_ = filter_
+        self.wrapper = wrapper
 
-    def fit(self, X, y):
+    def _fit(self, X, y):
+        self._filter = clone(self.filter_)
+        self._estimator = clone(self.wrapper)
         new = self._filter.fit_transform(X, y)
-        self.selected_features = self._filter.selected_features
-        self._wrapper.fit(new, y)
-        self.best_score = self._wrapper.best_score
+        self.selected_features_ = self._filter.selected_features_
+        self._estimator.fit(new, y)
+        #self.best_score = self.wrapper.best_score
 
-    def predict(self, X):
-        new = X[:, self.selected_features]
-        return self._wrapper.predict(new)

@@ -143,7 +143,7 @@ def gini_index(X, y):
     """
 
     if X.shape[0] < 2:
-        raise Exception("Sample size must be greater than 1")
+        raise ValueError("The input should contain more than 1 sample")
     scaler = MinMaxScaler()
     X = scaler.fit_transform(X)
     cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
@@ -171,7 +171,7 @@ def su_measure(X, y):
 
     See Also
     --------
-    https://www.matec-conferences.org/articles/matecconf/pdf/2016/05/matecconf_iccma2016_06002.pdf
+    https://pdfs.semanticscholar.org/9964/c7b42e6ab311f88e493b3fc552515e0c764a.pdf
 
     Examples
     --------
@@ -188,7 +188,7 @@ def su_measure(X, y):
     for index in range(X.shape[1]):
         entropy_x = entropy(X[:, index])
         cond_entropy = conditional_entropy(y, X[:, index])
-        f_ratios[index] = (entropy_x + entropy_y - cond_entropy) / (entropy_x + entropy_y)
+        f_ratios[index] = 2 * (entropy_x - cond_entropy) / (entropy_x + entropy_y)
     return f_ratios
 
 
@@ -282,8 +282,8 @@ def fechner_corr(X, y):
     y_dev = y - np.mean(y)
     x_dev = X - np.mean(X, axis=0)
     if m == 1:
-        N_plus = np.sum((x_dev >= 0) & (y_dev >= 0)) + np.sum((x_dev < 0) & (y_dev < 0))
-        N_minus = np.sum((x_dev > 0) & (y_dev < 0)) + np.sum((x_dev < 0) & (y_dev > 0))
+        N_plus = np.array([np.sum((x_dev >= 0) & (y_dev >= 0)) + np.sum((x_dev < 0) & (y_dev < 0))])
+        N_minus = np.array([np.sum((x_dev > 0) & (y_dev < 0)) + np.sum((x_dev < 0) & (y_dev > 0))])
     else:
         N_plus = np.sum((x_dev >= 0).T & (y_dev >= 0), axis=1) + np.sum((x_dev < 0).T & (y_dev < 0), axis=1).astype(
             float)
@@ -565,6 +565,8 @@ def spearman_corr(X, y):
     array([-0.4 ,  0.3 , -0.3 , -0.2 ,  0.65])
     """
     n = X.shape[0]
+    if n < 2:
+        raise ValueError("The input should contain more than 1 sample")
     c = 6 / (n * (n - 1) * (n + 1))
 
     d = dict(zip(sorted(y), range(y.shape[0])))
@@ -912,6 +914,8 @@ def select_k_worst(k):
 def __select_k(scores, k, reverse=False):
     if type(k) != int:
         raise TypeError("Number of features should be integer")
+    if k > len(scores):
+        raise ValueError("Cannot select %d features with n_features = %d" % (k, len(scores)))
     return [keys[0] for keys in sorted(scores.items(), key=lambda kv: kv[1], reverse=reverse)[:k]]
 
 

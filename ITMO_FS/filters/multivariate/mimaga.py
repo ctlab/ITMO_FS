@@ -7,7 +7,9 @@ from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 from functools import partial
 from ...utils.information_theory import *
+from ...utils import BaseTransformer
 
+# TODO fix docs
 
 def genes_mutual_information(genes):
     """
@@ -100,9 +102,9 @@ def cross_and_mutate(pc, pm, population):
     return new_population, max_parent_f
 
 
-class MIMAGA(object):
+class MIMAGA(BaseTransformer):
 
-    def __init__(self, mim_size, pop_size, max_iter, f_target, k1, k2, k3, k4):
+    def __init__(self, mim_size, pop_size, max_iter=20, f_target=0.8, k1=0.6, k2=0.3, k3=0.9, k4=0.001):
         """
         :param mim_size: desirable number of filtered features after MIM
         :param pop_size: initial population size
@@ -117,14 +119,14 @@ class MIMAGA(object):
         --------
         https://www.sciencedirect.com/science/article/abs/pii/S0925231217304150
         """
-        self._mim_size = mim_size
-        self._pop_size = pop_size
-        self._max_iter = max_iter
-        self._f_target = f_target
-        self._k1 = k1
-        self._k2 = k2
-        self._k3 = k3
-        self._k4 = k4
+        self.mim_size = mim_size
+        self.pop_size = pop_size
+        self.max_iter = max_iter
+        self.f_target = f_target
+        self.k1 = k1
+        self.k2 = k2
+        self.k3 = k3
+        self.k4 = k4
 
     # MIM
 
@@ -136,7 +138,7 @@ class MIMAGA(object):
         g_num, _ = genes.shape
         mi_vector = genes_mutual_information(genes)
         seq_nums = [i for i in range(g_num)]
-        target_sequence = list(map(lambda p: p[1], sorted(zip(mi_vector, seq_nums))))[:self._mim_size]
+        target_sequence = list(map(lambda p: p[1], sorted(zip(mi_vector, seq_nums))))[:self.mim_size]
         return target_sequence
 
     # AGA
@@ -146,27 +148,27 @@ class MIMAGA(object):
         P.S. each individual corresponds to chromosome
         """
         population = []
-        for _ in range(self._pop_size):
-            individual_num = random.randint(1, 2 << self._mim_size - 1)
-            individual_code = list(map(int, bin(individual_num)[2:].zfill(self._mim_size)))
+        for _ in range(self.pop_size):
+            individual_num = random.randint(1, 2 << self.mim_size - 1)
+            individual_code = list(map(int, bin(individual_num)[2:].zfill(self.mim_size)))
             population.append(individual_code)
         return population
 
     def _crossover_probability(self, f_max, f_avg, f_par):
         """ probability of crossover in population """
         if f_par >= f_avg:
-            return self._k1 * ((f_max - f_par) / (f_max - f_avg)) \
+            return self.k1 * ((f_max - f_par) / (f_max - f_avg)) \
                 if f_max != f_avg else 1
         else:
-            return self._k2
+            return self.k2
 
     def _mutation_probability(self, f_max, f_avg, f_par):
         """ probability of mutation in population """
         if f_par >= f_avg:
-            return self._k3 * ((f_max - f_par) / (f_max - f_avg)) \
+            return self.k3 * ((f_max - f_par) / (f_max - f_avg)) \
                 if f_max != f_avg else 1
         else:
-            return self._k4
+            return self.k4
 
     def _aga_filter(self, max_size, mapping, population, train, train_cl, test, test_cl):
         """
@@ -183,7 +185,7 @@ class MIMAGA(object):
         f_par = f_max = 0
         counter = 0
         best_individual = [1 for _ in range(len(population[0]))]
-        while counter < self._max_iter and f_max < self._f_target:
+        while counter < self.max_iter and f_max < self.f_target:
             code_fitness, f_max, f_avg = population_fitness(mapping, population, train, train_cl, test, test_cl, partial(f1_score, average='macro'))
             if len(code_fitness) > max_size:
                 code_fitness = code_fitness[:max_size]
@@ -210,10 +212,10 @@ class MIMAGA(object):
         """
         train_set, test_set, train_classes, test_classes = train_test_split(genes, classes, test_size=0.33)
         filtered_indexes = self._mim_filter(train_set.transpose())
-        index_map = dict(zip([i for i in range(self._mim_size)], filtered_indexes))
+        index_map = dict(zip([i for i in range(self.mim_size)], filtered_indexes))
 
         first_population = self._initial_population()
-        best, max_fitness = self._aga_filter(self._pop_size * 2, index_map, first_population,
+        best, max_fitness = self._aga_filter(self.pop_size * 2, index_map, first_population,
                                              train_set.transpose(), train_classes, test_set.transpose(), test_classes)
         result_genes, _ = decode_genes(index_map, best, train_set.transpose(), test_set.transpose())
         return result_genes, max_fitness
