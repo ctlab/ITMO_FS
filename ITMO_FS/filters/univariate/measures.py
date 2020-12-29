@@ -409,7 +409,7 @@ def reliefF_measure(X, y, k_neighbors=1):
 
 def relief_measure(X, y, m=None):
     """
-    Counts Relief measure for each feature.
+    Computes Relief measure for each feature.
 
     Parameters
     ----------
@@ -432,10 +432,10 @@ def relief_measure(X, y, m=None):
     Examples
     --------
     >>> import sklearn.datasets as datasets
-    >>> from ITMO_FS.filters.univariate import reliefF_measure
+    >>> from ITMO_FS.filters.univariate import relief_measure
     >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
     >>> y = np.array([1, 3, 2, 1, 2])
-    >>> scores = reliefF_measure(X, y)
+    >>> scores = relief_measure(X, y)
     >>> print(scores)
     """
     weights = np.zeros(X.shape[1])
@@ -464,7 +464,7 @@ def relief_measure(X, y, m=None):
 
         for index in order:
             if y[index] != y[i]:
-                weights -= np.square(X_normalized[i] - X_normalized[index])
+                weights += np.square(X_normalized[i] - X_normalized[index])
                 break
 
     return weights / m
