@@ -1,3 +1,4 @@
+import math
 from functools import partial, update_wrapper
 from math import exp
 from math import log
@@ -865,6 +866,185 @@ def modified_t_score(X, y):
     modified_t_score = np.nan_to_num(modified_t_score)
 
     return modified_t_score
+
+
+def __weighted_minkowski_distance(first, second, weights, p):
+    return sum(abs((first - second) * weights) ** p) ** (1.0 / p)
+
+
+def __rbf(distance, radius):
+    return math.exp(-(distance ** 2) / radius)
+
+
+def __rbf_vectors(first, second, weights, p, radius):
+    return math.exp(-(__weighted_minkowski_distance(first, second, weights, p) ** 2) / radius)
+
+
+def __count_K(X, index, nearest_neighbors, weights, p, radius):
+    all_distances = [__rbf(__weighted_minkowski_distance(X[index], X[t], weights, p), radius) for t in
+                     nearest_neighbors]
+    distances_minus = np.prod([1 - dist for dist in all_distances])
+    distances_without = [dist * distances_minus / (1 - dist) for dist in all_distances]
+    return distances_minus + sum(distances_without), distances_without, distances_minus
+
+
+def __evreg_predict(X, y, index, cur_weights, p, k, radius):
+    to_predict = X[index]
+    k_smallest = {}
+    for i in range(X.shape[0]):
+        if i == index:
+            continue
+        cur_distance = __weighted_minkowski_distance(to_predict, X[i], cur_weights, p)
+        if len(k_smallest) == k:
+            max_smallest = max(k_smallest.keys())
+            if cur_distance < max_smallest:
+                del k_smallest[max_smallest]
+                k_smallest[cur_distance] = i
+        else:
+            k_smallest[cur_distance] = i
+    nearest_neighbors = list(k_smallest.values())
+    K, distances_without, m_star = __count_K(X, index, nearest_neighbors, cur_weights, p, radius)
+    m = 1.0 / K * np.array(distances_without)
+    return sum(m[i] * y[nearest_neighbors[i]] for i in range(k)) + m_star * (
+            max(y[nearest_neighbors]) + min(y[nearest_neighbors])) / 2
+
+
+def __count_loss(expected_y, predicted_y):
+    return 1.0 / len(expected_y) * sum((expected_y - predicted_y) ** 2)
+
+
+def __minkowski_derivative(first, second, weights, p):
+    return sum(abs((first - second) * weights) ** p) ** (1.0 / p - 1) * p / (p - 1) * ((first - second) ** (p - 1))
+
+
+def __rbf_derivative(first, second, weights, p, radius):
+    distance = __weighted_minkowski_distance(first, second, weights, p)
+    return -2.0 / radius * __rbf(distance, radius) * distance * __minkowski_derivative(first, second, weights, p)
+
+
+def __prod_seq_func(X, index, skip, weights, p, radius, also_skip=None):
+    return np.prod(
+        [1 - __rbf_vectors(X[index], X[i], weights, p, radius) for i in range(X.shape[0]) if
+         i not in skip and i != also_skip])
+
+
+def __product_sequence_derivative(X, index, skip, weights, p, radius):
+    return np.sum(
+        [__rbf_derivative(index, i, weights, p, radius) * __prod_seq_func(X, index, skip, weights, p, radius, i) for i
+         in range(X.shape[0]) if
+         i not in skip],
+        axis=0)
+
+
+def __K_derivative(X, index, weights, p, radius):
+    sum_func = lambda skip: __rbf_derivative(X[index], X[skip], weights, p, radius) * \
+                            __prod_seq_func(X, index, [skip, index], weights, p, radius) + \
+                            __rbf_vectors(X[index], X[skip], weights, p, radius) * \
+                            __product_sequence_derivative(X, index, [index, skip], weights, p, radius)
+
+    return __product_sequence_derivative(X, index, [index], weights, p, radius) + np.sum(
+        [sum_func(i) for i in range(X.shape[0]) if i != index], axis=0)
+
+
+def __count_K_all(X, index, weights, p, radius):
+    all_distances = [__rbf(__weighted_minkowski_distance(X[index], X[t], weights, p), radius) for t in
+                     range(X.shape[0]) if t != index]
+    distances_minus = np.prod([1 - dist for dist in all_distances])
+    distances_without = [dist * distances_minus / (1 - dist) for dist in all_distances]
+    return distances_minus + sum(distances_without), distances_without, distances_minus
+
+
+def __single_mass_derivative(X, i, j, weights, p, radius):
+    K, _, distances_minus = __count_K_all(X, i, weights, p, radius)
+    return (K * __rbf_derivative(X[i], X[j], weights, p, radius) - __K_derivative(X, i, weights, p, radius) *
+            __rbf_vectors(X[i], X[j], weights, p, radius)) * distances_minus / (K ** 2) + \
+           __rbf_vectors(X[i], X[j], weights, p, radius) / \
+           K * __product_sequence_derivative(X, i, [i], weights, p, radius)
+
+
+def __mass_star_derivative(X, i, weights, p, radius):
+    K, _, distances_minus = __count_K_all(X, i, weights, p, radius)
+    return (K * __product_sequence_derivative(X, i, [i], weights, p, radius) -
+            __K_derivative(X, i, weights, p, radius) * distances_minus) / (K ** 2)
+
+
+def __y_derivative(X, i, weights, p, radius, y):
+    y_der = [0 for i in range(len(weights))]
+    y_lab = [y[j] for j in range(len(y)) if j != i]
+    for j in range(X.shape[0]):
+        if j == i:
+            continue
+        y_der += __single_mass_derivative(X, i, j, weights, p, radius) * y[j]
+    y_der += __mass_star_derivative(X, i, weights, p, radius) * (max(y_lab) + min(y_lab)) / 2
+    return y_der
+
+
+def __update_weights(X, y, alpha, weights, p, radius):
+    return weights + alpha * 2.0 / X.shape[0] * -1 * \
+           np.sum([__y_derivative(X, i, weights, p, radius, y) for i in range(X.shape[0])], axis=0)
+
+
+def weighted_evidential_regression(X, y, alpha=0.01, num_epochs=1000, p=2, k=None, radius=5.0):
+    """
+    Calculates anova measure for each feature.
+
+    Parameters
+    ----------
+    X : numpy array, shape (n_samples, n_features)
+        The input samples.
+    y : numpy array, shape (n_samples, )
+        The classes for the samples.
+    alpha : np.float64
+        Learning rate (Optional 0.01 by default)
+    num_epochs : int
+        Number of epochs of gradient descent (Optional 1000 by default)
+    p : int
+        Power of minkoswki distance (Optional 2 by default)
+    k : int
+        Number of neighbors for knn-approach optimization (Optional 0.1 from X.shape[0] by default)
+    radius : np.float64
+        Radius of the RBF distance
+
+    Returns
+    -------
+    Score for each feature as a numpy array, shape (n_features, )
+
+    See Also
+    --------
+    https://www.researchgate.net/publication/343493691_Feature_Selection_for_Health_Care_Costs_Prediction_Using_Weighted_Evidential_Regression
+
+    Note:
+    The main idea is to use the weighted EVREG for predicting labels and then optimize the weights according to loss via
+    gradient descent for fixed number of epochs. The weights are used in counting distance between objects, thus
+    weighting features impact in distance values. While optimizing features impact in distance algorithm optimizes
+    quality of prediction thus finding the bond between feature and prediction and performing feature selection
+
+    Examples
+    --------
+    >>> import sklearn.datasets as datasets
+    >>> from ITMO_FS.filters.univariate import weighted_evidential_regression
+    >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+    >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+    >>> scores = weighted_evidential_regression(X, y)
+    >>> print(scores)
+    """
+    if k is None:
+        k = int(0.1 * X.shape[0])
+        if k < 1:
+            k = X.shape[0] - 1
+    feature_size = X.shape[1]
+    best_weights = np.ones(feature_size, dtype=np.float64)
+    min_loss = float('inf')
+    cur_weights = best_weights.copy()
+    for _ in range(num_epochs):
+        predicted_y = []
+        for i in range(X.shape[0]):
+            predicted_y.append(__evreg_predict(X, y, i, cur_weights, p, k, radius))
+        cur_loss = __count_loss(y, predicted_y)
+        cur_weights = __update_weights(X, y, alpha, cur_weights, p, radius)
+        if cur_loss < min_loss:
+            best_weights = cur_weights
+    return best_weights
 
 
 GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,

@@ -11,7 +11,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.utils.estimator_checks import check_estimator
 
 from ITMO_FS.filters.univariate import *
-from ITMO_FS.filters.univariate.measures import GLOB_CR
+from ITMO_FS.filters.univariate.measures import GLOB_CR, weighted_evidential_regression
 from ITMO_FS.utils.information_theory import *
 
 np.random.seed(42)
@@ -168,6 +168,15 @@ class TestCases(unittest.TestCase):
 
             res = univ_filter.transform(data)
             assert i == res.shape[1]
+
+    def test_weighted_evreg(self):
+        X = np.array([[5, 1, 3, 2], [4, 2, 2, 1], [3, 3, 4, 1], [2, 2, 3, 1], [1, 1, 5, 2]])
+        y = np.array([1, 1, 2, 2, 2])
+
+        univ_filter = UnivariateFilter(weighted_evidential_regression, cutting_rule=('K best', 2))
+        univ_filter.fit(X, y)
+
+        assert univ_filter.selected_features_ == [0, 1]
 
     def test_igain(self):  # TODO: wrong values
         iris_dataset = load_iris()
