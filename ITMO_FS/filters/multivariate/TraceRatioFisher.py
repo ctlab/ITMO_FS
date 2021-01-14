@@ -1,19 +1,19 @@
 import numpy as np
 from sklearn.metrics.pairwise import pairwise_distances
 from scipy.sparse import *
-from ...utils import DataChecker, generate_features
+from ...utils import BaseTransformer, generate_features
 
 
 # TODO requests changes for MultivariateFilter to be used there
-class TraceRatioFisher(DataChecker):
+class TraceRatioFisher(BaseTransformer):
     """
         Creates TraceRatio(similarity based) feature selection filter
         performed in supervised way, i.e fisher version
 
         Parameters
         ----------
-        n_selected_features : int
-            Amount of features to filter
+        n_features : int
+            Number of features to select.
 
         Notes
         -----
@@ -34,10 +34,10 @@ class TraceRatioFisher(DataChecker):
                [5, 4, 4]])
     """
 
-    def __init__(self, n_selected_features):
-        self.n_selected_features = n_selected_features
+    def __init__(self, n_features):
+        self.n_features = n_features
 
-    def fit(self, X, y, feature_names=None):
+    def _fit(self, X, y):
         """
             Fits filter
 
@@ -45,26 +45,18 @@ class TraceRatioFisher(DataChecker):
             ----------
             X : numpy array, shape (n_samples, n_features)
               The training input samples
-            y : numpy array, shape (n_samples, )
+            y : numpy array, shape (n_samples)
               The target values
-            feature_names : list of strings, optional
-                In case you want to define feature names
 
             Returns
             ----------
             None
-
-            See Also
-            --------
-
-            Examples
-            --------
-
         """
 
+        if self.n_features > self.n_features_:
+            raise ValueError("Cannot select %d features with n_features = %d" % (self.n_features, self.n_features_))
+
         features = generate_features(X)
-        X, y, feature_names = self._check_input(X, y, feature_names)
-        self.feature_names = dict(zip(features, feature_names))
         n_samples = X.shape[0]
         A_within = np.zeros((n_samples, n_samples))
         labels = np.unique(y)
@@ -88,53 +80,11 @@ class TraceRatioFisher(DataChecker):
         b = np.absolute(np.diag(B))
         #b[b == 0] = 1e-14 # TODO: probably should be e[e == 0] = 1e-14?
         e[e == 0] = 1e-14
-        features_indices = np.argsort(np.divide(b, e))[::-1][0:self.n_selected_features]
-        lam = np.sum(b[features_indices]) / np.sum(e[features_indices])
+        self.selected_features_ = np.argsort(np.divide(b, e))[::-1][0:self.n_features]
+        lam = np.sum(b[self.selected_features_]) / np.sum(e[self.selected_features_])
         prev_lam = 0
         while (lam - prev_lam >= 1e-3):
             score = b - lam * e
-            features_indices = np.argsort(score)[::-1][0:self.n_selected_features]
+            self.selected_features_ = np.argsort(score)[::-1][0:self.n_features]
             prev_lam = lam
-            lam = np.sum(b[features_indices]) / np.sum(e[features_indices])
-        self.selected_features = features[features_indices]
-        #return features_indices, score, lam
-
-    def transform(self, X):
-        """
-            Transform given data by slicing it with selected features.
-
-            Parameters
-            ----------
-            X : array-like, shape (n_samples, n_features)
-                The training input samples.
-
-            Returns
-            ------
-            Transformed 2D numpy array
-        """
-
-        if type(X) is np.ndarray:
-            return X[:, self.selected_features]
-        else:
-            return X[self.selected_features]
-
-    def fit_transform(self, X, y, feature_names=None):
-        """
-            Fits the filter and transforms given dataset X.
-
-            Parameters
-            ----------
-            X : array-like, shape (n_features, n_samples)
-                The training input samples.
-            y : array-like, shape (n_samples, )
-                The target values.
-            feature_names : list of strings, optional
-                In case you want to define feature names
-
-            Returns
-            ------
-            X dataset sliced with features selected by the filter
-        """
-
-        self.fit(X, y, feature_names)
-        return self.transform(X)
+            lam = np.sum(b[self.selected_features_]) / np.sum(e[self.selected_features_])
