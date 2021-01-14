@@ -41,6 +41,15 @@ class JMIM(DataChecker):
         self.n_features_to_keep = n_features_to_keep
         self.normalized = normalized
 
+
+    def __calc_jmi(self, fi, fs, y):
+        if self.normalized:
+            jmi_scores = SR(fi, fs, y)
+        else:
+            jmi_scores = JMI(fi, fs, y)
+        return jmi_scores
+
+
     def fit(self, X, y, feature_names=None):
         """
             Fits filter
@@ -72,12 +81,9 @@ class JMIM(DataChecker):
 
         max_features = min(self.free_features.size, self.n_features_to_keep) - 1
         for _ in range(max_features):
-            if self.normalized:
-                jmi_scores = np.array(
-                    [min([SR(X[:, fi], X[:, fs], y) for fs in self.selected_features]) for fi in self.free_features])
-            else:
-                jmi_scores = np.array(
-                    [min([JMI(X[:, fi], X[:, fs], y) for fs in self.selected_features]) for fi in self.free_features])
+            jmi_scores = np.array(
+                [min([self.__calc_jmi(X[:, fi], X[:, fs], y) for fs in self.selected_features])
+                                                                for fi in self.free_features])
             best_jmi = jmi_scores.max()
             selected_index = self.free_features[np.argmax(jmi_scores)]
             self.selected_features = np.append(self.selected_features, selected_index)
