@@ -29,7 +29,7 @@ class TestCases(unittest.TestCase):
 
     def test_JMIM(self):
         # JMIM
-        res = JMIM().fit_transform(self.data, self.target)
+        res = JMIM(10).fit_transform(self.data, self.target)
         assert self.data.shape[0] == res.shape[0]
         print("Joint Mutual Information Maximisation:", self.data.shape, '--->', res.shape)
 
@@ -94,7 +94,7 @@ class TestCases(unittest.TestCase):
             assert self.data.shape[0] == res.shape[0] and res.shape[1] == 10
 
     def test_df(self):
-        for f in [FCBFDiscreteFilter(), DISRWithMassive(), JMIM(), MultivariateFilter(MIM, 10),\
+        for f in [FCBFDiscreteFilter(), DISRWithMassive(10), JMIM(10), MultivariateFilter(MIM, 10),\
                   TraceRatioFisher(10), STIR(10)]:
             df = f.fit_transform(pd.DataFrame(self.data), pd.DataFrame(self.target))
             arr = f.fit_transform(self.data, self.target)
@@ -119,7 +119,8 @@ class TestCases(unittest.TestCase):
         assert self.data.shape[0] == res.shape[0] and res.shape[1] == 5
 
         # FS - FS - estim
-        p = Pipeline([('FS1', TraceRatioFisher(10)), ('FS2', DISRWithMassive(5)), ('E1', LogisticRegression())])
+        p = Pipeline([('FS1', TraceRatioFisher(10)), ('FS2', DISRWithMassive(5)),
+                        ('E1', LogisticRegression(max_iter=10000))])
         p.fit(self.data, self.target)
         assert 0 <= p.score(self.data, self.target) <= 1
 
