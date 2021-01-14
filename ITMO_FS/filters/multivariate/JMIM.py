@@ -6,18 +6,19 @@ from ITMO_FS.utils import DataChecker, generate_features
 
 class JMIM(DataChecker):
     """
-        Creates FCBF (Fast Correlation Based filter) feature selection filter
-        based on mutual information criteria for data with discrete features
-        This filter finds best set of features by searching for a feature, which provides
-        the most information about classification problem on given dataset at each step
-        and then eliminating features which are less relevant than redundant
+        Creates JMIM (Joint Mutual Information Maximisation) feature selection filter
+        based on joint mutual information criterion for data with discrete features.
+        This filter finds best set of features by maximasing joint mutual information for
+        a candidate feature on its combination with target variable and each of the already
+        selected features separately.
+        Normalized JMIM uses normalised joint mutual information as a criterion.
 
         Parameters
         ----------
 
         Notes
         -----
-        For more details see `this paper <https://www.aaai.org/Papers/ICML/2003/ICML03-111.pdf/>`_.
+        For more details see `this paper <https://www.sciencedirect.com/science/article/pii/S0957417415004674>`_.
 
         Examples
         --------
