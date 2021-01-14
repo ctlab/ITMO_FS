@@ -1,7 +1,7 @@
 import numpy as np
 from ITMO_FS.utils.information_theory import matrix_mutual_information
-from ITMO_FS.utils.information_theory import joint_mutual_information as jmi
-from ITMO_FS.utils.information_theory import symmetrical_relevance as sr
+from ITMO_FS.utils.information_theory import joint_mutual_information
+from ITMO_FS.utils.information_theory import symmetrical_relevance
 from ...utils import BaseTransformer, generate_features
 
 
@@ -18,7 +18,8 @@ class JMIM(BaseTransformer):
         ----------
         n_features : int
             Number of features to select.
-        n_features : bool
+        normalized : bool
+            Whether to use normalized version of JMIM or not.
 
 
         Notes
@@ -32,13 +33,10 @@ class JMIM(BaseTransformer):
         >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]],
                         dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-        >>> jmim = JMIM()
-        >>> jmim.fit_transform(X, y)
-        array([[1],
-               [2],
-               [3],
-               [4],
-               [5]])
+        >>> model = JMIM(3)
+        >>> model.fit(X, y)
+        >>> model.selected_features_
+        array([4, 0, 1])
     """
 
     def __init__(self, n_features, normalized=False):
@@ -48,9 +46,9 @@ class JMIM(BaseTransformer):
 
     def __calc_jmi(self, fi, fs, y):
         if self.normalized:
-            return sr(fi, fs, y)
+            return symmetrical_relevance(fi, fs, y)
         else:
-            return jmi(fi, fs, y)
+            return joint_mutual_information(fi, fs, y)
 
     def _fit(self, X, y):
         """
