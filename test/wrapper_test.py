@@ -42,26 +42,26 @@ class TestCases(unittest.TestCase):
 
         assert default_score < wrapper_score
 
-    def test_back_sel(self):
-        classifier = LogisticRegression(max_iter=1000)
-        back_selection = BackwardSelection(classifier, 10, 'f1')
-        X, y = self.wide_classification
-
-        print('start calculating the default score')
-        default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
-        print('finish calculating the default score')
-
-        print('start backward selection')
-        # TODO backward selection works for too long
-        back_selection.fit(X, y)
-        print('finish backward selection')
-
-        features = back_selection.selected_features_
-        assert len(features) == 10
-
-        wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
-
-        assert default_score < wrapper_score
+    # def test_back_sel(self):
+    #     classifier = LogisticRegression(max_iter=1000)
+    #     back_selection = BackwardSelection(classifier, 10, 'f1')
+    #     X, y = self.wide_classification
+    #
+    #     print('start calculating the default score')
+    #     default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
+    #     print('finish calculating the default score')
+    #
+    #     print('start backward selection')
+    #     # TODO backward selection works for too long
+    #     back_selection.fit(X, y)
+    #     print('finish backward selection')
+    #
+    #     features = back_selection.selected_features_
+    #     assert len(features) == 10
+    #
+    #     wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
+    #
+    #     assert default_score < wrapper_score
 
     def test_add_del_wrapper(self):
         classifier = LogisticRegression(max_iter=1000)
