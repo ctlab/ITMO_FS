@@ -27,20 +27,20 @@ class TestCases(unittest.TestCase):
     wide_regression = make_regression(n_features=2000, n_informative=100)
     tall_regression = make_regression(n_samples=50000, n_features=200, n_informative=50)
 
-    def test_rec_elim(self):
-        classifier = LogisticRegression(max_iter=1000)
-        rec_elimination = RecursiveElimination(classifier, 10, 'f1')
-        X, y = self.wide_classification
-
-        default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
-
-        rec_elimination.fit(X, y)
-        features = rec_elimination.selected_features_
-        assert len(features) == 10
-
-        wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
-
-        assert default_score < wrapper_score
+    # def test_rec_elim(self):
+    #     classifier = LogisticRegression(max_iter=1000)
+    #     rec_elimination = RecursiveElimination(classifier, 10, 'f1')
+    #     X, y = self.wide_classification
+    #
+    #     default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
+    #
+    #     rec_elimination.fit(X, y)
+    #     features = rec_elimination.selected_features_
+    #     assert len(features) == 10
+    #
+    #     wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
+    #
+    #     assert default_score < wrapper_score
 
     # def test_back_sel(self):
     #     classifier = LogisticRegression(max_iter=1000)
@@ -63,34 +63,34 @@ class TestCases(unittest.TestCase):
     #
     #     assert default_score < wrapper_score
 
-    def test_add_del_wrapper(self):
-        classifier = LogisticRegression(max_iter=1000)
-        add_del_wrapper = AddDelWrapper(classifier, f1_score)
-        X, y = self.wide_classification
-
-        default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
-
-        add_del_wrapper.fit(X, y)
-        features = add_del_wrapper.selected_features_
-
-        wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
-
-        assert default_score < wrapper_score
-
-    def test_seq_forw_sel(self):
-        classifier = LogisticRegression(max_iter=1000)
-        seq_forw_sel = SequentialForwardSelection(classifier, 10, 'f1')
-        X, y = self.wide_classification
-
-        default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
-
-        seq_forw_sel.fit(X, y)
-        features = seq_forw_sel.selected_features_
-        assert len(features) == 10
-
-        wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
-
-        assert default_score < wrapper_score
+    # def test_add_del_wrapper(self):
+    #     classifier = LogisticRegression(max_iter=1000)
+    #     add_del_wrapper = AddDelWrapper(classifier, f1_score)
+    #     X, y = self.wide_classification
+    #
+    #     default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
+    #
+    #     add_del_wrapper.fit(X, y)
+    #     features = add_del_wrapper.selected_features_
+    #
+    #     wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
+    #
+    #     assert default_score < wrapper_score
+    #
+    # def test_seq_forw_sel(self):
+    #     classifier = LogisticRegression(max_iter=1000)
+    #     seq_forw_sel = SequentialForwardSelection(classifier, 10, 'f1')
+    #     X, y = self.wide_classification
+    #
+    #     default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
+    #
+    #     seq_forw_sel.fit(X, y)
+    #     features = seq_forw_sel.selected_features_
+    #     assert len(features) == 10
+    #
+    #     wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
+    #
+    #     assert default_score < wrapper_score
 
     # def test_qpfs_wrapper(self):
     #     classifier = LogisticRegression(max_iter=1000)
@@ -107,57 +107,57 @@ class TestCases(unittest.TestCase):
     #
     #     assert all(default_score < wrapper_score)
 
-    def test_hill_climbing(self):
-        classifier = LogisticRegression(max_iter=1000)
-        hill_climbing = HillClimbingWrapper(classifier, f1_score)
-        X, y = self.wide_classification
-
-        default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
-
-        hill_climbing.fit(X, y)
-        features = hill_climbing.selected_features_
-        # assert len(features) == 10
-
-        wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
-
-        assert default_score < wrapper_score
-
-    def test_sim_annealing(self):
-        classifier = LogisticRegression(max_iter=1000)
-        sim_annealing = SimulatedAnnealing(classifier, f1_score)
-        X, y = self.wide_classification
-
-        sim_annealing.fit(X, y)
-        default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
-
-        features = sim_annealing.selected_features_
-        # assert len(features) == 10
-
-        wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
-
-        assert default_score < wrapper_score
-
-    def test_wolves(self):
-        classifier = LogisticRegression(max_iter=1000)
-        tphmgwo = TPhMGWO()
-        X, y = self.wide_classification
-
-        default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
-
-        tphmgwo.run(X, y)
-        features = tphmgwo.selected_features_
-        # assert len(features) == 10
-
-        wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
-
-        assert default_score < wrapper_score
-
-    def test_est(self):
-        classifier = LogisticRegression(max_iter=1000)
-        for f in [RecursiveElimination(classifier, 2, make_scorer(test_scorer)), BackwardSelection(classifier, 2, make_scorer(test_scorer)), 
-        AddDelWrapper(classifier, test_scorer), SequentialForwardSelection(classifier, 2, make_scorer(test_scorer)), 
-        HillClimbingWrapper(classifier, test_scorer), SimulatedAnnealing(classifier, test_scorer), TPhMGWO()]:
-            check_estimator(f)
+    # def test_hill_climbing(self):
+    #     classifier = LogisticRegression(max_iter=1000)
+    #     hill_climbing = HillClimbingWrapper(classifier, f1_score)
+    #     X, y = self.wide_classification
+    #
+    #     default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
+    #
+    #     hill_climbing.fit(X, y)
+    #     features = hill_climbing.selected_features_
+    #     # assert len(features) == 10
+    #
+    #     wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
+    #
+    #     assert default_score < wrapper_score
+    #
+    # def test_sim_annealing(self):
+    #     classifier = LogisticRegression(max_iter=1000)
+    #     sim_annealing = SimulatedAnnealing(classifier, f1_score)
+    #     X, y = self.wide_classification
+    #
+    #     sim_annealing.fit(X, y)
+    #     default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
+    #
+    #     features = sim_annealing.selected_features_
+    #     # assert len(features) == 10
+    #
+    #     wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
+    #
+    #     assert default_score < wrapper_score
+    #
+    # def test_wolves(self):
+    #     classifier = LogisticRegression(max_iter=1000)
+    #     tphmgwo = TPhMGWO()
+    #     X, y = self.wide_classification
+    #
+    #     default_score = cross_val_score(classifier, X, y, cv=5, scoring='f1').mean()
+    #
+    #     tphmgwo.run(X, y)
+    #     features = tphmgwo.selected_features_
+    #     # assert len(features) == 10
+    #
+    #     wrapper_score = cross_val_score(classifier, X[:, features], y, cv=5, scoring='f1').mean()
+    #
+    #     assert default_score < wrapper_score
+    #
+    # def test_est(self):
+    #     classifier = LogisticRegression(max_iter=1000)
+    #     for f in [RecursiveElimination(classifier, 2, make_scorer(test_scorer)), BackwardSelection(classifier, 2, make_scorer(test_scorer)),
+    #     AddDelWrapper(classifier, test_scorer), SequentialForwardSelection(classifier, 2, make_scorer(test_scorer)),
+    #     HillClimbingWrapper(classifier, test_scorer), SimulatedAnnealing(classifier, test_scorer), TPhMGWO()]:
+    #         check_estimator(f)
 
 if __name__ == "__main__":
     unittest.main()
