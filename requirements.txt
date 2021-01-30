@@ -1,4 +1,4 @@
-imblearn
+imbalanced-learn
 numpy
 scipy
 scikit-learn
