@@ -76,7 +76,7 @@ class IWSSr_SFLA(BaseTransformer):
         self.iterations_leaps = iterations_leaps
         self.seed = seed
 
-    def generate_frogs(self, weights):
+    def __generate_frogs(self, weights):
         """
             Generates the initial population of frogs.
 
@@ -98,7 +98,7 @@ class IWSSr_SFLA(BaseTransformer):
 
         return frogs
 
-    def create_memplexes(self):
+    def __create_memplexes(self):
         """
             Creates sfla_m memplexes.
 
@@ -114,7 +114,7 @@ class IWSSr_SFLA(BaseTransformer):
         return np.array(memplexes)
 
 
-    def apply_iwssr(self, frogs, X, y):
+    def __apply_iwssr(self, frogs, X, y):
         """
             Applies the IWSSr algorithm for each of the frogs.
 
@@ -134,12 +134,12 @@ class IWSSr_SFLA(BaseTransformer):
         frogs_transformed = []
 
         for frog in frogs:
-            transformed_frog = frog[self.iwssr(X[:, frog], y)]
+            transformed_frog = frog[self.__iwssr(X[:, frog], y)]
             frogs_transformed.append(np.array(transformed_frog))
 
         return frogs_transformed
 
-    def iwssr(self, X, y):
+    def __iwssr(self, X, y):
         """
             Performs the IWSSr algorithm for given data.
 
@@ -177,7 +177,7 @@ class IWSSr_SFLA(BaseTransformer):
             selected_features = best_iteration_set
         return selected_features
 
-    def create_submemplex(self, fitness_values):
+    def __create_submemplex(self, fitness_values):
         """
             Creates a submemplex from the memplex of frogs.
 
@@ -196,7 +196,7 @@ class IWSSr_SFLA(BaseTransformer):
             weights[order[i]] = 2 * (self.sfla_n - i) / (self.sfla_n * (self.sfla_n + 1))
         return np.random.choice(self.sfla_n, size=self.sfla_q, replace=False, p=weights)
 
-    def leap(self, frogs, fitness_values, memplex, submemplex, X, y, relief_weights):
+    def __leap(self, frogs, fitness_values, memplex, submemplex, X, y, relief_weights):
         """
             Creates a new worst frog in the submemplex by trying to make it leap towards better frogs.
 
@@ -225,14 +225,14 @@ class IWSSr_SFLA(BaseTransformer):
         submemplex_worst_frog = submemplex[np.argsort(fitness_values[submemplex])[0]]
         worst_frog_fitness = fitness_values[submemplex_worst_frog]
 
-        new_worst_frog = self.leap_towards(frogs[memplex_best_frog], frogs[submemplex_worst_frog], X, y)
+        new_worst_frog = self.__leap_towards(frogs[memplex_best_frog], frogs[submemplex_worst_frog], X, y)
         new_worst_frog_fitness = cross_val_score(self._estimator, X[:, new_worst_frog], y, cv=self.cv,
                                                 scoring=self.measure_frogs).mean()
         if new_worst_frog_fitness > worst_frog_fitness:
             return submemplex_worst_frog, new_worst_frog, new_worst_frog_fitness
 
         population_best_frog = np.argsort(fitness_values)[-1]
-        new_worst_frog = self.leap_towards(frogs[population_best_frog], frogs[submemplex_worst_frog], X, y)
+        new_worst_frog = self.__leap_towards(frogs[population_best_frog], frogs[submemplex_worst_frog], X, y)
         new_worst_frog_fitness = cross_val_score(self._estimator, X[:, new_worst_frog], y, cv=self.cv,
                                                 scoring=self.measure_frogs).mean()
         if new_worst_frog_fitness > worst_frog_fitness:
@@ -247,7 +247,7 @@ class IWSSr_SFLA(BaseTransformer):
         else:
             return submemplex_worst_frog, frogs[submemplex_worst_frog], worst_frog_fitness
 
-    def leap_towards(self, frog_to, frog_from, X, y):
+    def __leap_towards(self, frog_to, frog_from, X, y):
         """
             Performs a leap from the worse frog to the better frog.
 
@@ -279,7 +279,7 @@ class IWSSr_SFLA(BaseTransformer):
             new_worst_frog = np.random.choice(frog_from, size=len(frog_from) - features_num, replace=False, p=weights)
         return new_worst_frog
 
-    def apply_sfla(self, frogs, X, y, relief_weights):
+    def __apply_sfla(self, frogs, X, y, relief_weights):
         """
             Applies the SFLA algorithm to a population of frogs.
 
@@ -301,11 +301,11 @@ class IWSSr_SFLA(BaseTransformer):
         for _ in range(self.iterations):
             fitness_values = np.array(list(map(lambda frog: cross_val_score(self._estimator, X[:, frog], y, cv=self.cv,
                                                     scoring=self.measure_frogs).mean(), frogs)))
-            memplexes = self.create_memplexes()
+            memplexes = self.__create_memplexes()
             for memplex in memplexes:
                 for _ in range(self.iterations_leaps):
-                    submemplex = memplex[self.create_submemplex(fitness_values[memplex])]
-                    worst_frog_index, new_worst_frog, new_worst_frog_fitness = self.leap(frogs, fitness_values, memplex, submemplex, X, y, relief_weights)
+                    submemplex = memplex[self.__create_submemplex(fitness_values[memplex])]
+                    worst_frog_index, new_worst_frog, new_worst_frog_fitness = self.__leap(frogs, fitness_values, memplex, submemplex, X, y, relief_weights)
                     frogs[worst_frog_index] = new_worst_frog
                     fitness_values[worst_frog_index] = new_worst_frog_fitness
         return frogs
@@ -333,9 +333,9 @@ class IWSSr_SFLA(BaseTransformer):
         relief_weights = relief_measure(X, y, self.relief_iterations)
         relief_weights /= np.sum(relief_weights)
 
-        frogs = self.generate_frogs(relief_weights)
-        frogs = self.apply_iwssr(frogs, X, y)
-        frogs = self.apply_sfla(frogs, X, y, relief_weights)
+        frogs = self.__generate_frogs(relief_weights)
+        frogs = self.__apply_iwssr(frogs, X, y)
+        frogs = self.__apply_sfla(frogs, X, y, relief_weights)
 
         fitness_values = np.array(list(map(lambda frog: cross_val_score(self._estimator, X[:, frog], y, cv=self.cv,
                                                     scoring=self.measure_frogs).mean(), frogs)))
