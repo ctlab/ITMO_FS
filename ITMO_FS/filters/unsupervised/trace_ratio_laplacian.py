@@ -18,6 +18,8 @@ class TraceRatioLaplacian(BaseTransformer):
             number of neighbours to use for knn
         t : int
             constant for kernel function calculation
+        epsilon : float
+        	Lambda change threshold.
 
             - Note: in laplacian case only. In fisher it uses label similarity, i.e if both samples belong to same class
 
@@ -37,10 +39,11 @@ n_redundant = 30, n_repeated = 10, shuffle = False)
 
     """
 
-    def __init__(self, n_features, k=5, t=1):
+    def __init__(self, n_features, k=5, t=1, epsilon=1e-3):
         self.n_features = n_features
         self.k = k
         self.t = t
+        self.epsilon = epsilon
 
     def _fit(self, X, y):
         """
@@ -93,7 +96,7 @@ n_redundant = 30, n_repeated = 10, shuffle = False)
         self.selected_features_ = np.argsort(np.divide(b, e))[::-1][0:self.n_features]
         lam = np.sum(b[self.selected_features_]) / np.sum(e[self.selected_features_])
         prev_lam = 0
-        while (lam - prev_lam >= 1e-3):
+        while (lam - prev_lam >= self.epsilon):  # TODO: optimize
             score = b - lam * e
             self.selected_feaatures_ = np.argsort(score)[::-1][0:self.n_features]
             prev_lam = lam
