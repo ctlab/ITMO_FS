@@ -15,7 +15,7 @@ def cartesian(rw, cl):  # returns cartesian product for passed numpy arrays as t
 def weight_func(model):  # weight function used in MOS testing
     return model.coef_[0]
 
-def test_scorer(y_true, y_pred):
+def f1_scorer(y_true, y_pred):
     return f1_score(y_true, y_pred, average='micro')
 
 def augmented_rvalue(X, y, k=7, theta=3):

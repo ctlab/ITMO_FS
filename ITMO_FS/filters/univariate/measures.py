@@ -188,7 +188,7 @@ def su_measure(X, y):
     >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = su_measure(X, y)
     >>> print(scores)
-    [0.82173546 0.67908587 0.79187567 0.73717549 0.86172942]
+    [0.28694182 0.13715115 0.79187567 0.47435099 0.67126949]
     """
     entropy_y = entropy(y)
     f_ratios = np.empty(X.shape[1])
@@ -280,7 +280,7 @@ def fechner_corr(X, y):
     >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = fechner_corr(X, y)
     >>> print(scores)
-    [-0.2  0.2 -0.5 -0.2 -0.2]
+    [-0.2  0.2 -0.6 -0.2 -0.2]
     """
 
     if len(X.shape) == 1:
@@ -292,14 +292,14 @@ def fechner_corr(X, y):
     if m == 1:
         N_plus = np.array([np.sum((x_dev >= 0) & (y_dev >= 0)) + np.sum(
             (x_dev < 0) & (y_dev < 0))])
-        N_minus = np.array([np.sum((x_dev > 0) & (y_dev < 0)) + np.sum(
-            (x_dev < 0) & (y_dev > 0))])
+        N_minus = np.array([np.sum((x_dev >= 0) & (y_dev < 0)) + np.sum(
+            (x_dev < 0) & (y_dev >= 0))])
     else:
         N_plus = np.sum((x_dev >= 0).T & (y_dev >= 0), axis=1) + np.sum(
             (x_dev < 0).T & (y_dev < 0), axis=1).astype(
             float)
-        N_minus = np.sum((x_dev > 0).T & (y_dev < 0), axis=1) + np.sum(
-            (x_dev < 0).T & (y_dev > 0), axis=1).astype(
+        N_minus = np.sum((x_dev >= 0).T & (y_dev < 0), axis=1) + np.sum(
+            (x_dev < 0).T & (y_dev >= 0), axis=1).astype(
             float)
     return (N_plus - N_minus) / (N_plus + N_minus)
 
@@ -794,7 +794,7 @@ def laplacian_score(X, y, k_neighbors=5, t=1, metric=np.linalg.norm, **kwargs):
 def information_gain(X, y):
     """
     Calculates mutual information for each feature by formula,
-    I(X,Y) = H(X) - H(X|Y)
+    I(X,Y) = H(Y) - H(Y|X)
 
     Parameters
     ----------
@@ -860,7 +860,7 @@ def anova(X, y):
     >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
     >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
     >>> scores = anova(X, y)
-    >>> print(scores)
+    >>> scores
     """
     split_by_class = [X[y == k] for k in np.unique(y)]
     num_classes = len(np.unique(y))
@@ -1012,9 +1012,11 @@ def __select_k(scores, k, reverse=False):
 
 
 def __select_percentage_best(scores, percent):
+    print(scores, percent)
     features = []
     max_val = max(scores.values())
     threshold = max_val * percent
+    print(threshold)
     for key, sc_value in scores.items():
         if sc_value >= threshold:
             features.append(key)

@@ -56,8 +56,7 @@ class MOS(BaseTransformer):
         ...     target[i] = 0
         >>> m = MOS(model=SGDClassifier(),
         ...         weight_func=lambda model: model.coef_[0])
-        >>> m.fit()
-        >>> m.transform(data).shape[0]
+        >>> m.fit_transform(data, target).shape[0]
         100
     """
 

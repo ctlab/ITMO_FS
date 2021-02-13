@@ -34,9 +34,8 @@ class TraceRatioLaplacian(BaseTransformer):
         >>> x, y = make_classification(1000, 100, n_informative = 10, \
 n_redundant = 30, n_repeated = 10, shuffle = False)
         >>> tracer = TraceRatioLaplacian(10)
-        >>> tracer.fit_transform(x, y)
-
-
+        >>> tracer.fit_transform(x, y).shape
+        (1000, 10)
     """
 
     def __init__(self, n_features, k=5, t=1, epsilon=1e-3):

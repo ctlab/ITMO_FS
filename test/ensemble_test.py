@@ -25,12 +25,12 @@ class MyTestCase(unittest.TestCase):
                    fechner_corr,
                    spearman_corr,
                    pearson_corr]
-        ensemble = Mixed(filters)
+        ensemble = Mixed(filters, 100, borda_fusion)
         ensemble.fit(data, target)
-        ensemble.transform(data, 100, borda_fusion)
+        ensemble.transform(data)
         d = [{'f' + str(i): i for i in range(100)}.items()] * 5
         self.assertEqual(borda_fusion(d, 100), ['f' + str(i) for i in reversed(range(100))])
-        ensemble.transform(data, 100)
+        ensemble.transform(data)
         self.assertEqual(borda_fusion(d, 100), ['f' + str(i) for i in reversed(range(100))])
 
     def test_weight_based_ensemble(self):
@@ -39,14 +39,14 @@ class MyTestCase(unittest.TestCase):
                    UnivariateFilter(fechner_corr),
                    UnivariateFilter(spearman_corr),
                    UnivariateFilter(pearson_corr)]
-        ensemble = WeightBased(filters)
-        ensemble.fit(data, target)
-
         weights = [0.5, 0.5, 0.5, 0.5]
-        ensemble.transform(data, select_k_best(100), weights=weights)
+        ensemble = WeightBased(filters, select_k_best(100), weights=weights)
+        
+        ensemble.fit(data, target)
+        ensemble.transform(data)
 
     def test_benching_ensembles(self):
-        datasets = [make_classification(n_samples=2000, n_features=20 * i, n_informative=i, n_redundant=5 * i) for i in
+        datasets = [make_classification(n_samples=200, n_features=20 * i, n_informative=i, n_redundant=5 * i) for i in
                     [2, 10, 20, 50, 100, 200, 500, 1000]]
 
         filters = [gini_index,
@@ -76,9 +76,9 @@ class MyTestCase(unittest.TestCase):
                 scores_no_fs.append(f1_score(y[test_index], y_pred))
 
                 time_ens_start.append(time.time())
-                ensemble = Mixed(filters)
+                ensemble = Mixed(filters, k, fusion_function=borda_fusion)
                 ensemble.fit(X[train_index], y[train_index])
-                X_transformed = ensemble.transform(X, k, borda_fusion)
+                X_transformed = ensemble.transform(X)
                 time_ens_end.append(time.time())
 
                 svm = SVC()

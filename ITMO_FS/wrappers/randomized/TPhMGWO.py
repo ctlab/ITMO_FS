@@ -47,8 +47,6 @@ class TPhMGWO(BaseWrapper):
 n_redundant = 30, n_repeated = 10, shuffle = True)
         >>> tphmgwo.fit()
         >>> print(tphmgwo.selected_features_)
-
-
     """
 
     def __init__(self, wolfNumber=10, seed=1, alpha=0.01, estimator=KNeighborsClassifier(n_neighbors=3), foldNumber=5,

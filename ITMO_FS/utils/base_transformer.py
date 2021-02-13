@@ -51,7 +51,7 @@ class BaseTransformer(TransformerMixin, BaseEstimator):
             Transformed 2D numpy array
         """
         check_is_fitted(self, 'selected_features_')
-        X_ = check_array(X, dtype='float64', accept_large_sparse=False)
+        X_ = check_array(X, dtype='numeric', accept_large_sparse=False)
         if X_.shape[1] != self.n_features_:
             raise ValueError('Shape of input is different from what was seen'
                              'in `fit`')

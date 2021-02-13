@@ -34,8 +34,8 @@ class SPEC(BaseTransformer):
         >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
         >>> data, target = np.array(dataset[0]), np.array(dataset[1])
         >>> model = SPEC(5)
-        >>> model.fit_transform(data, target)
-
+        >>> model.fit_transform(data, target).shape[0]
+        100
     """
 
     def __init__(self, n_features, k=2, gamma=(lambda x: x ** 2), sigma=0.5, phi_type=1):

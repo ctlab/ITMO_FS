@@ -34,8 +34,9 @@ class RFS(BaseTransformer):
         >>> import numpy as np
         >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
         >>> data, target = np.array(dataset[0]), np.array(dataset[1])
-        >>> model = RFS(gamma=15, epsilon=1e-12)
-        >>> model.fit_transform(data, target)
+        >>> model = RFS(5, gamma=15, epsilon=1e-12)
+        >>> model.fit_transform(data, target).shape
+        (100, 5)
     """
 
     def __init__(self, n_features, gamma=1, max_iterations=1000, epsilon=1e-5):

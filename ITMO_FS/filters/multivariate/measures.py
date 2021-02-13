@@ -33,9 +33,7 @@ def MIM(selected_features, free_features, x, y, **kwargs):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> X = est.transform(x)
+        >>> X = est.fit_transform(X)
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
         >>> MIM(np.array(selected_features), np.array(other_features), x, y)
@@ -75,9 +73,7 @@ def MRMR(selected_features, free_features, x, y, **kwargs):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> X = est.transform(x)
+        >>> X = est.fit_transform(X)
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
         >>> MRMR(np.array(selected_features), np.array(other_features), x, y)
@@ -120,9 +116,7 @@ def JMI(selected_features, free_features, x, y, **kwargs):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> X = est.transform(x)
+        >>> X = est.fit_transform(X)
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
         >>> JMI(np.array(selected_features), np.array(other_features), x, y)
@@ -152,9 +146,8 @@ def CIFE(selected_features, free_features, x, y, **kwargs):
         y : array-like, shape (n_samples, )
             The target values.
         
-                Notes ----- For more details see `this paper
-                <http://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf
-                />`_.
+        Notes ----- For more details see `this paper
+        <http://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf/>`_.
 
         Examples
         --------
@@ -166,9 +159,7 @@ def CIFE(selected_features, free_features, x, y, **kwargs):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> X = est.transform(x)
+        >>> X = est.fit_transform(X)
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
         >>> CIFE(np.array(selected_features), np.array(other_features), x, y)
@@ -196,12 +187,11 @@ def MIFS(selected_features, free_features, x, y, beta, **kwargs):
             The training input samples.
         y : array-like, shape (n_samples, )
             The target values.
-        beta : float,
+        beta : float
             coeficient for redundancy term
         
-                Notes ----- For more details see `this paper
-                <http://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf
-                />`_.
+        Notes ----- For more details see `this paper
+        <http://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf/>`_.
 
         Examples
         --------
@@ -213,9 +203,7 @@ def MIFS(selected_features, free_features, x, y, beta, **kwargs):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> X = est.transform(x)
+        >>> X = est.fit_transform(X)
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
         >>> MIFS(np.array(selected_features), np.array(other_features), x, y, 0.4)
@@ -256,9 +244,7 @@ def CMIM(selected_features, free_features, x, y, **kwargs):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> X = est.transform(x)
+        >>> X = est.fit_transform(X)
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
         >>> CMIM(np.array(selected_features), np.array(other_features), x, y)
@@ -306,9 +292,7 @@ def ICAP(selected_features, free_features, x, y, **kwargs):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> X = est.transform(x)
+        >>> X = est.fit_transform(X)
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
         >>> ICAP(np.array(selected_features), np.array(other_features), x, y)
@@ -366,9 +350,7 @@ def DCSF(selected_features, free_features, x, y, **kwargs):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> X = est.transform(x)
+        >>> X = est.fit_transform(X)
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
         >>> DCSF(np.array(selected_features), np.array(other_features), x, y)
@@ -419,9 +401,7 @@ def CFR(selected_features, free_features, x, y, **kwargs):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> X = est.transform(x)
+        >>> X = est.fit_transform(X)
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
         >>> CFR(np.array(selected_features), np.array(other_features), x, y)
@@ -472,9 +452,7 @@ def MRI(selected_features, free_features, X, y, **kwargs):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> X = est.transform(X)
+        >>> X = est.fit_transform(X)
         >>> selected_features = [1, 2]
 
         >>> other_features = [i for i in range(0, X.shape[1]) if i not in selected_features]
@@ -530,9 +508,7 @@ def IWFS(selected_features, free_features, X, y, **kwargs):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> X = est.transform(X)
+        >>> X = est.fit_transform(X)
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, X.shape[1]) if i not in selected_features]
         >>> IWFS(np.array(selected_features), np.array(other_features), X, y)
@@ -592,9 +568,7 @@ def generalizedCriteria(selected_features, free_features, X, y, beta, gamma,
         >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> X = est.transform(X)
+        >>> X = est.fit_transform(X)
         >>> selected_features = [1, 2]
         >>> other_features = [i for i in range(0, X.shape[1]) if i not in selected_features]
         >>> generalizedCriteria(np.array(selected_features), np.array(other_features), X, y, 0.4, 0.3)

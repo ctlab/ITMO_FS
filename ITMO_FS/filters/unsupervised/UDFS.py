@@ -38,8 +38,9 @@ class UDFS(BaseTransformer):
         >>> dataset = make_classification(n_samples=100, n_features=20, \
 n_informative=4, n_redundant=0, shuffle=False)
         >>> data, target = np.array(dataset[0]), np.array(dataset[1])
-        >>> model = UDFS(p=5, c=2)
-        >>> model.fit_transform(data, target)
+        >>> model = UDFS(5)
+        >>> model.fit_transform(data, target).shape
+        (100, 5)
     """
 
     def __init__(self, n_features, c=2, k=3, gamma=1, l=1e-6,

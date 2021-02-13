@@ -39,6 +39,8 @@ class SimulatedAnnealing(BaseWrapper):
         --------
         >>> from sklearn.datasets import make_classification
         >>> from sklearn.model_selection import KFold
+        >>> from sklearn.linear_model import LogisticRegression
+        >>> from sklearn.metrics import f1_score
         >>> from ITMO_FS.wrappers.randomized import SimulatedAnnealing
         >>> x, y = make_classification(1000, 100, n_informative = 10, n_redundant = 30, n_repeated = 10, shuffle = False)
         >>> kf = KFold(n_splits=2)
@@ -46,8 +48,6 @@ class SimulatedAnnealing(BaseWrapper):
         >>> for train_index, test_index in kf.split(x):
         ...    sa.fit()
         ...    print(sa.selected_features)
-
-        
     """
 
     def __init__(self, estimator, scorer, seed=1, iteration_number=100, c=1, init_number_of_features=None, test_size=0.25):

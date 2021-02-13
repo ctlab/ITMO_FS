@@ -46,7 +46,8 @@ class NDFS(BaseTransformer):
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> model = NDFS(3)
-        >>> model.fit_transform(X)
+        >>> model.fit_transform(X).shape[0]
+        5
     """
 
     def __init__(self, n_features, c=2, k=3, alpha=1, beta=1, gamma=10e8,

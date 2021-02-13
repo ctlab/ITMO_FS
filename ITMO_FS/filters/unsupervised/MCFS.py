@@ -29,13 +29,14 @@ class MCFS(BaseTransformer):
 
         Examples
         --------
-        >>> from ITMO_FS.filters.sparse import MCFS
+        >>> from ITMO_FS.filters.unsupervised import MCFS
         >>> import numpy as np
         >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> model = MCFS(3)
-        >>> model.fit_transform(X)
+        >>> model.fit_transform(X).shape
+        (5, 3)
     """
 
     def __init__(self, n_features, k=2, p=3, scheme='heat', sigma=1):
