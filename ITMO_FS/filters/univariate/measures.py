@@ -986,7 +986,8 @@ def __update_weights(X, y, alpha, weights, p, radius):
 
 def weighted_evidential_regression(X, y, alpha=0.01, num_epochs=1000, p=2, k=None, radius=5.0):
     """
-    Calculates anova measure for each feature.
+    Builds weighted evidential regression model, which learns features weights during fitting.
+    Thus learnt feature wieghts can be used as ranks in feature selection.
 
     Parameters
     ----------
