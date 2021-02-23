@@ -23,7 +23,7 @@ class MyTestCase(unittest.TestCase):
                UnivariateFilter(spearman_corr)]
 
     estimator = SVC(random_state=42)
-    ensemble = WeightBased(filters)
+    ensemble = WeightBased(filters, cutting_rule=select_k_best(50))
 
     melif = Melif(estimator, select_k_best(1500), ensemble, scorer=f1_score, verbose=True)
 

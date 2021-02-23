@@ -26,7 +26,7 @@ jobs:
             conda create -n testenv --yes --quiet python=3
             source activate testenv
             pip install -r requirements.txt
-            pip install pandas sphinx_rtd_theme
+            pip install pandas sphinx_rtd_theme dvc
             pip install sphinx-gallery
             pip install .
             cd docs
