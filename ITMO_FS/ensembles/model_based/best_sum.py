@@ -1,8 +1,5 @@
 import numpy as np
-from sklearn.utils import check_array
 from ...utils import BaseTransformer, generate_features, apply_cr
-from ...filters.univariate.measures import GLOB_CR, GLOB_MEASURE
-from sklearn.utils.validation import check_is_fitted
 
 
 class BestSum(BaseTransformer):  ## TODO refactor , not stable

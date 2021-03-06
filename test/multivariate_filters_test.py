@@ -3,7 +3,6 @@ import unittest
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
-import numpy as np
 
 from sklearn.utils.estimator_checks import check_estimator
 
@@ -94,7 +93,7 @@ class TestCases(unittest.TestCase):
             assert self.data.shape[0] == res.shape[0] and res.shape[1] == 10
 
     def test_df(self):
-        for f in [FCBFDiscreteFilter(), DISRWithMassive(10), JMIM(10), MultivariateFilter(MIM, 10),\
+        for f in [FCBFDiscreteFilter(), DISRWithMassive(10), JMIM(10), MultivariateFilter(MIM, 10), \
                   TraceRatioFisher(10), STIR(10)]:
             df = f.fit_transform(pd.DataFrame(self.data), pd.DataFrame(self.target))
             arr = f.fit_transform(self.data, self.target)
@@ -120,7 +119,7 @@ class TestCases(unittest.TestCase):
 
         # FS - FS - estim
         p = Pipeline([('FS1', TraceRatioFisher(10)), ('FS2', DISRWithMassive(5)),
-                        ('E1', LogisticRegression(max_iter=10000))])
+                      ('E1', LogisticRegression(max_iter=10000))])
         p.fit(self.data, self.target)
         assert 0 <= p.score(self.data, self.target) <= 1
 

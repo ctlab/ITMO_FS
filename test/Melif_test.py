@@ -11,6 +11,7 @@ from ITMO_FS.ensembles import WeightBased
 from ITMO_FS.filters import *
 from ITMO_FS.hybrid.Melif import Melif
 from ITMO_FS.utils import test_scorer
+from ITMO_FS.utils.cutting_rules import select_k_best
 
 
 class MyTestCase(unittest.TestCase):
