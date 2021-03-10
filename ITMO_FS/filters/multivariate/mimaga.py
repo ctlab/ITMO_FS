@@ -11,6 +11,7 @@ from ...utils import BaseTransformer
 
 # TODO fix docs
 
+
 def genes_mutual_information(genes):
     """
     :param genes: dataset
@@ -42,7 +43,14 @@ def decode_genes(mapping, chromosome, train, test):
     return np.array(filtered_train), np.array(filtered_test)
 
 
-def population_fitness(mapping, population, train, train_cl, test, test_cl, measure):
+def population_fitness(
+        mapping,
+        population,
+        train,
+        train_cl,
+        test,
+        test_cl,
+        measure):
     """
     :param population: vector of chromosomes
     :return: vector of (chromosome code, chromosome fitness), max fitness, average fitness
@@ -50,7 +58,8 @@ def population_fitness(mapping, population, train, train_cl, test, test_cl, meas
     code_fitness = []
     f_sum = 0
     for i in range(len(population)):
-        filtered_train, filtered_test = decode_genes(mapping, population[i], train, test)
+        filtered_train, filtered_test = decode_genes(
+            mapping, population[i], train, test)
         clf = make_pipeline(StandardScaler(), SVC(gamma='auto'))
         if len(filtered_train) == 0:
             continue
@@ -69,7 +78,7 @@ def crossover(x, y):
     """ simple one-point crossover """
     random_point = random.randint(1, len(x) - 1)
     return x[0:random_point] + y[random_point:len(x)], \
-           y[0:random_point] + x[random_point:len(x)]
+        y[0:random_point] + x[random_point:len(x)]
 
 
 def mutation(x):
@@ -97,14 +106,16 @@ def cross_and_mutate(pc, pm, population):
         new_population.extend([child1, child2])
         max_parent_f = max([max_parent_f, f1, f2])
     for i in range(mutate_number):
-        mutant = mutation(population[random.randint(0, len(population) - 1)][0])
+        mutant = mutation(
+            population[random.randint(0, len(population) - 1)][0])
         new_population.append(mutant)
     return new_population, max_parent_f
 
 
 class MIMAGA(BaseTransformer):
 
-    def __init__(self, mim_size, pop_size, max_iter=20, f_target=0.8, k1=0.6, k2=0.3, k3=0.9, k4=0.001):
+    def __init__(self, mim_size, pop_size, max_iter=20, f_target=0.8, k1=0.6,
+                 k2=0.3, k3=0.9, k4=0.001):
         """
         :param mim_size: desirable number of filtered features after MIM
         :param pop_size: initial population size
@@ -119,6 +130,7 @@ class MIMAGA(BaseTransformer):
         --------
         https://www.sciencedirect.com/science/article/abs/pii/S0925231217304150
         """
+        super().__init__()
         self.mim_size = mim_size
         self.pop_size = pop_size
         self.max_iter = max_iter
@@ -138,7 +150,8 @@ class MIMAGA(BaseTransformer):
         g_num, _ = genes.shape
         mi_vector = genes_mutual_information(genes)
         seq_nums = [i for i in range(g_num)]
-        target_sequence = list(map(lambda p: p[1], sorted(zip(mi_vector, seq_nums))))[:self.mim_size]
+        target_sequence = list(map(lambda p: p[1], sorted(zip(mi_vector, seq_nums))))[
+            :self.mim_size]
         return target_sequence
 
     # AGA
@@ -150,7 +163,8 @@ class MIMAGA(BaseTransformer):
         population = []
         for _ in range(self.pop_size):
             individual_num = random.randint(1, 2 << self.mim_size - 1)
-            individual_code = list(map(int, bin(individual_num)[2:].zfill(self.mim_size)))
+            individual_code = list(
+                map(int, bin(individual_num)[2:].zfill(self.mim_size)))
             population.append(individual_code)
         return population
 
@@ -170,7 +184,15 @@ class MIMAGA(BaseTransformer):
         else:
             return self.k4
 
-    def _aga_filter(self, max_size, mapping, population, train, train_cl, test, test_cl):
+    def _aga_filter(
+            self,
+            max_size,
+            mapping,
+            population,
+            train,
+            train_cl,
+            test,
+            test_cl):
         """
         :param max_size: maximum size of population (if population becomes bigger,
                          the worst individuals are killed)
@@ -186,12 +208,17 @@ class MIMAGA(BaseTransformer):
         counter = 0
         best_individual = [1 for _ in range(len(population[0]))]
         while counter < self.max_iter and f_max < self.f_target:
-            code_fitness, f_max, f_avg = population_fitness(mapping, population, train, train_cl, test, test_cl, partial(f1_score, average='macro'))
+            code_fitness, f_max, f_avg = population_fitness(
+                mapping, population, train, train_cl, test, test_cl, partial(
+                    f1_score, average='macro'))
             if len(code_fitness) > max_size:
                 code_fitness = code_fitness[:max_size]
                 population = list(map(lambda x: x[0], code_fitness))
 
-            highly_fitted = list(filter(lambda x: x[1] >= f_max / 2, code_fitness))
+            highly_fitted = list(
+                filter(
+                    lambda x: x[1] >= f_max / 2,
+                    code_fitness))
             if len(highly_fitted) == 0:
                 highly_fitted = code_fitness
             best_individual = code_fitness[0][0]
@@ -210,14 +237,17 @@ class MIMAGA(BaseTransformer):
         :param classes: distribution pf initial dataset
         :return: filtered with MIMAGA dataset, fitness value
         """
-        train_set, test_set, train_classes, test_classes = train_test_split(genes, classes, test_size=0.33)
+        train_set, test_set, train_classes, test_classes = train_test_split(
+            genes, classes, test_size=0.33)
         filtered_indexes = self._mim_filter(train_set.transpose())
-        index_map = dict(zip([i for i in range(self.mim_size)], filtered_indexes))
+        index_map = dict(
+            zip([i for i in range(self.mim_size)], filtered_indexes))
 
         first_population = self._initial_population()
         best, max_fitness = self._aga_filter(self.pop_size * 2, index_map, first_population,
                                              train_set.transpose(), train_classes, test_set.transpose(), test_classes)
-        result_genes, _ = decode_genes(index_map, best, train_set.transpose(), test_set.transpose())
+        result_genes, _ = decode_genes(
+            index_map, best, train_set.transpose(), test_set.transpose())
         return result_genes, max_fitness
 
 # TODO: optimize everything bcs this works for hours

@@ -4,7 +4,10 @@ from sklearn.base import TransformerMixin
 from .measures import GLOB_MEASURE
 from ...utils import BaseTransformer, generate_features
 
+
 # TODO Test interface!!!!
+
+
 class MultivariateFilter(BaseTransformer):
     """
         Provides basic functionality for multivariate filters.
@@ -12,18 +15,20 @@ class MultivariateFilter(BaseTransformer):
         Parameters
         ----------
         measure : string or callable
-            A metric name defined in GLOB_MEASURE or a callable with signature measure(selected_features, free_features, dataset, labels)
-            which should return a list of metric values for each feature in the dataset.
+            A metric name defined in GLOB_MEASURE or a callable with signature
+            measure(selected_features, free_features, dataset, labels) which
+            should return a list of metric values for each feature
+            in the dataset.
         n_features : int
             Number of features to select.
         beta : float, optional
             Initialize only in case you run MIFS or generalizedCriteria metrics.
         gamma : float, optional
             Initialize only in case you run generalizedCriteria metric.
-        
+
         See Also
         --------
-        
+
         Examples
         --------
         >>> from ITMO_FS.filters.multivariate import MultivariateFilter
@@ -44,6 +49,7 @@ class MultivariateFilter(BaseTransformer):
     """
 
     def __init__(self, measure, n_features, beta=None, gamma=None):
+        super().__init__()
         self.measure = measure
         self.n_features = n_features
         self.beta = beta
@@ -65,24 +71,39 @@ class MultivariateFilter(BaseTransformer):
             None
         """
 
-        if type(self.measure) is str:
+        if isinstance(self.measure, str):
             try:
                 self.measure = GLOB_MEASURE[self.measure]
             except KeyError:
                 raise KeyError("No %r measure yet" % self.measure)
-        
+
         if self.n_features > self.n_features_:
-            raise ValueError("Cannot select %d features with n_features = %d" % (self.n_features, self.n_features_))
+            raise ValueError(
+                "Cannot select %d features with n_features = %d" %
+                (self.n_features, self.n_features_))
         free_features = generate_features(X)
         self.selected_features_ = np.array([], dtype='int')
         while len(self.selected_features_) != self.n_features:
             if self.beta is None:
-                values = self.measure(self.selected_features_, free_features, X, y)
+                values = self.measure(
+                    self.selected_features_, free_features, X, y)
             else:
                 if self.gamma is not None:
-                    values = self.measure(self.selected_features_, free_features, X, y, self.beta, self.gamma)
+                    values = self.measure(
+                        self.selected_features_,
+                        free_features,
+                        X,
+                        y,
+                        self.beta,
+                        self.gamma)
                 else:
-                    values = self.measure(self.selected_features_, free_features, X, y, self.beta)
+                    values = (self.measure(
+                                            self.selected_features_,
+                                            free_features,
+                                            X,
+                                            y,
+                                            self.beta))
             to_add = np.argmax(values)
-            self.selected_features_ = np.append(self.selected_features_, free_features[to_add])
+            self.selected_features_ = np.append(
+                self.selected_features_, free_features[to_add])
             free_features = np.delete(free_features, to_add)
