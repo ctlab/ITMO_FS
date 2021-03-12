@@ -407,6 +407,7 @@ def reliefF_measure(X, y, k_neighbors=1):
     with np.errstate(divide='ignore', invalid="ignore"):  # todo
         return f_ratios / (np.amax(X, axis=0) - np.amin(X, axis=0))
 
+
 def relief_measure(X, y, m=None):
     """
     Computes Relief measure for each feature.
@@ -945,78 +946,6 @@ GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "InformationGain": information_gain,
                 "ModifiedTScore": modified_t_score,
                 "Relief": relief_measure}
-
-
-def select_best_by_value(value):
-    return _wrapped_partial(__select_by_value, value=value, more=True)
-
-
-def select_worst_by_value(value):
-    return _wrapped_partial(__select_by_value, value=value, more=False)
-
-
-def __select_by_value(scores, value, more=True):
-    features = []
-    for key, sc_value in scores.items():
-        if more:
-            if sc_value >= value:
-                features.append(key)
-        else:
-            if sc_value <= value:
-                features.append(key)
-    return features
-
-
-def select_k_best(k):
-    return _wrapped_partial(__select_k, k=k, reverse=True)
-
-
-def select_k_worst(k):
-    return _wrapped_partial(__select_k, k=k)
-
-
-def __select_k(scores, k, reverse=False):
-    if type(k) != int:
-        raise TypeError("Number of features should be integer")
-    if k > len(scores):
-        raise ValueError("Cannot select %d features with n_features = %d" % (k, len(scores)))
-    return [keys[0] for keys in sorted(scores.items(), key=lambda kv: kv[1], reverse=reverse)[:k]]
-
-
-def __select_percentage_best(scores, percent):
-    features = []
-    max_val = max(scores.values())
-    threshold = max_val * percent
-    for key, sc_value in scores.items():
-        if sc_value >= threshold:
-            features.append(key)
-    return features
-
-
-def select_best_percentage(percent):
-    return _wrapped_partial(__select_percentage_best, percent=percent)
-
-
-def __select_percentage_worst(scores, percent):
-    features = []
-    max_val = min(scores.values())
-    threshold = max_val * percent
-    for key, sc_value in scores.items():
-        if sc_value >= threshold:
-            features.append(key)
-    return features
-
-
-def select_worst_percentage(percent):
-    return _wrapped_partial(__select_percentage_worst, percent=percent)
-
-
-GLOB_CR = {"Best by value": select_best_by_value,
-           "Worst by value": select_worst_by_value,
-           "K best": select_k_best,
-           "K worst": select_k_worst,
-           "Worst by percentage": select_worst_percentage,
-           "Best by percentage": select_best_percentage}
 
 
 def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):

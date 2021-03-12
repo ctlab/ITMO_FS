@@ -1,6 +1,9 @@
 import numpy as np
 from sklearn.metrics import f1_score
 
+from ITMO_FS.utils.cutting_rules import GLOB_CR
+
+
 def normalize(x):
     x = np.abs(np.array(x))
     max_ = max(x)
@@ -122,7 +125,6 @@ def power_neg_half(M):
     return np.sqrt(np.linalg.inv(M))
 
 def apply_cr(cutting_rule):
-    from ..filters.univariate.measures import GLOB_CR, GLOB_MEASURE
     if type(cutting_rule) is tuple:
         cutting_rule_name = cutting_rule[0]
         cutting_rule_value = cutting_rule[1]

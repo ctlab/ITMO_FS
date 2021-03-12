@@ -1,7 +1,6 @@
 import time
 import unittest
 import numpy as np
-from collections import defaultdict
 
 from sklearn.datasets import make_classification, make_regression
 from sklearn.metrics import f1_score
@@ -11,6 +10,7 @@ from sklearn.svm import SVC
 from ITMO_FS.ensembles.measure_based import *
 from ITMO_FS.ensembles.ranking_based import *
 from ITMO_FS.filters.univariate import *
+from ITMO_FS.utils.cutting_rules import select_k_best
 
 
 class MyTestCase(unittest.TestCase):
@@ -118,6 +118,7 @@ class MyTestCase(unittest.TestCase):
 
             print('Ensemble score', np.mean(scores_ens), np.std(scores_ens))
             print()
+
 
 if __name__ == '__main__':
     unittest.main()

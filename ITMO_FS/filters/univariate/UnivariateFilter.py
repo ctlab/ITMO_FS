@@ -1,6 +1,6 @@
 from numpy import ndarray
 
-from .measures import GLOB_CR, GLOB_MEASURE
+from .measures import GLOB_MEASURE
 from ...utils import BaseTransformer, generate_features, check_restrictions, apply_cr
 
 
@@ -30,7 +30,7 @@ class UnivariateFilter(BaseTransformer):  # TODO ADD LOGGING
         --------
 
         >>> from sklearn.datasets import make_classification
-        >>> from ITMO_FS.filters.univariate import select_k_best
+        >>> from ITMO_FS.utils import select_k_best
         >>> from ITMO_FS.filters.univariate import UnivariateFilter
         >>> from ITMO_FS.filters.univariate import f_ratio_measure
         >>> x, y = make_classification(1000, 100, n_informative = 10, n_redundant = 30, \

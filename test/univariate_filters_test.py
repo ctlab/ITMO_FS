@@ -10,8 +10,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.utils.estimator_checks import check_estimator
 
+from ITMO_FS import WeightedEvReg
 from ITMO_FS.filters.univariate import *
-from ITMO_FS.filters.univariate.measures import GLOB_CR
+from ITMO_FS.utils.cutting_rules import select_k_best, select_best_by_value, GLOB_CR
 from ITMO_FS.utils.information_theory import *
 
 np.random.seed(42)
@@ -141,7 +142,7 @@ class TestCases(unittest.TestCase):
         true_modificator = np.array([(sqrt(3) / 2) / ((0 + 5 / (2 * sqrt(13)) + 0) / 3),
                                      (sqrt(3) / (2 * sqrt(7))) / ((0 + 3 / (2 * sqrt(91)) + 4 / sqrt(21)) / 3),
                                      (3 * sqrt(3) / (2 * sqrt(13))) / (
-                                                 (5 / (2 * sqrt(13)) + 3 / (2 * sqrt(91)) + sqrt(3) / sqrt(13)) / 3),
+                                             (5 / (2 * sqrt(13)) + 3 / (2 * sqrt(91)) + sqrt(3) / sqrt(13)) / 3),
                                      (1 / 6) / ((0 + 4 / sqrt(21) + sqrt(3) / sqrt(13)) / 3)])
         true_scores = true_numerator / true_denominator * true_modificator
 
@@ -168,6 +169,15 @@ class TestCases(unittest.TestCase):
 
             res = univ_filter.transform(data)
             assert i == res.shape[1]
+
+    def test_weighted_evreg(self):
+        X = np.array([[5, 1, 3, 2], [4, 2, 2, 1], [3, 3, 4, 1], [2, 2, 3, 1], [1, 1, 5, 2]])
+        y = np.array([1, 1, 2, 2, 2])
+
+        weighted_ev_reg = WeightedEvReg(cutting_rule=('K best', 2), num_epochs=100)
+        weighted_ev_reg.fit(X, y)
+
+        assert weighted_ev_reg.selected_features_ == [1, 2]
 
     def test_igain(self):  # TODO: wrong values
         iris_dataset = load_iris()
@@ -265,9 +275,11 @@ class TestCases(unittest.TestCase):
         iris_dataset = load_iris()
         X = iris_dataset.data
         y = iris_dataset.target
-        for cutting_rule in [GLOB_CR['Best by value'](0.5), GLOB_CR['Worst by value'](0.5), GLOB_CR['Worst by percentage'](0.5), 
-            GLOB_CR['Best by percentage'](0.5), ('Worst by value', 0.5), ('Best by value', 0.5), ('Worst by percentage', 0.2),
-            ('Best by percentage', 0.2)]:
+        for cutting_rule in [GLOB_CR['Best by value'](0.5), GLOB_CR['Worst by value'](0.5),
+                             GLOB_CR['Worst by percentage'](0.5),
+                             GLOB_CR['Best by percentage'](0.5), ('Worst by value', 0.5), ('Best by value', 0.5),
+                             ('Worst by percentage', 0.2),
+                             ('Best by percentage', 0.2)]:
             f = UnivariateFilter(qpfs_filter, cutting_rule)
             self.assertRaises(KeyError, f.fit, X, y)
 
