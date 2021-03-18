@@ -7,54 +7,302 @@ import numpy as np
 
 
 def conditional_entropy(x_j, y):
-    # H(Y|X)
-    buf = [[e[1] for e in g] for _, g in
+    """
+    Calculates the conditional entropy (H(Y|X)) between two arrays.
+
+        Parameters
+        ----------
+        x_j : array-like, shape (n)
+            The first array.
+        y : array-like, shape (n)
+            The second array.
+
+        Returns
+        -------
+        float - H(Y|X) value
+    
+
+        Examples
+        --------
+
+        >>> from ITMO_FS.utils.information_theory import conditional_entropy
+        >>> conditional_entropy([1,2,1,3,4], [1,2,3,4,5])
+        0.2772588722239781
+        >>> conditional_entropy([1], [2])
+        -0.0
+        >>> conditional_entropy([1,2,1,3,2,4], [3,3,3,3,3,3])
+        -0.0
+        >>> conditional_entropy([1,2,3,1,3,2,3,4,1], [1,2,1,3,1,4,4,1,5])
+        0.7324081924454064
+    """
+    buf = [[e[1] for e in g] for _, g in 
            groupby(sorted(zip(x_j, y)), itemgetter(0))]
     return fsum(entropy(group) * len(group) for group in buf) / len(x_j)
 
 
-def joint_entropy(x, y, z):
-    # H(X; Y; Z)
-    return entropy(list(zip(x, y, z)))
+def joint_entropy(*arrs):
+    """
+    Calculates the joint entropy (H(X;Y;...)) between multiple arrays.
+
+        Parameters
+        ----------
+        arrs : any number of array-like, all of shape (n)
+            Any number of arrays.
+
+        Returns
+        -------
+        float - H(X;Y;...) value
+    
+
+        Examples
+        --------
+
+        >>> from ITMO_FS.utils.information_theory import joint_entropy
+        >>> joint_entropy([1,2,3,4,5])
+        1.6094379124341005
+        >>> joint_entropy([1,2,3,4,5,6], [1,2,3,4,5,6])
+        1.7917594692280547
+        >>> joint_entropy([1,2,1,3,2], [3,3,3,3,3])
+        1.0549201679861442
+        >>> conditional_entropy([1,1], [2,2])
+        0
+    """
+    if len(arrs) == 1:
+        return entropy(arrs[0])
+    return entropy(list(zip(arrs)))
 
 
 def matrix_mutual_information(x, y):
+    """
+    Calculates the mutual information (I(X;Y) = H(Y) - H(Y|X)) between each column of the matrix and an array.
+
+        Parameters
+        ----------
+        x : array-like, shape (n, n_features)
+            The matrix.
+        y : array-like, shape (n)
+            The second array.
+
+        Returns
+        -------
+        array-like, shape (n_features) - I(X;Y) values for all columns of the matrix
+    
+
+        Examples
+        --------
+
+        >>> from ITMO_FS.utils.information_theory import matrix_mutual_information
+        >>> matrix_mutual_information([[1,3,2,1],[2,2,2,1],[3,3,2,2]], [1,1,2])
+        array([0.63651417, 0.17441605, 0.        , 0.63651417])
+    """
     return np.apply_along_axis(mutual_information, 0, x, y)
 
 
 def mutual_information(x, y):
-    # I(X;Y) = H(Y) - H(Y|X)
+    """
+    Calculates the mutual information (I(X;Y) = H(Y) - H(Y|X)) between two arrays.
+
+        Parameters
+        ----------
+        x : array-like, shape (n)
+            The first array.
+        y : array-like, shape (n)
+            The second array.
+
+        Returns
+        -------
+        float - I(X;Y) value
+    
+
+        Examples
+        --------
+
+        >>> from ITMO_FS.utils.information_theory import mutual_information
+        >>> mutual_information([1,2,3,4,5], [5,4,3,2,1])
+        1.6094379124341005
+        >>> mutual_information([1,2,3,1,2,3,1,2,3], [1,1,2,2,3,3,4,4,5])
+        0.48248146150371407
+        >>> mutual_information([1,2,3], [1,1,1])
+        0.0
+        >>> mutual_information([1,2,1,3,2,4,3,1], [1,2,3,4,2,3,2,1])
+        0.7356219397587946
+    """
     return entropy(y) - conditional_entropy(x, y)
 
 
 def conditional_mutual_information(x, y, z):
-    # I(X;Y|Z) = H(X; Z) + H(Y; Z) - H(X; Y; Z) - H(Z)
-    return (entropy(list(zip(x, z))) +
-            entropy(list(zip(y, z))) -
-            entropy(list(zip(x, y, z))) -
+    """
+    Calculates the conditional mutual information (I(X;Y|Z) = H(X;Z) + H(Y;Z) - H(X;Y;Z) - H(Z)) between three arrays.
+
+        Parameters
+        ----------
+        x : array-like, shape (n)
+            The first array.
+        y : array-like, shape (n)
+            The second array.
+        z : array-like, shape (n)
+            The third array.
+               
+        Returns
+        -------
+        float - I(X;Y|Z) value
+    
+
+        Examples
+        --------
+
+        >>> from ITMO_FS.utils.information_theory import conditional_mutual_information
+        >>> conditional_mutual_information([1,3,2,1],[2,2,2,1],[3,3,2,2])
+        0.3465735902799726
+        >>> conditional_mutual_information([1,1,1,1,1],[2,3,4,2,1],[1,2,1,2,1])
+        0.0
+        >>> conditional_mutual_information([1,2,3,4,1],[2,3,4,2,1],[1,1,1,1,1])
+        1.0549201679861442
+        >>> conditional_mutual_information([1,2,3],[1,1,1],[3,2,2])
+        0.0
+        >>> conditional_mutual_information([1,2,3,4,1,3,2,1,4,5],[1,3,2,4,5,4,3,2,1,2],[2,1,4,3,2,6,5,2,1,3])
+        0.27725887222397794
+    """
+    return (entropy(list(zip(x, z))) + 
+            entropy(list(zip(y, z))) - 
+            entropy(list(zip(x, y, z))) - 
             entropy(z))
 
 
 def joint_mutual_information(x, y, z):
-    # I(X, Y; Z) = I(X; Z) + I(Y; Z|X)
+    """
+    Calculates the joint mutual information (I(X,Y;Z) = I(X;Z) + I(Y;Z|X)) between three arrays.
+
+        Parameters
+        ----------
+        x : array-like, shape (n)
+            The first array.
+        y : array-like, shape (n)
+            The second array.
+        z : array-like, shape (n)
+            The third array.
+               
+        Returns
+        -------
+        float - I(X,Y;Z) value
+    
+
+        Examples
+        --------
+
+        >>> from ITMO_FS.utils.information_theory import joint_mutual_information
+        >>> joint_mutual_information([1,3,2,1],[2,2,2,1],[3,3,2,2])
+        0.6931471805599454
+        >>> joint_mutual_information([1,1,1,1,1],[2,3,4,2,1],[1,2,1,2,1])
+        0.39575279478527836
+        >>> joint_mutual_information([1,2,3,4,1],[2,3,4,2,1],[1,1,1,1,1])
+        0.0
+        >>> joint_mutual_information([1,2,3],[1,1,1],[3,2,2])
+        1.0986122886681096
+        >>> joint_mutual_information([1,2,3,4,1,3,2,1,4,5],[1,3,2,4,5,4,3,2,1,2],[2,1,4,3,2,6,5,2,1,3])
+        1.5571130980576453
+    """
     return mutual_information(x, z) + conditional_mutual_information(y, z, x)
 
 
 def interaction_information(x, y, z):
-    return mutual_information(x, z) + mutual_information(y,
-                                                         z) - joint_mutual_information(
-        x, y, z)
+    """
+    Calculates the interaction information (I(X;Y;Z) = I(X;Y) - I(X;Y|Z)) between three arrays.
+
+        Parameters
+        ----------
+        x : array-like, shape (n)
+            The first array.
+        y : array-like, shape (n)
+            The second array.
+        z : array-like, shape (n)
+            The third array.
+               
+        Returns
+        -------
+        float - I(X;Y;Z) value
+    
+
+        Examples
+        --------
+
+        >>> from ITMO_FS.utils.information_theory import interaction_information
+        >>> interaction_information([1,3,2,1],[2,2,2,1],[3,3,2,2])
+        -0.13081203594113694
+        >>> interaction_information([1,1,1,1,1],[2,3,4,2,1],[1,2,1,2,1])
+        0.0
+        >>> interaction_information([1,2,3,4,1],[2,3,4,2,1],[1,1,1,1,1])
+        0.0
+        >>> interaction_information([1,2,3],[1,1,1],[3,2,2])
+        0.0
+        >>> interaction_information([1,2,3,4,1,3,2,1,4,5],[1,3,2,4,5,4,3,2,1,2],[2,1,4,3,2,6,5,2,1,3])
+        0.6730116670092566
+    """
+    return mutual_information(x, y) - conditional_mutual_information(x, y, z)
 
 
 def symmetrical_relevance(x, y, z):
-    # SR(X; Y)
+    """
+    Calculates the symmetrical relevance (SR(X;Y;Z) = I(X;Y;Z) / H(X;Y|Z)) between three arrays.
+
+        Parameters
+        ----------
+        x : array-like, shape (n)
+            The first array.
+        y : array-like, shape (n)
+            The second array.
+        z : array-like, shape (n)
+            The third array.
+               
+        Returns
+        -------
+        float - SR(X;Y;Z) value
+    
+
+        Examples
+        --------
+
+        >>> from ITMO_FS.utils.information_theory import symmetrical_relevance
+        >>> symmetrical_relevance([1,3,2,1],[2,2,2,1],[3,3,2,2])
+        0.5000000000000001
+        >>> symmetrical_relevance([1,1,1,1,1],[2,3,4,2,1],[1,2,1,2,1])
+        0.24589503684969438
+        >>> symmetrical_relevance([1,2,3,4,1],[2,3,4,2,1],[1,1,1,1,1])
+        0.0
+        >>> symmetrical_relevance([1,2,3],[1,1,1],[3,2,2])
+        0.579380164285695
+        >>> symmetrical_relevance([1,2,3,4,1,3,2,1,4,5],[1,3,2,4,5,4,3,2,1,2],[2,1,4,3,2,6,5,2,1,3])
+        0.6762456261857125
+    """
     return joint_mutual_information(x, y, z) / joint_entropy(x, y, z)
 
-
-def elog(x):
-    return x * log(x) if 0. < x < 1. else 0.
-
-
 def entropy(x):
-    # H(X)
+    """
+    Calculates the entropy (H(X)) of an array.
+
+        Parameters
+        ----------
+        x : array-like, shape (n)
+            The array.
+               
+        Returns
+        -------
+        float - H(X) value
+    
+
+        Examples
+        --------
+
+        >>> from ITMO_FS.utils.information_theory import entropy
+        >>> entropy([1,1,1])
+        0
+        >>> entropy([1,2,3,4,5])
+        1.6094379124341005
+        >>> entropy([5,4,1,2,3])
+        1.6094379124341005
+        >>> entropy([1,2,1,2,1,2,1,2,1,2])
+        0.6931471805599453
+        >>> entropy([1,1,1,1,1,2])
+        0.45056120886630463
+    """
     return log(len(x)) - fsum(v * log(v) for v in Counter(x).values()) / len(x)
