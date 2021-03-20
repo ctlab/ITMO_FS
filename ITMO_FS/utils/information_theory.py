@@ -29,9 +29,9 @@ def conditional_entropy(x_j, y):
         >>> conditional_entropy([1,2,1,3,4], [1,2,3,4,5])
         0.2772588722239781
         >>> conditional_entropy([1], [2])
-        -0.0
+        0.0
         >>> conditional_entropy([1,2,1,3,2,4], [3,3,3,3,3,3])
-        -0.0
+        0.0
         >>> conditional_entropy([1,2,3,1,3,2,3,4,1], [1,2,1,3,1,4,4,1,5])
         0.7324081924454064
     """
@@ -59,17 +59,17 @@ def joint_entropy(*arrs):
 
         >>> from ITMO_FS.utils.information_theory import joint_entropy
         >>> joint_entropy([1,2,3,4,5])
-        1.6094379124341005
-        >>> joint_entropy([1,2,3,4,5,6], [1,2,3,4,5,6])
-        1.7917594692280547
+        1.6094379124341003
+        >>> joint_entropy([1,2,3,4,4])
+        1.3321790402101221
+        >>> joint_entropy([1,2,3,4,5,6], [1,2,3,4,5,6], [1,2,3,4,5,6])
+        1.791759469228055
         >>> joint_entropy([1,2,1,3,2], [3,3,3,3,3])
         1.0549201679861442
         >>> conditional_entropy([1,1], [2,2])
-        0
+        0.0
     """
-    if len(arrs) == 1:
-        return entropy(arrs[0])
-    return entropy(list(zip(arrs)))
+    return entropy(list(zip(*arrs)))
 
 
 def matrix_mutual_information(x, y):
@@ -119,13 +119,13 @@ def mutual_information(x, y):
 
         >>> from ITMO_FS.utils.information_theory import mutual_information
         >>> mutual_information([1,2,3,4,5], [5,4,3,2,1])
-        1.6094379124341005
+        1.6094379124341003
         >>> mutual_information([1,2,3,1,2,3,1,2,3], [1,1,2,2,3,3,4,4,5])
         0.48248146150371407
         >>> mutual_information([1,2,3], [1,1,1])
         0.0
         >>> mutual_information([1,2,1,3,2,4,3,1], [1,2,3,4,2,3,2,1])
-        0.7356219397587946
+        0.9089087348987808
     """
     return entropy(y) - conditional_entropy(x, y)
 
@@ -157,11 +157,11 @@ def conditional_mutual_information(x, y, z):
         >>> conditional_mutual_information([1,1,1,1,1],[2,3,4,2,1],[1,2,1,2,1])
         0.0
         >>> conditional_mutual_information([1,2,3,4,1],[2,3,4,2,1],[1,1,1,1,1])
-        1.0549201679861442
+        1.054920167986144
         >>> conditional_mutual_information([1,2,3],[1,1,1],[3,2,2])
         0.0
         >>> conditional_mutual_information([1,2,3,4,1,3,2,1,4,5],[1,3,2,4,5,4,3,2,1,2],[2,1,4,3,2,6,5,2,1,3])
-        0.27725887222397794
+        0.27725887222397816
     """
     return (entropy(list(zip(x, z))) + 
             entropy(list(zip(y, z))) - 
@@ -194,13 +194,13 @@ def joint_mutual_information(x, y, z):
         >>> joint_mutual_information([1,3,2,1],[2,2,2,1],[3,3,2,2])
         0.6931471805599454
         >>> joint_mutual_information([1,1,1,1,1],[2,3,4,2,1],[1,2,1,2,1])
-        0.39575279478527836
+        0.39575279478527814
         >>> joint_mutual_information([1,2,3,4,1],[2,3,4,2,1],[1,1,1,1,1])
         0.0
         >>> joint_mutual_information([1,2,3],[1,1,1],[3,2,2])
-        1.0986122886681096
+        0.636514168294813
         >>> joint_mutual_information([1,2,3,4,1,3,2,1,4,5],[1,3,2,4,5,4,3,2,1,2],[2,1,4,3,2,6,5,2,1,3])
-        1.5571130980576453
+        1.5571130980576458
     """
     return mutual_information(x, z) + conditional_mutual_information(y, z, x)
 
@@ -236,7 +236,7 @@ def interaction_information(x, y, z):
         >>> interaction_information([1,2,3],[1,1,1],[3,2,2])
         0.0
         >>> interaction_information([1,2,3,4,1,3,2,1,4,5],[1,3,2,4,5,4,3,2,1,2],[2,1,4,3,2,6,5,2,1,3])
-        0.6730116670092566
+        0.6730116670092565
     """
     return mutual_information(x, y) - conditional_mutual_information(x, y, z)
 
@@ -266,13 +266,13 @@ def symmetrical_relevance(x, y, z):
         >>> symmetrical_relevance([1,3,2,1],[2,2,2,1],[3,3,2,2])
         0.5000000000000001
         >>> symmetrical_relevance([1,1,1,1,1],[2,3,4,2,1],[1,2,1,2,1])
-        0.24589503684969438
+        0.2458950368496943
         >>> symmetrical_relevance([1,2,3,4,1],[2,3,4,2,1],[1,1,1,1,1])
         0.0
         >>> symmetrical_relevance([1,2,3],[1,1,1],[3,2,2])
-        0.579380164285695
+        0.5793801642856952
         >>> symmetrical_relevance([1,2,3,4,1,3,2,1,4,5],[1,3,2,4,5,4,3,2,1,2],[2,1,4,3,2,6,5,2,1,3])
-        0.6762456261857125
+        0.6762456261857126
     """
     return joint_mutual_information(x, y, z) / joint_entropy(x, y, z)
 
@@ -295,14 +295,14 @@ def entropy(x):
 
         >>> from ITMO_FS.utils.information_theory import entropy
         >>> entropy([1,1,1])
-        0
+        0.0
         >>> entropy([1,2,3,4,5])
-        1.6094379124341005
+        1.6094379124341003
         >>> entropy([5,4,1,2,3])
-        1.6094379124341005
+        1.6094379124341003
         >>> entropy([1,2,1,2,1,2,1,2,1,2])
-        0.6931471805599453
+        0.6931471805599456
         >>> entropy([1,1,1,1,1,2])
-        0.45056120886630463
+        0.4505612088663047
     """
     return log(len(x)) - fsum(v * log(v) for v in Counter(x).values()) / len(x)
