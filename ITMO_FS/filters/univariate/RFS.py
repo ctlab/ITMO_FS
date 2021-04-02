@@ -5,7 +5,8 @@ from ...utils import l21_norm, matrix_norm, BaseTransformer
 
 class RFS(BaseTransformer):
     """
-        Performs the Robust Feature Selection via Joint L2,1-Norms Minimization algorithm.
+    Performs the Robust Feature Selection via Joint L2,1-Norms Minimization
+    algorithm.
 
         Parameters
         ----------
@@ -16,8 +17,9 @@ class RFS(BaseTransformer):
         max_iterations : int
             Maximum amount of iterations to perform.
         epsilon : positive float
-            Specifies the needed residual between the target functions from consecutive iterations. If the residual
-            is smaller than epsilon, the algorithm is considered to have converged.
+            Specifies the needed residual between the target functions from
+            consecutive iterations. If the residual is smaller than epsilon,
+            the algorithm is considered to have converged.
 
         Notes
         -----
@@ -27,7 +29,7 @@ class RFS(BaseTransformer):
 
         Examples
         --------
-        >>> from ITMO_FS.filters.sparse import RFS
+        >>> from ITMO_FS.filters.univariate import RFS
         >>> from sklearn.datasets import make_classification
         >>> import numpy as np
         >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
@@ -37,7 +39,7 @@ class RFS(BaseTransformer):
     """
 
     def __init__(self, n_features, gamma=1, max_iterations=1000, epsilon=1e-5):
-        self.n_features = n_features
+        super().__init__(n_features)
         self.gamma = gamma
         self.max_iterations = max_iterations
         self.epsilon = epsilon
@@ -59,10 +61,13 @@ class RFS(BaseTransformer):
         """
 
         if self.epsilon < 0:
-            raise ValueError("Epsilon should be positive, %d passed" % self.epsilon)
+            raise ValueError(
+                "Epsilon should be positive, %d passed" % self.epsilon)
 
         if self.n_features > self.n_features_:
-            raise ValueError("Cannot select %d features with n_features = %d" % (self.n_features, self.n_features_))
+            raise ValueError(
+                "Cannot select %d features with n_features = %d" % (
+                self.n_features, self.n_features_))
 
         if len(y.shape) == 2:
             Y = y
@@ -77,12 +82,15 @@ class RFS(BaseTransformer):
         for step in range(self.max_iterations):
             D_inv = np.linalg.inv(D)
             U = D_inv.dot(A.T).dot(np.linalg.inv(A.dot(D_inv).dot(A.T))).dot(Y)
-            U = np.dot(np.dot(np.dot(D_inv, A.T), np.linalg.inv(np.dot(np.dot(A, D_inv), A.T))), Y)
+            U = np.dot(np.dot(np.dot(D_inv, A.T),
+                              np.linalg.inv(np.dot(np.dot(A, D_inv), A.T))), Y)
             diag = 2 * matrix_norm(U)
             diag[diag < 1e-10] = 1e-10  # prevents division by zero
             D = np.diag(1 / diag)
 
-            target = l21_norm(X.dot(U[:self.n_features_]) - Y) + self.gamma * l21_norm(U[:self.n_features_])
+            target = l21_norm(
+                X.dot(U[:self.n_features_]) - Y) + self.gamma * l21_norm(
+                U[:self.n_features_])
             if step > 0 and abs(target - previous_target) < self.epsilon:
                 break
             previous_target = target

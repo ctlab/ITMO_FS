@@ -21,33 +21,39 @@ def _wrapped_partial(func, *args, **kwargs):
 
 
 def fit_criterion_measure(X, y):
-    ##todo comments
+    # todo comments
     x = np.asarray(X)  # Converting input data to numpy array
     y = np.asarray(y.reshape((-1,)))
     if len(x.shape) == 2:
-        fc = np.zeros(x.shape[1])  # Array with amounts of correct predictions for each feature
+        fc = np.zeros(x.shape[
+            1])  # Array with amounts of correct predictions for each feature
     else:
         fc = np.zeros(len(x))
     tokens_n = np.unique(y)  # Number of different class tokens
-    centers = np.empty(tokens_n)  # Array with centers of sets of feature values for each class token
-    variances = np.empty(tokens_n)  # Array with variances of sets of feature values for each class token
+    # Array with centers of sets of feature values for each class token
+    centers = np.empty(tokens_n)
+    # Array with variances of sets of feature values for each class token
+    variances = np.empty(tokens_n)
     # Each of arrays above will be separately calculated for each feature
-    distances = np.empty(tokens_n)  # Array with distances between sample's value and each class's center
+    # Array with distances between sample's value and each class's center
+    distances = np.empty(tokens_n)
     # This array will be separately calculated for each feature and each sample
     for feature_index, feature in enumerate(x.T):  # For each feature
         # Initializing utility structures
-        class_values = [[] for _ in range(tokens_n)]  # Array with lists of feature values for each class token
+        # Array with lists of feature values for each class token
+        class_values = [[] for _ in range(tokens_n)]
         for index, value in enumerate(y):  # Filling array
             class_values[value].append(feature[index])
-        for token, values in enumerate(class_values):  # For each class token's list of feature values
+        for token, values in enumerate(
+                class_values):  # For each class token's list of feature values
             tmp_arr = np.array(values)
             centers[token] = np.mean(tmp_arr)
             variances[token] = np.var(tmp_arr)
         # Main calculations
         for sample_index, value in enumerate(feature):  # For each sample value
             for i in range(tokens_n):  # For each class token
-                # Here can be raise warnings by 0/0 division. In this case, default results
-                # are interpreted correctly
+                # Here can be raise warnings by 0/0 division. In this case,
+                # default results are interpreted correctly
                 distances[i] = np.abs(value - centers[i]) / variances[i]
             fc[feature_index] += np.argmin(distances) == y[sample_index]
     fc /= y.shape[0]
@@ -124,7 +130,7 @@ def gini_index(X, y):
     See Also
     --------
     https://en.wikipedia.org/wiki/Gini_coefficient
-    
+
     Examples
     --------
     import sklearn.datasets as datasets
@@ -189,7 +195,8 @@ def su_measure(X, y):
     for index in range(X.shape[1]):
         entropy_x = entropy(X[:, index])
         cond_entropy = conditional_entropy(y, X[:, index])
-        f_ratios[index] = 2 * (entropy_x - cond_entropy) / (entropy_x + entropy_y)
+        f_ratios[index] = 2 * (entropy_x - cond_entropy) / (
+            entropy_x + entropy_y)
     return f_ratios
 
 
@@ -249,7 +256,7 @@ def kendall_corr(X, y):
 def fechner_corr(X, y):
     """
     Calculates Sample sign correlation (Fechner correlation) for each feature.
-    
+
 
     Parameters
     ----------
@@ -283,12 +290,16 @@ def fechner_corr(X, y):
     y_dev = y - np.mean(y)
     x_dev = X - np.mean(X, axis=0)
     if m == 1:
-        N_plus = np.array([np.sum((x_dev >= 0) & (y_dev >= 0)) + np.sum((x_dev < 0) & (y_dev < 0))])
-        N_minus = np.array([np.sum((x_dev > 0) & (y_dev < 0)) + np.sum((x_dev < 0) & (y_dev > 0))])
+        N_plus = np.array([np.sum((x_dev >= 0) & (y_dev >= 0)) + np.sum(
+            (x_dev < 0) & (y_dev < 0))])
+        N_minus = np.array([np.sum((x_dev > 0) & (y_dev < 0)) + np.sum(
+            (x_dev < 0) & (y_dev > 0))])
     else:
-        N_plus = np.sum((x_dev >= 0).T & (y_dev >= 0), axis=1) + np.sum((x_dev < 0).T & (y_dev < 0), axis=1).astype(
+        N_plus = np.sum((x_dev >= 0).T & (y_dev >= 0), axis=1) + np.sum(
+            (x_dev < 0).T & (y_dev < 0), axis=1).astype(
             float)
-        N_minus = np.sum((x_dev > 0).T & (y_dev < 0), axis=1) + np.sum((x_dev < 0).T & (y_dev > 0), axis=1).astype(
+        N_minus = np.sum((x_dev > 0).T & (y_dev < 0), axis=1) + np.sum(
+            (x_dev < 0).T & (y_dev > 0), axis=1).astype(
             float)
     return (N_plus - N_minus) / (N_plus + N_minus)
 
@@ -331,7 +342,7 @@ def reliefF_measure(X, y, k_neighbors=1):
     Rather than repeating the algorithm m(TODO Ask Nikita about user defined) times,
     implement it exhaustively (i.e. n times, once for each instance)
     for relatively small n (up to one thousand).
-    
+
     Calculates spearman correlation for each feature.
     Spearman's correlation assesses monotonic relationships (whether linear or not).
     If there are no repeated data values, a perfect Spearman correlation of +1 or −1
@@ -348,7 +359,7 @@ def reliefF_measure(X, y, k_neighbors=1):
         More neighbors results in more accurate scores, but takes longer.
         Selection of k hits and misses is the basic difference to Relief
         and ensures greater robustness of the algorithm concerning noise.
-    
+
 
     Returns
     -------
@@ -387,7 +398,8 @@ def reliefF_measure(X, y, k_neighbors=1):
         m_c = np.empty(len(classes), np.ndarray)
         for j in range(len(classes)):
             if classes[j] != y[i]:
-                misses = __take_k(dm_i, k_neighbors, i, lambda x: x == classes[j])
+                misses = __take_k(dm_i, k_neighbors, i,
+                                  lambda x: x == classes[j])
                 ind_misses = misses[:, 1]
                 m_c[j] = X.take(ind_misses, axis=0)
         for A in range(n_features):
@@ -395,7 +407,8 @@ def reliefF_measure(X, y, k_neighbors=1):
             weight_miss = 0
             for j in range(len(classes)):
                 if classes[j] != y[i]:
-                    weight_miss += prior_prob[y[j]] * np.sum(np.abs(r[A] - m_c[j][:, A]))
+                    weight_miss += prior_prob[y[j]] * np.sum(
+                        np.abs(r[A] - m_c[j][:, A]))
             f_ratios[A] += weight_miss / (1 - prior_prob[y[i]]) - weight_hit
     # dividing by m * k guarantees that all final weights
     # will be normalized within the interval [ − 1, 1].
@@ -406,6 +419,7 @@ def reliefF_measure(X, y, k_neighbors=1):
     # between 0 and 1 for both discrete and continuous features.
     with np.errstate(divide='ignore', invalid="ignore"):  # todo
         return f_ratios / (np.amax(X, axis=0) - np.amin(X, axis=0))
+
 
 def relief_measure(X, y, m=None):
     """
@@ -419,7 +433,7 @@ def relief_measure(X, y, m=None):
         The classes for the samples.
     m : int, optional
         Amount of iterations to do. If not specified, n_samples iterations would be performed.
-    
+
     Returns
     -------
     Score for each feature as a numpy array, shape (n_features, )
@@ -448,7 +462,8 @@ def relief_measure(X, y, m=None):
     if m is None:
         m = n_samples
 
-    X_normalized = (X - np.min(X, axis=0)) / (np.max(X, axis=0) - np.min(X, axis=0))
+    X_normalized = (X - np.min(X, axis=0)) / (
+        np.max(X, axis=0) - np.min(X, axis=0))
     dm = euclidean_distances(X_normalized, X_normalized)
     indices = np.random.randint(n_samples, size=m)
     for i in indices:
@@ -483,7 +498,8 @@ def __label_binarize(y):
     col = [np.where(classes == el)[0][0] for el in y]
     data = np.repeat(1, n_samples)
     # TODO redo it with numpy
-    return sp.csr_matrix((data, (row, col)), shape=(n_samples, n_classes)).toarray()
+    return sp.csr_matrix((data, (row, col)),
+                         shape=(n_samples, n_classes)).toarray()
 
 
 def __chisquare(f_obs, f_exp):
@@ -506,13 +522,13 @@ def chi2_measure(X, y):
     """
     Calculates score for the test chi-squared statistic from X.
     Chi-squared test is a statistical hypothesis test that
-    is valid to perform when the test statistic is chi-squared 
+    is valid to perform when the test statistic is chi-squared
     distributed under the null hypothesis
 
     Note: Input data must contain only non-negative features such
     as booleans or frequencies (e.g., term counts in document classification),
     relative to the classes.
-    
+
     Parameters
     ----------
     X : numpy array, shape (n_samples, n_features)
@@ -645,7 +661,8 @@ def spearman_corr(X, y):
             d = dict(zip(sorted(X[:, i]), range(X.shape[0])))
             ranks_X[:, i] = np.vectorize(d.get)(X[:, i])
 
-        dif = ranks_X - np.repeat(ranks_y, X.shape[1]).reshape(y.shape[0], X.shape[1])
+        dif = ranks_X - np.repeat(ranks_y, X.shape[1]).reshape(y.shape[0],
+                                                               X.shape[1])
 
     return 1 - c * np.sum(dif * dif, axis=0)
 
@@ -688,13 +705,16 @@ def pearson_corr(X, y):
     sq_dev_y = y_dev * y_dev
     if len(X.shape) == 1:
         sum_dev = y_dev.T.dot(x_dev).reshape((1,))
-        denominators = np.array([np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))])
+        denominators = np.array(
+            [np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))])
     else:
         sum_dev = y_dev.T.dot(x_dev).reshape((X.shape[1],))
-        denominators = np.sqrt(np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
+        denominators = np.sqrt(
+            np.sum(sq_dev_y, axis=0) * np.sum(sq_dev_x, axis=0))
 
     results = np.array(
-        [(sum_dev[i] / denominators[i]) if denominators[i] > 0.0 else 0 for i in range(len(denominators))])
+        [(sum_dev[i] / denominators[i]) if denominators[i] > 0.0 else 0 for i
+         in range(len(denominators))])
     return results
 
 
@@ -712,7 +732,7 @@ def laplacian_score(X, y, k_neighbors=5, t=1, metric=np.linalg.norm, **kwargs):
     k_neighbors : int, optional (by default k_neighbors=5)
         The number of neighbors to construct a nearest neighbor graph.
     t : float, optional (by default t=1)
-        Suitable constant for weight matrix S, 
+        Suitable constant for weight matrix S,
         where Sij = exp(-(|xi - xj| ^ 2) / t).
     metric : callable, optional (by default metric=np.linalg.norm)
         Norm function to compute distance between two points.
@@ -760,7 +780,8 @@ def laplacian_score(X, y, k_neighbors=5, t=1, metric=np.linalg.norm, **kwargs):
                     S[i, j] = exp(-d * d / t)
             distances.sort()
             for j in range(k_neighbors):
-                S[i, distances[j][1]] = S[distances[j][1], i] = exp(-distances[j][0] * distances[j][0] / t)
+                S[i, distances[j][1]] = S[distances[j][1], i] = exp(
+                    -distances[j][0] * distances[j][0] / t)
     ONE = np.ones((n,))
     D = np.diag(S.dot(ONE))
     L = D - S
@@ -788,7 +809,7 @@ def information_gain(X, y):
 
     See Also
     --------
-    
+
     Examples
     --------
     >>> import sklearn.datasets as datasets
@@ -828,8 +849,8 @@ def anova(X, y):
     Note:
     The Anova score is counted for checking hypothesis if variances of two samples are similar,
     this measure only returns you counted F-score.
-    For understanding whether samples' variances are similar you should compare recieved result with 
-    value of F-distribution function, for example use: 
+    For understanding whether samples' variances are similar you should compare recieved result with
+    value of F-distribution function, for example use:
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.fdtrc.html#scipy.special.fdtrc
 
     Examples
@@ -851,7 +872,9 @@ def anova(X, y):
     sum_sq_group = [np.asarray((s ** 2).sum(axis=0)) for s in split_by_class]
     sq_sum_group = [s ** 2 for s in sum_group]
     sq_sum_total = sq_sum_all - sq_sum_combined / float(num_samples)
-    sq_sum_within = sum([sum_sq_group[i] - sq_sum_group[i] / num_samples_by_class[i] for i in range(num_classes)])
+    sq_sum_within = sum(
+        [sum_sq_group[i] - sq_sum_group[i] / num_samples_by_class[i] for i in
+         range(num_classes)])
     sq_sum_between = sq_sum_total - sq_sum_within
     deg_free_between = num_classes - 1
     deg_free_within = num_samples - num_classes
@@ -864,7 +887,7 @@ def anova(X, y):
 def modified_t_score(X, y):
     """
     Calculate the Modified T-score for each feature.
-    
+
     Parameters
     ----------
     X : numpy array, shape (n_samples, n_features)
@@ -910,18 +933,21 @@ def modified_t_score(X, y):
     std_class1 = np.std(X[y == classes[1]], axis=0)
     std_class1 = np.nan_to_num(std_class1)
 
-    corr_with_y = np.apply_along_axis(lambda feature: abs(np.corrcoef(feature, y)[0][1]), 0, X)
+    corr_with_y = np.apply_along_axis(
+        lambda feature: abs(np.corrcoef(feature, y)[0][1]), 0, X)
     corr_with_y = np.nan_to_num(corr_with_y)
 
     corr_with_others = abs(np.corrcoef(X, rowvar=False))
     corr_with_others = np.nan_to_num(corr_with_others)
 
-    mean_of_corr_with_others = (corr_with_others.sum(axis=1) - corr_with_others.diagonal()) / (
-            len(corr_with_others) - 1)
+    mean_of_corr_with_others = (corr_with_others.sum(
+        axis=1) - corr_with_others.diagonal()) / (
+        len(corr_with_others) - 1)
 
     t_score_numerator = abs(mean_class0 - mean_class1)
     t_score_denominator = np.sqrt(
-        (size_class0 * np.square(std_class0) + size_class1 * np.square(std_class1)) / (size_class0 + size_class1))
+        (size_class0 * np.square(std_class0) + size_class1 * np.square(
+            std_class1)) / (size_class0 + size_class1))
     modificator = corr_with_y / mean_of_corr_with_others
 
     modified_t_score = t_score_numerator / t_score_denominator * modificator
@@ -976,11 +1002,13 @@ def select_k_worst(k):
 
 
 def __select_k(scores, k, reverse=False):
-    if type(k) != int:
+    if not isinstance(k, int):
         raise TypeError("Number of features should be integer")
     if k > len(scores):
-        raise ValueError("Cannot select %d features with n_features = %d" % (k, len(scores)))
-    return [keys[0] for keys in sorted(scores.items(), key=lambda kv: kv[1], reverse=reverse)[:k]]
+        raise ValueError("Cannot select %d features with n_features = %d" % (
+            k, len(scores)))
+    return [keys[0] for keys in
+            sorted(scores.items(), key=lambda kv: kv[1], reverse=reverse)[:k]]
 
 
 def __select_percentage_best(scores, percent):
@@ -1023,7 +1051,7 @@ def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
     """
     Performs Quadratic Programming Feature Selection algorithm.
     Note: this realization requires labels to start from 1 and be numerical.
-    
+
     Parameters
     ----------
     X : array-like, shape (n_samples,n_features)
@@ -1043,11 +1071,11 @@ def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
     Returns
     ------
     array-like, shape (n_features) : the ranks of features in dataset, with rank increase, feature relevance increases and redundancy decreases.
-    
+
     See Also
     --------
     http://www.jmlr.org/papers/volume11/rodriguez-lujan10a/rodriguez-lujan10a.pdf
-    
+
     Examples
     --------
 

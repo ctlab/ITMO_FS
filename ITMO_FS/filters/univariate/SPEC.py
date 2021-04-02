@@ -28,7 +28,7 @@ class SPEC(BaseTransformer):
 
         Examples
         --------
-        >>> from ITMO_FS.filters.sparse import SPEC
+        >>> from ITMO_FS.filters.univariate import SPEC
         >>> from sklearn.datasets import make_classification
         >>> import numpy as np
         >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)

@@ -23,14 +23,16 @@ class NDFS(BaseTransformer):
         beta : float
             Regularization parameter in the objective function.
         gamma : float
-            Parameter in the objective function that controls the orthogonality condition.
+            Parameter in the objective function that controls the orthogonality
+            condition.
         sigma : float
             Parameter for the weighting scheme.
         max_iterations : int
             Maximum amount of iterations to perform.
         epsilon : positive float
-            Specifies the needed residual between the target functions from consecutive iterations. If the residual
-            is smaller than epsilon, the algorithm is considered to have converged.
+            Specifies the needed residual between the target functions from
+            consecutive iterations. If the residual is smaller than epsilon,
+            the algorithm is considered to have converged.
 
         See Also
         --------
@@ -38,7 +40,7 @@ class NDFS(BaseTransformer):
 
         Examples
         --------
-        >>> from ITMO_FS.filters.sparse import NDFS
+        >>> from ITMO_FS.filters.univariate import NDFS
         >>> import numpy as np
         >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
@@ -47,8 +49,9 @@ class NDFS(BaseTransformer):
         >>> model.fit_transform(X)
     """
 
-    def __init__(self, n_features, c=2, k=3, alpha=1, beta=1, gamma=10e8, sigma=1, max_iterations=1000, epsilon=1e-5):
-        self.n_features = n_features
+    def __init__(self, n_features, c=2, k=3, alpha=1, beta=1, gamma=10e8,
+                 sigma=1, max_iterations=1000, epsilon=1e-5):
+        super().__init__(n_features)
         self.c = c
         self.k = k
         self.alpha = alpha
@@ -61,7 +64,7 @@ class NDFS(BaseTransformer):
     def __scheme(self, x1, x2):
         return np.exp(-np.linalg.norm(x1 - x2) ** 2 / (self.sigma ** 2))
 
-    def _fit(self, X, y):
+    def _fit(self, X, y, **kwargs):
         """
             Fits filter
 
@@ -70,8 +73,9 @@ class NDFS(BaseTransformer):
             X : numpy array, shape (n_samples, n_features)
                 The training input samples.
             y : numpy array, shape (n_samples) or (n_samples, n_classes)
-                The target values or their one-hot encoding that are used to compute F. If not present, a k-means clusterization algorithm is used.
-                If present, n_classes should be equal to c.
+                The target values or their one-hot encoding that are used to
+                compute F. If not present, a k-means clusterization algorithm
+                is used. If present, n_classes should be equal to c.
 
             Returns
             ----------

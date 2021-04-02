@@ -2,11 +2,13 @@ from sklearn.utils import check_X_y, check_array
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 import pandas as pd
+from abc import abstractmethod
 
 
 class BaseTransformer(TransformerMixin, BaseEstimator):
-    def __init__(self):
-        pass
+    def __init__(self, n_features=0):
+        self.selected_features_ = []
+        self.n_features_ = n_features
 
     def fit(self, X, y=None, **fit_params):
         """
@@ -60,3 +62,7 @@ class BaseTransformer(TransformerMixin, BaseEstimator):
             return X[X.columns[self.selected_features_]]
         else:
             return X_[:, self.selected_features_]
+
+    @abstractmethod
+    def _fit(self, X, y, param):
+        pass

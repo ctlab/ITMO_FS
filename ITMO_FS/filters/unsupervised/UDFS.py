@@ -32,7 +32,7 @@ class UDFS(BaseTransformer):
 
         Examples
         --------
-        >>> from ITMO_FS.filters.sparse import UDFS
+        >>> from ITMO_FS.filters.unsupervised import UDFS
         >>> from sklearn.datasets import make_classification
         >>> import numpy as np
         >>> dataset = make_classification(n_samples=100, n_features=20, \
@@ -42,7 +42,9 @@ n_informative=4, n_redundant=0, shuffle=False)
         >>> model.fit_transform(data, target)
     """
 
-    def __init__(self, n_features, c=2, k=3, gamma=1, l=1e-6, max_iterations=1000, epsilon=1e-5):
+    def __init__(self, n_features, c=2, k=3, gamma=1, l=1e-6,
+                 max_iterations=1000, epsilon=1e-5):
+        super().__init__()
         self.n_features = n_features
         self.c = c
         self.k = k
@@ -51,7 +53,7 @@ n_informative=4, n_redundant=0, shuffle=False)
         self.max_iterations = max_iterations
         self.epsilon = epsilon
 
-    def _fit(self, X, y):
+    def _fit(self, X, y,**fit_params):
         """
             Fits filter
 
