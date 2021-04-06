@@ -6,9 +6,6 @@ from abc import abstractmethod
 
 
 class BaseTransformer(TransformerMixin, BaseEstimator):
-    def __init__(self, n_features=0):
-        self.selected_features_ = []
-        self.n_features_ = n_features
 
     def fit(self, X, y=None, **fit_params):
         """

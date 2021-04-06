@@ -43,7 +43,7 @@ class AddDelWrapper(BaseWrapper):
         >>> y = np.array(data[1])
         >>> lg = linear_model.LogisticRegression(solver='lbfgs')
         >>> add_del = AddDelWrapper(lg, accuracy_score)
-        >>> add_del.fit(X, y)
+        >>> add_del.fit()
 
         >>> from sklearn.metrics import mean_absolute_error
         >>> boston = datasets.load_boston()
@@ -51,7 +51,7 @@ class AddDelWrapper(BaseWrapper):
         >>> y = boston['target']
         >>> lasso = linear_model.Lasso()
         >>> add_del = AddDelWrapper(lasso, mean_absolute_error, maximize=False)
-        >>> add_del.fit(X, y)
+        >>> add_del.fit()
     """
 
     def __init__(self, estimator, scorer, cv=3, maximize=True, seed=42, silent=True):
@@ -184,4 +184,4 @@ class AddDelWrapper(BaseWrapper):
         self.best_score_ = score
         
         self.selected_features_ = features
-        self._estimator.fit(X[:, self.selected_features_], y)
+        self._estimator.fit()

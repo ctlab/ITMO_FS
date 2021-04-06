@@ -39,7 +39,7 @@ class RFS(BaseTransformer):
     """
 
     def __init__(self, n_features, gamma=1, max_iterations=1000, epsilon=1e-5):
-        super().__init__(n_features)
+        self.n_features_ = n_features
         self.gamma = gamma
         self.max_iterations = max_iterations
         self.epsilon = epsilon
@@ -67,7 +67,7 @@ class RFS(BaseTransformer):
         if self.n_features > self.n_features_:
             raise ValueError(
                 "Cannot select %d features with n_features = %d" % (
-                self.n_features, self.n_features_))
+                    self.n_features, self.n_features_))
 
         if len(y.shape) == 2:
             Y = y

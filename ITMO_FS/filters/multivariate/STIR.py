@@ -21,7 +21,6 @@ class STIR(BaseTransformer):
     """
 
     def __init__(self, n_features, k=1):
-        super().__init__()
         self.n_features = n_features
         self.k = k
 

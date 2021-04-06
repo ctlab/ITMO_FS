@@ -39,33 +39,33 @@ class MultivariateFilter(BaseTransformer):
         >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
 [3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-        >>> est.fit(X)
+        >>> est.fit()
         KBinsDiscretizer(encode='ordinal', n_bins=10)
         >>> data = est.transform(X)
         >>> model = MultivariateFilter('MIM', 3)
-        >>> model.fit(X, y)
+        >>> model.fit()
         >>> model.selected_features_
         array([4, 0, 1])
     """
 
     def __init__(self, measure, n_features, beta=None, gamma=None):
-        super().__init__()
         self.measure = measure
         self.n_features = n_features
         self.beta = beta
         self.gamma = gamma
 
-    def _fit(self, X, y):
+    def _fit(self, X, y, **kwargs):
         """
             Fits the filter.
 
             Parameters
             ----------
+
             X : array-like, shape (n_samples, n_features)
                 The training input samples.
             y : array-like, shape (n_samples)
                 The target values.
-
+            **kwargs
             Returns
             ------
             None

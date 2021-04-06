@@ -34,7 +34,7 @@ class SequentialForwardSelection(BaseWrapper):
         >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
         >>> data, target = np.array(dataset[0]), np.array(dataset[1])
         >>> model = SequentialForwardSelection(LogisticRegression(), 5, 'f1_macro')
-        >>> model.fit(data, target)
+        >>> model.fit()
         >>> print(model.selected_features_)
     """
 
@@ -85,4 +85,4 @@ class SequentialForwardSelection(BaseWrapper):
             features_left = np.delete(features_left, to_add)
         self.best_score_ = cross_val_score(self._estimator, X[:, self.selected_features_], y, cv=self.cv,
                                                     scoring=self.measure).mean()
-        self._estimator.fit(X[:, self.selected_features_], y)
+        self._estimator.fit()

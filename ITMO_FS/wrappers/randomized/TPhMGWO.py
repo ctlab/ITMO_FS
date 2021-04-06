@@ -45,7 +45,7 @@ class TPhMGWO(BaseWrapper):
         >>> tphmgwo = TPhMGWO()
         >>> x, y = make_classification(500, 50, n_informative = 10, \
 n_redundant = 30, n_repeated = 10, shuffle = True)
-        >>> tphmgwo.fit(x, y)
+        >>> tphmgwo.fit()
         >>> print(tphmgwo.selected_features_)
 
 
@@ -93,7 +93,7 @@ n_redundant = 30, n_repeated = 10, shuffle = True)
             kf = KFold(self.foldNumber, shuffle=True)
             score = 0.0
             for train_indices, test_indices in kf.split(X):
-                self._estimator.fit(XFilt[train_indices], y[train_indices])
+                self._estimator.fit()
                 score += self.errorRate(y[test_indices], self._estimator.predict(XFilt[test_indices]),
                                              squared=False)
             score /= self.foldNumber
@@ -187,4 +187,4 @@ n_redundant = 30, n_repeated = 10, shuffle = True)
         if alphaWolf.sum() == 0:
             alphaWolf[0] = 1
         self.selected_features_ = np.where(alphaWolf == 1)[0]
-        self._estimator.fit(X[:, self.selected_features_], y)
+        self._estimator.fit()

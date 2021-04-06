@@ -12,6 +12,6 @@ class FilterWrapperHybrid(BaseWrapper):
         self._estimator = clone(self.wrapper)
         new = self._filter.fit_transform(X, y)
         self.selected_features_ = self._filter.selected_features_
-        self._estimator.fit(new, y)
+        self._estimator.fit()
         #self.best_score = self.wrapper.best_score
 

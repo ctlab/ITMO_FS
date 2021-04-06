@@ -20,7 +20,7 @@ class Mixed(BaseTransformer):
         >>> from sklearn.datasets import make_classification
         >>> x, y = make_classification(1000, 50, n_informative = 5, n_redundant = 3, n_repeated = 2, shuffle = True)
         >>> mixed = Mixed([spearman_corr, pearson_corr])
-        >>> mixed.fit(x, y)
+        >>> mixed.fit()
         >>> mixed.transform(x, 20).shape
         (1000, 20)
     """

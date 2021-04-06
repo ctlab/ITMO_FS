@@ -44,7 +44,6 @@ n_informative=4, n_redundant=0, shuffle=False)
 
     def __init__(self, n_features, c=2, k=3, gamma=1, l=1e-6,
                  max_iterations=1000, epsilon=1e-5):
-        super().__init__()
         self.n_features = n_features
         self.c = c
         self.k = k

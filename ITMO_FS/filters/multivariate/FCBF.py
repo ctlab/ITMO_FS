@@ -35,19 +35,20 @@ class FCBFDiscreteFilter(BaseTransformer):
     """
 
     def __init__(self):
-        super().__init__()
+        pass
 
-    def _fit(self, x, y):
+    def _fit(self, x, y, **kwargs):
         """
             Fits filter
 
             Parameters
             ----------
+
             x : array-like, shape (n_samples, n_features)
                 The training input samples.
             y : array-like, shape (n_samples)
                 The target values.
-
+            **kwargs
             Returns
             -------
             None

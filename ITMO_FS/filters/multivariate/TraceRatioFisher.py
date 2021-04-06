@@ -34,7 +34,6 @@ class TraceRatioFisher(BaseTransformer):
     """
 
     def __init__(self, n_features):
-        super().__init__()
         self.n_features = n_features
 
     def _fit(self, X, y):

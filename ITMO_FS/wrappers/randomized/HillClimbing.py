@@ -32,4 +32,4 @@ class HillClimbingWrapper(BaseWrapper):
             self.selected_features_ += [random.choice(list(set(features) - set(self.selected_features_)))]
             old_score = score
             score = np.mean(cross_val_score(self._estimator, X[:, self.selected_features_], y, cv=self.cv, scoring=make_scorer(self.scorer)))
-        self._estimator.fit(X[:, self.selected_features_], y)
+        self._estimator.fit()

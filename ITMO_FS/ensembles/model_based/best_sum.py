@@ -15,7 +15,7 @@ class BestSum(BaseTransformer):  ## TODO refactor , not stable
         feature_names = generate_features(X)
         self.features = dict(zip(feature_names, np.zeros(len(feature_names))))
         for model in self.models:
-            model.fit(X, y)
+            model.fit()
             for i, k in enumerate(model.selected_features_):
                 self.features[k] += (model.best_score_ - self.features[k]) / (i + 1)
         self.selected_features_ = apply_cr(self.cutting_rule)(self.features)

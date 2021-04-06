@@ -33,13 +33,12 @@ class JMIM(BaseTransformer):
         >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]],dtype = np.integer)
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> model = JMIM(3)
-        >>> model.fit(X, y)
+        >>> model.fit()
         >>> model.selected_features_
         array([4, 0, 1])
     """
 
     def __init__(self, n_features, normalized=False):
-        super().__init__()
         self.selected_features_ = None
         self.n_features = n_features
         self.normalized = normalized

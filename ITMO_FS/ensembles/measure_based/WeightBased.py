@@ -24,7 +24,7 @@ class WeightBased(BaseTransformer):
         self.feature_scores_ = defaultdict(list)
         for __filter in self.filters:
             _filter = clone(__filter)
-            _filter.fit(X, y, store_scores=True)
+            _filter.fit()
             _min = min(_filter.feature_scores_.values())
             _max = max(_filter.feature_scores_.values())
             for key, value in _filter.feature_scores_.items():

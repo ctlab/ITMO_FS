@@ -40,7 +40,7 @@ class RecursiveElimination(BaseWrapper):
         >>> data, target = np.array(dataset[0]), np.array(dataset[1])
         >>> model = SVC(kernel='linear')
         >>> rfe = RecursiveElimination(model, 5)
-        >>> rfe.fit(data, target)
+        >>> rfe.fit()
         >>> print("Resulting features: ", rfe.selected_features_)
     """
 
@@ -77,7 +77,7 @@ class RecursiveElimination(BaseWrapper):
         self.selected_features_ = generate_features(X)
 
         while len(self.selected_features_) != self.n_features:
-            self._estimator.fit(X[:, self.selected_features_], y)
+            self._estimator.fit()
 
             if hasattr(self._estimator, 'coef_'):
                 coefs = np.square(self._estimator.coef_)
@@ -94,4 +94,4 @@ class RecursiveElimination(BaseWrapper):
             self.selected_features_ = np.delete(self.selected_features_, least_important)
         self.best_score_ = cross_val_score(self._estimator, X[:, self.selected_features_], y, cv=self.cv,
                                                 scoring=self.measure).mean()
-        self._estimator.fit(X[:, self.selected_features_], y)
+        self._estimator.fit()

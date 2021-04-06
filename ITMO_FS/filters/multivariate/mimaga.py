@@ -130,7 +130,6 @@ class MIMAGA(BaseTransformer):
         --------
         https://www.sciencedirect.com/science/article/abs/pii/S0925231217304150
         """
-        super().__init__()
         self.mim_size = mim_size
         self.pop_size = pop_size
         self.max_iter = max_iter

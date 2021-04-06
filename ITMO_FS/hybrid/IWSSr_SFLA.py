@@ -56,9 +56,9 @@ class IWSSr_SFLA(BaseTransformer):
         >>> algo = IWSSr_SFLA(LogisticRegression())
         >>> X, y = make_classification(n_informative=5, n_redundant=8, n_classes=3)
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='uniform')
-        >>> est.fit(X)
+        >>> est.fit()
         >>> X = est.transform(X)
-        >>> algo.fit(X, y)
+        >>> algo.fit()
         >>> print(algo.selected_features_)
     """
     def __init__(self, estimator, measure_iwssr='accuracy', measure_frogs='accuracy', cv=3, relief_iterations=None, sfla_m=5, 

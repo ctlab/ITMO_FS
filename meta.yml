@@ -1,0 +1,35 @@
+{% set name = "itmo_fs" %}
+{% set version = "0.3.3" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ load_setup_py_data().version }}"
+
+source:
+  git_rev:
+  git_url:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+      sha256: 5b94b49521f6456670fdb30cd82a4eca9412788a93fa6dd6df72c94d5a8ff2d7
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv "
+
+
+requirements:
+  build:
+    - pip
+    - python
+    - setuptools
+
+  run:
+    - python
+
+test:
+  imports:
+    -itmo_fs
+    -pandas
+    -pytest
+
+about:
+  home:

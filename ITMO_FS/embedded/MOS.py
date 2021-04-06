@@ -54,7 +54,7 @@ class MOS(BaseTransformer):
         >>> for i in range(50):  # create imbalance between classes
         ...     target[i] = 0
         >>> m = MOS(model=SGDClassifier(), weight_func=lambda model: model.coef_[0])
-        >>> m.fit(data, target)
+        >>> m.fit()
         >>> m.transform(data).shape[0]
         100
     """
@@ -104,7 +104,7 @@ class MOS(BaseTransformer):
         for a in self.alphas:  # TODO: do a little more research on the range of lambdas
             model = model.set_params(loss=self.loss, random_state=self.seed, penalty='elasticnet',
                                alpha=a, l1_ratio=self.l1_ratio, max_iter=self.epochs)
-            model.fit(X, y)
+            model.fit()
             b = self.weight_func(model)
             rvalue = augmented_rvalue(X[:, [i for i in range(X.shape[1]) if np.abs(b[i]) > self.threshold]], y)
             if min_rvalue > rvalue:

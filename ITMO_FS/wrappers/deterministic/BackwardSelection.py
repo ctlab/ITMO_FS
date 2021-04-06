@@ -38,7 +38,7 @@ class BackwardSelection(BaseWrapper):
 n_informative=4, n_redundant=0, shuffle=False)
         >>> data, target = np.array(dataset[0]), np.array(dataset[1])
         >>> model = BackwardSelection(LogisticRegression(), 15, 'f1_macro')
-        >>> model.fit(data, target)
+        >>> model.fit()
         >>> print(model.selected_features_)
     """
 
@@ -88,4 +88,4 @@ n_informative=4, n_redundant=0, shuffle=False)
             self.selected_features_ = np.delete(self.selected_features_, to_delete)
         self.best_score_ = cross_val_score(self._estimator, X[:, self.selected_features_], y, cv=self.cv,
                                                     scoring=self.measure).mean()
-        self._estimator.fit(X[:, self.selected_features_], y)
+        self._estimator.fit()

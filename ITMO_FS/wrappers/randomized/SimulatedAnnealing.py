@@ -44,7 +44,7 @@ class SimulatedAnnealing(BaseWrapper):
         >>> kf = KFold(n_splits=2)
         >>> sa = SimulatedAnnealing()
         >>> for train_index, test_index in kf.split(x):
-        ...    sa.fit(x[train_index], y[train_index], x[test_index], y[test_index])
+        ...    sa.fit()
         ...    print(sa.selected_features)
 
         
@@ -120,10 +120,10 @@ class SimulatedAnnealing(BaseWrapper):
                     feature_subset = cur_subset
                     prev_score = cur_score
         self.selected_features_ = feature_subset
-        self._estimator.fit(X[:, self.selected_features_], y)
+        self._estimator.fit()
 
     def __get_score(self, train_x, train_y, test_x, test_y, subset):
-        self._estimator.fit(train_x[:, subset], train_y)
+        self._estimator.fit()
         pred_labels = self._estimator.predict(test_x[:, subset])
         score = self.scorer(pred_labels, test_y)
         return score

@@ -51,7 +51,7 @@ class NDFS(BaseTransformer):
 
     def __init__(self, n_features, c=2, k=3, alpha=1, beta=1, gamma=10e8,
                  sigma=1, max_iterations=1000, epsilon=1e-5):
-        super().__init__(n_features)
+        self.n_features_ = n_features
         self.c = c
         self.k = k
         self.alpha = alpha
@@ -83,24 +83,35 @@ class NDFS(BaseTransformer):
         """
 
         if self.epsilon < 0:
-            raise ValueError("Epsilon should be positive, %d passed" % self.epsilon)
+            raise ValueError(
+                "Epsilon should be positive, %d passed" % self.epsilon)
 
         n_samples = X.shape[0]
 
         if self.n_features > self.n_features_:
-            raise ValueError("Cannot select %d features with n_features = %d" % (self.n_features, self.n_features_))
+            raise ValueError(
+                "Cannot select %d features with n_features = %d" % (
+                self.n_features, self.n_features_))
 
         if self.c > n_samples:
-            raise ValueError("Cannot find %d clusters with n_samples = %d" % (self.c, n_samples))
+            raise ValueError("Cannot find %d clusters with n_samples = %d" % (
+            self.c, n_samples))
 
         if self.k >= n_samples:
-            raise ValueError("Cannot select %d nearest neighbors with n_samples = %d" % (self.k, n_samples))
+            raise ValueError(
+                "Cannot select %d nearest neighbors with n_samples = %d" % (
+                self.k, n_samples))
 
-        graph = NearestNeighbors(n_neighbors=self.n_features + 1, algorithm='ball_tree').fit(X).kneighbors_graph(X).toarray()
+        graph = NearestNeighbors(n_neighbors=self.n_features + 1,
+                                 algorithm='ball_tree').fit(
+            X).kneighbors_graph(X).toarray()
         graph = graph + graph.T
 
-        indices = [[(i, j) for j in range(n_samples)] for i in range(n_samples)]
-        func = np.vectorize(lambda xy: graph[xy[0]][xy[1]] * self.__scheme(X[xy[0]], X[xy[1]]), signature='(1)->()')
+        indices = [[(i, j) for j in range(n_samples)] for i in
+                   range(n_samples)]
+        func = np.vectorize(
+            lambda xy: graph[xy[0]][xy[1]] * self.__scheme(X[xy[0]], X[xy[1]]),
+            signature='(1)->()')
         S = func(indices)
 
         A = np.diag(S.sum(axis=0))
@@ -120,14 +131,17 @@ class NDFS(BaseTransformer):
         previous_target = 0
         W = np.zeros(self.n_features_)
         for step in range(self.max_iterations):
-            M = L + self.alpha * (I - X.dot(np.linalg.inv(X.T.dot(X) + self.beta * D)).dot(X.T))
-            F = F * ((self.gamma * F) / (M.dot(F) + self.gamma * F.dot(F.T).dot(F)))
+            M = L + self.alpha * (I - X.dot(
+                np.linalg.inv(X.T.dot(X) + self.beta * D)).dot(X.T))
+            F = F * ((self.gamma * F) / (
+                        M.dot(F) + self.gamma * F.dot(F.T).dot(F)))
             W = np.linalg.inv(X.T.dot(X) + self.beta * D).dot(X.T.dot(F))
             diag = 2 * matrix_norm(W)
             diag[diag < 1e-10] = 1e-10  # prevents division by zero
             D = np.diag(1 / diag)
 
-            target = np.trace(F.T.dot(L).dot(F)) + self.alpha * (np.linalg.norm(X.dot(W) - F) + self.beta * l21_norm(W))
+            target = np.trace(F.T.dot(L).dot(F)) + self.alpha * (
+                        np.linalg.norm(X.dot(W) - F) + self.beta * l21_norm(W))
             if step > 0 and abs(target - previous_target) < self.epsilon:
                 break
             previous_target = target

@@ -1,5 +1,3 @@
-from numpy import ndarray
-
 from .measures import GLOB_CR, GLOB_MEASURE
 from ...utils import BaseTransformer, generate_features, check_restrictions, \
     apply_cr
@@ -34,15 +32,17 @@ class UnivariateFilter(BaseTransformer):  # TODO ADD LOGGING
         >>> from ITMO_FS.filters.univariate import select_k_best
         >>> from ITMO_FS.filters.univariate import UnivariateFilter
         >>> from ITMO_FS.filters.univariate import f_ratio_measure
-        >>> x, y = make_classification(1000, 100, n_informative = 10, n_redundant = 30, \
-n_repeated = 10, shuffle = False)
+        >>> x, y = make_classification(1000,
+        ...                            100,
+        ...                            n_informative = 10,
+        ...                            n_redundant = 30,
+        ...                            n_repeated = 10, shuffle = False)
         >>> ufilter = UnivariateFilter(f_ratio_measure, select_k_best(10))
-        >>> ufilter.fit(x, y)
+        >>> ufilter.fit()
         >>> print(ufilter.selected_features_)
     """
 
     def __init__(self, measure, cutting_rule=("Best by percentage", 1.0)):
-        super().__init__()
         self.measure = measure
         self.cutting_rule = cutting_rule
 
