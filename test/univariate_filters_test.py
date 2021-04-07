@@ -11,7 +11,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.utils.estimator_checks import check_estimator
 
 from ITMO_FS.filters.univariate import *
-from ITMO_FS.filters.univariate.measures import GLOB_CR
+from ITMO_FS.filters.univariate.measures import CR_NAMES
 from ITMO_FS.utils.information_theory import *
 
 np.random.seed(42)
@@ -265,13 +265,13 @@ class TestCases(unittest.TestCase):
         iris_dataset = load_iris()
         X = iris_dataset.data
         y = iris_dataset.target
-        for cutting_rule in [GLOB_CR['Best by value'](0.5), GLOB_CR['Worst by value'](0.5), GLOB_CR['Worst by percentage'](0.5), 
-            GLOB_CR['Best by percentage'](0.5), ('Worst by value', 0.5), ('Best by value', 0.5), ('Worst by percentage', 0.2),
-            ('Best by percentage', 0.2)]:
+        for cutting_rule in [CR_NAMES['Best by value'](0.5), CR_NAMES['Worst by value'](0.5), CR_NAMES['Worst by percentage'](0.5),
+                             CR_NAMES['Best by percentage'](0.5), ('Worst by value', 0.5), ('Best by value', 0.5), ('Worst by percentage', 0.2),
+                             ('Best by percentage', 0.2)]:
             f = UnivariateFilter(qpfs_filter, cutting_rule)
             self.assertRaises(KeyError, f.fit, X, y)
 
-        for cutting_rule in [GLOB_CR['K best'](2), GLOB_CR['K worst'](2), ('K best', 2), ('K worst', 2)]:
+        for cutting_rule in [CR_NAMES['K best'](2), CR_NAMES['K worst'](2), ('K best', 2), ('K worst', 2)]:
             f = UnivariateFilter(qpfs_filter, cutting_rule)
             f.fit(X, y)
 

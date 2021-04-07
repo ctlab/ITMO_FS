@@ -85,7 +85,7 @@ class TestCases(unittest.TestCase):
 
     def test_measures(self):
         # Multivariate
-        for measure in GLOB_MEASURE:
+        for measure in MEASURE_NAMES:
             beta = 0.3 if measure in ['MIFS', 'generalizedCriteria'] else None
             gamma = 0.4 if measure == 'generalizedCriteria' else None
             f = MultivariateFilter(measure, 10, beta, gamma)
@@ -125,7 +125,12 @@ class TestCases(unittest.TestCase):
         assert 0 <= p.score(self.data, self.target) <= 1
 
     def test_est(self):
-        for f in [FCBFDiscreteFilter(), DISRWithMassive(2), MultivariateFilter(MIM, 2), TraceRatioFisher(2), STIR(2)]:
+        for f in [
+                  FCBFDiscreteFilter(),
+                  DISRWithMassive(2),
+                  MultivariateFilter(MIM, 2),
+                  TraceRatioFisher(2),
+                  STIR(2)]:
             check_estimator(f)
 
 

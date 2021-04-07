@@ -122,12 +122,12 @@ def power_neg_half(M):
     return np.sqrt(np.linalg.inv(M))
 
 def apply_cr(cutting_rule):
-    from ..filters.univariate.measures import GLOB_CR, GLOB_MEASURE
+    from ..filters.univariate.measures import CR_NAMES, MEASURE_NAMES
     if type(cutting_rule) is tuple:
         cutting_rule_name = cutting_rule[0]
         cutting_rule_value = cutting_rule[1]
         try:
-            cr = GLOB_CR[cutting_rule_name](cutting_rule_value)
+            cr = CR_NAMES[cutting_rule_name](cutting_rule_value)
         except KeyError:
             raise KeyError("No %r cutting rule yet" % cutting_rule_name)
     elif hasattr(cutting_rule, '__call__'):

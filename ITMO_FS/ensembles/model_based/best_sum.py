@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.utils import check_array
 from ...utils import BaseTransformer, generate_features, apply_cr
-from ...filters.univariate.measures import GLOB_CR, GLOB_MEASURE
+from ...filters.univariate.measures import CR_NAMES, MEASURE_NAMES
 from sklearn.utils.validation import check_is_fitted
 
 

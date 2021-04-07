@@ -615,7 +615,7 @@ def generalizedCriteria(selected_features, free_features, X, y, beta, gamma):
     return relevance - beta * redundancy + gamma * cond_dependency
 
 
-GLOB_MEASURE = {"MIM": MIM,
+MEASURE_NAMES = {"MIM": MIM,
                 "MRMR": MRMR,
                 "JMI": JMI,
                 "CIFE": CIFE,
@@ -626,4 +626,4 @@ GLOB_MEASURE = {"MIM": MIM,
                 "CFR": CFR,
                 "MRI": MRI,
                 "IWFS": IWFS,
-                "generalizedCriteria": generalizedCriteria}
+                 "generalizedCriteria": generalizedCriteria}

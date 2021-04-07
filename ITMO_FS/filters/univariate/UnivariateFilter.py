@@ -1,4 +1,4 @@
-from .measures import GLOB_CR, GLOB_MEASURE
+from .measures import CR_NAMES, MEASURE_NAMES
 from ...utils import BaseTransformer, generate_features, check_restrictions, \
     apply_cr
 
@@ -49,7 +49,7 @@ class UnivariateFilter(BaseTransformer):  # TODO ADD LOGGING
     def __apply_ms(self):
         if isinstance(self.measure, str):
             try:
-                measure = GLOB_MEASURE[self.measure]
+                measure = MEASURE_NAMES[self.measure]
             except KeyError:
                 raise KeyError("No %r measure yet" % self.measure)
         elif hasattr(self.measure, '__call__'):

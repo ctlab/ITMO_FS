@@ -956,7 +956,7 @@ def modified_t_score(X, y):
     return modified_t_score
 
 
-GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
+MEASURE_NAMES = {"FitCriterion": fit_criterion_measure,
                 "FRatio": f_ratio_measure,
                 "GiniIndex": gini_index,
                 "SymmetricUncertainty": su_measure,
@@ -967,10 +967,10 @@ GLOB_MEASURE = {"FitCriterion": fit_criterion_measure,
                 "ReliefF": reliefF_measure,
                 "Chi2": chi2_measure,
                 "Anova": anova,
-                "LaplacianScore": laplacian_score,
-                "InformationGain": information_gain,
-                "ModifiedTScore": modified_t_score,
-                "Relief": relief_measure}
+                 "LaplacianScore": laplacian_score,
+                 "InformationGain": information_gain,
+                 "ModifiedTScore": modified_t_score,
+                 "Relief": relief_measure}
 
 
 def select_best_by_value(value):
@@ -1039,7 +1039,7 @@ def select_worst_percentage(percent):
     return _wrapped_partial(__select_percentage_worst, percent=percent)
 
 
-GLOB_CR = {"Best by value": select_best_by_value,
+CR_NAMES = {"Best by value": select_best_by_value,
            "Worst by value": select_worst_by_value,
            "K best": select_k_best,
            "K worst": select_k_worst,

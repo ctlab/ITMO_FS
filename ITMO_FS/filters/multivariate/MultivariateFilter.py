@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.base import TransformerMixin
 
-from .measures import GLOB_MEASURE
+from .measures import MEASURE_NAMES
 from ...utils import BaseTransformer, generate_features
 
 
@@ -73,7 +73,7 @@ class MultivariateFilter(BaseTransformer):
 
         if isinstance(self.measure, str):
             try:
-                self.measure = GLOB_MEASURE[self.measure]
+                self.measure = MEASURE_NAMES[self.measure]
             except KeyError:
                 raise KeyError("No %r measure yet" % self.measure)
 
