@@ -11,7 +11,7 @@ datasets = ["arcene.csv",
 def load_dataset(name):
     with dvc.api.open(
             'test/datasets/' + name) as fd:
-        print(pd.read_csv(fd))
+        return pd.read_csv(fd)
 
 
 def load_datasets():
