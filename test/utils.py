@@ -8,7 +8,7 @@ datasets = ["arcene.csv",
             "madelon.csv"]
 
 
-def load_dataset(name):
+def load_dataset(name):#todo fails to hold header
     with dvc.api.open(
             'test/datasets/' + name) as fd:
         return pd.read_csv(fd)
