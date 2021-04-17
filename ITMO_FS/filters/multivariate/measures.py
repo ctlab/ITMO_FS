@@ -1,7 +1,7 @@
 from ...utils.information_theory import *
 
 
-def MIM(selected_features, free_features, x, y):
+def MIM(selected_features, free_features, x, y, **kwargs):
     """
     Mutual Information Maximization feature scoring criterion. This
     criterion focuses only on increase of relevance. Given set of already
@@ -44,7 +44,7 @@ def MIM(selected_features, free_features, x, y):
     return matrix_mutual_information(x[:, free_features], y)
 
 
-def MRMR(selected_features, free_features, x, y):
+def MRMR(selected_features, free_features, x, y, **kwargs):
     """
     Minimum-Redundancy Maximum-Relevance feature scoring criterion. Given
     set of already selected features and set of remaining features on
@@ -86,10 +86,10 @@ def MRMR(selected_features, free_features, x, y):
     if selected_features.size == 0:
         return matrix_mutual_information(x, y)
     return generalizedCriteria(selected_features, free_features, x, y,
-                               1 / selected_features.size, 0)
+                               1 / selected_features.size, 0, **kwargs)
 
 
-def JMI(selected_features, free_features, x, y):
+def JMI(selected_features, free_features, x, y, **kwargs):
     """
     Joint Mutual Information feature scoring criterion. Given set of already
     selected features and set of remaining features on dataset X with labels
@@ -132,10 +132,10 @@ def JMI(selected_features, free_features, x, y):
         return matrix_mutual_information(x, y)
     return generalizedCriteria(selected_features, free_features, x, y,
                                1 / selected_features.size,
-                               1 / selected_features.size)
+                               1 / selected_features.size, **kwargs)
 
 
-def CIFE(selected_features, free_features, x, y):
+def CIFE(selected_features, free_features, x, y, **kwargs):
     """
     Conditional Infomax Feature Extraction feature scoring criterion. Given
     set of already selected features and set of remaining features on
@@ -174,10 +174,11 @@ def CIFE(selected_features, free_features, x, y):
         >>> CIFE(np.array(selected_features), np.array(other_features), x, y)
         array([0.27725887, 0.        , 0.27725887])
     """
-    return generalizedCriteria(selected_features, free_features, x, y, 1, 1)
+    return generalizedCriteria(selected_features, free_features, x, y, 1, 1,
+                               **kwargs)
 
 
-def MIFS(selected_features, free_features, x, y, beta):
+def MIFS(selected_features, free_features, x, y, beta, **kwargs):
     """
     Mutual Information Feature Selection feature scoring criterion. This
     criterion includes the I(X;Y) term to ensure feature relevance,
@@ -220,10 +221,11 @@ def MIFS(selected_features, free_features, x, y, beta):
         >>> MIFS(np.array(selected_features), np.array(other_features), x, y, 0.4)
         array([0.91021097, 0.403807  , 1.0765663 ])
     """
-    return generalizedCriteria(selected_features, free_features, x, y, beta, 0)
+    return generalizedCriteria(selected_features, free_features, x, y, beta, 0,
+                               **kwargs)
 
 
-def CMIM(selected_features, free_features, x, y):
+def CMIM(selected_features, free_features, x, y, **kwargs):
     """
     Conditional Mutual Info Maximisation feature scoring criterion. Given
     set of already selected features and set of remaining features on
@@ -272,7 +274,7 @@ def CMIM(selected_features, free_features, x, y):
     return np.vectorize(vectorized_function)(free_features)
 
 
-def ICAP(selected_features, free_features, x, y):
+def ICAP(selected_features, free_features, x, y, **kwargs):
     """
     Interaction Capping feature scoring criterion. Given set of already
     selected features and set of remaining features on dataset X with labels
@@ -329,7 +331,7 @@ def ICAP(selected_features, free_features, x, y):
     return relevance - np.maximum(redundancy - cond_dependency, 0.)
 
 
-def DCSF(selected_features, free_features, x, y):
+def DCSF(selected_features, free_features, x, y, **kwargs):
     """
     Dynamic change of selected feature with the class scoring criterion.
     DCSF employs both mutual information and conditional mutual information
@@ -385,7 +387,7 @@ def DCSF(selected_features, free_features, x, y):
     return np.vectorize(vectorized_function)(free_features)
 
 
-def CFR(selected_features, free_features, x, y):
+def CFR(selected_features, free_features, x, y, **kwargs):
     """
     The criterion of CFR maximizes the correlation and minimizes the
     redundancy. Given set of already selected features and set of remaining
@@ -439,7 +441,7 @@ def CFR(selected_features, free_features, x, y):
     return np.vectorize(vectorized_function)(free_features)
 
 
-def MRI(selected_features, free_features, X, y):
+def MRI(selected_features, free_features, X, y, **kwargs):
     """
     Max-Relevance and Max-Independence feature scoring criteria. Given set
     of already selected features and set of remaining features on dataset X
@@ -495,7 +497,7 @@ def __SU(xk, xj):
     return 2 * mutual_information(xk, xj) / (entropy(xk) + entropy(xj))
 
 
-def IWFS(selected_features, free_features, X, y):
+def IWFS(selected_features, free_features, X, y, **kwargs):
     """
     Interaction Weight base feature scoring criteria. IWFS is good at
     identifyng Given set of already selected features and set of remaining
@@ -549,7 +551,8 @@ def IWFS(selected_features, free_features, X, y):
 
 # Ask question what should happen if number of features user want is less
 # than useful number of features
-def generalizedCriteria(selected_features, free_features, X, y, beta, gamma):
+def generalizedCriteria(selected_features, free_features, X, y, beta, gamma,
+                        **kwargs):
     """
     This feature scoring criteria is a linear combination of all relevance,
     redundancy, conditional dependency Given set of already selected
@@ -599,31 +602,44 @@ def generalizedCriteria(selected_features, free_features, X, y, beta, gamma):
     """
     if selected_features.size == 0:
         return matrix_mutual_information(X, y)
-    relevance = np.apply_along_axis(mutual_information, 0, X[:, free_features],
-                                    y)
-    redundancy = np.vectorize(
-        lambda free_feature: np.sum(
-            matrix_mutual_information(X[:, selected_features],
-                                      X[:, free_feature])))(
-        free_features)
+    if "relevance" in kwargs:
+        relevance = kwargs["relevance"]
+    else:
+        relevance = np.apply_along_axis(mutual_information, 0,
+                                        X[:, free_features],
+                                        y)
+    if beta != 0:
+        if "redundancy" in kwargs:
+            redundancy = kwargs["redundancy"]
+        else:
+            redundancy = np.vectorize(
+                lambda free_feature: np.sum(
+                    matrix_mutual_information(X[:, selected_features],
+                                              X[:, free_feature])))(
+                free_features)
+    else:
+        redundancy = 0
 
-    cond_dependency = np.vectorize(lambda free_feature: np.sum(
-        np.apply_along_axis(conditional_mutual_information, 0,
-                            X[:, selected_features],
-                            X[:, free_feature], y)))(
-        free_features)
+    if gamma != 0:
+        cond_dependency = np.vectorize(lambda free_feature: np.sum(
+            np.apply_along_axis(conditional_mutual_information, 0,
+                                X[:, selected_features],
+                                X[:, free_feature], y)))(
+            free_features)
+    else:
+        cond_dependency = 0
     return relevance - beta * redundancy + gamma * cond_dependency
 
 
 MEASURE_NAMES = {"MIM": MIM,
-                "MRMR": MRMR,
-                "JMI": JMI,
-                "CIFE": CIFE,
-                "MIFS": MIFS,
-                "CMIM": CMIM,
-                "ICAP": ICAP,
-                "DCSF": DCSF,
-                "CFR": CFR,
-                "MRI": MRI,
-                "IWFS": IWFS,
+                 "MRMR": MRMR,
+                 "JMI": JMI,
+                 "CIFE": CIFE,
+                 "MIFS": MIFS,
+                 "CMIM": CMIM,
+                 "ICAP": ICAP,
+                 "DCSF": DCSF,
+                 "CFR": CFR,
+                 "MRI": MRI,
+                 "IWFS": IWFS,
                  "generalizedCriteria": generalizedCriteria}

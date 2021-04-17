@@ -8,7 +8,8 @@ import numpy as np
 
 def conditional_entropy(x_j, y):
     # H(Y|X)
-    buf = [[e[1] for e in g] for _, g in groupby(sorted(zip(x_j, y)), itemgetter(0))]
+    buf = [[e[1] for e in g] for _, g in
+           groupby(sorted(zip(x_j, y)), itemgetter(0))]
     return fsum(entropy(group) * len(group) for group in buf) / len(x_j)
 
 
@@ -28,7 +29,10 @@ def mutual_information(x, y):
 
 def conditional_mutual_information(x, y, z):
     # I(X;Y|Z) = H(X; Z) + H(Y; Z) - H(X; Y; Z) - H(Z)
-    return entropy(list(zip(x, z))) + entropy(list(zip(y, z))) - entropy(list(zip(x, y, z))) - entropy(z)
+    return (entropy(list(zip(x, z))) +
+            entropy(list(zip(y, z))) -
+            entropy(list(zip(x, y, z))) -
+            entropy(z))
 
 
 def joint_mutual_information(x, y, z):
@@ -37,7 +41,9 @@ def joint_mutual_information(x, y, z):
 
 
 def interaction_information(x, y, z):
-    return mutual_information(x, z) + mutual_information(y, z) - joint_mutual_information(x, y, z)
+    return mutual_information(x, z) + mutual_information(y,
+                                                         z) - joint_mutual_information(
+        x, y, z)
 
 
 def symmetrical_relevance(x, y, z):
