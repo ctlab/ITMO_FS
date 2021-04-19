@@ -23,7 +23,8 @@ class MultivariateFilter(BaseTransformer):
         n_features : int
             Number of features to select.
         beta : float, optional
-            Initialize only in case you run MIFS or generalizedCriteria metrics.
+            Initialize only in case you run MIFS or generalizedCriteria
+            metrics.
         gamma : float, optional
             Initialize only in case you run generalizedCriteria metric.
 
