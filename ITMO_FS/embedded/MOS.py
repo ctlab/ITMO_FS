@@ -133,7 +133,7 @@ class MOS(BaseTransformer):
                 alpha=a,
                 l1_ratio=self.l1_ratio,
                 max_iter=self.epochs)
-            model.fit()
+            model.fit(X, y)
             b = self.weight_func(model)
             rvalue = augmented_rvalue(
                 X[:, [i for i in range(X.shape[1]) if
