@@ -1,4 +1,5 @@
 from .measures import CR_NAMES, MEASURE_NAMES
+import numpy as np
 from ...utils import BaseTransformer, generate_features, check_restrictions, \
     apply_cr
 
@@ -28,18 +29,20 @@ class UnivariateFilter(BaseTransformer):  # TODO ADD LOGGING
         Examples
         --------
 
-        >>> from sklearn.datasets import make_classification
+        >>> import numpy as np
         >>> from ITMO_FS.filters.univariate import select_k_best
         >>> from ITMO_FS.filters.univariate import UnivariateFilter
         >>> from ITMO_FS.filters.univariate import f_ratio_measure
-        >>> x, y = make_classification(1000,
-        ...                            100,
-        ...                            n_informative = 10,
-        ...                            n_redundant = 30,
-        ...                            n_repeated = 10, shuffle = False)
-        >>> ufilter = UnivariateFilter(f_ratio_measure, select_k_best(10))
-        >>> ufilter.fit()
-        >>> print(ufilter.selected_features_)
+        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
+            [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+        >>> y = np.array([1, 3, 2, 1, 2])
+        >>> filter = UnivariateFilter(f_ratio_measure, \
+            select_k_best(2)).fit(x, y)
+        >>> filter.selected_features_
+        array([4, 2])
+        >>> filter.feature_scores_
+        {0: 0.59999999997, 1: 0.19999999999499998, 2: 0.99999999998, \
+3: 0.11999999999520002, 4: 5.39999999892}
     """
 
     def __init__(self, measure, cutting_rule=("Best by percentage", 1.0)):
@@ -88,4 +91,4 @@ class UnivariateFilter(BaseTransformer):  # TODO ADD LOGGING
 
         if store_scores:
             self.feature_scores_ = feature_scores
-        self.selected_features_ = cutting_rule(feature_scores)
+        self.selected_features_ = np.array(cutting_rule(feature_scores))

@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.metrics.pairwise import pairwise_distances
 
 from ...utils import l21_norm, matrix_norm, power_neg_half, BaseTransformer
 
@@ -43,16 +44,19 @@ class NDFS(BaseTransformer):
         >>> from ITMO_FS.filters.univariate import NDFS
         >>> import numpy as np
         >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-        >>> model = NDFS(3)
-        >>> model.fit_transform(X).shape[0]
-        5
+[1, 1, 3, 1, 4],[2, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 1, 1, 2])
+        >>> model = NDFS(3).fit(X, y)
+        >>> model.selected_features_
+        array([0, 2, 1], dtype=int64)
+        >>> model = NDFS(3).fit(X)
+        >>> model.selected_features_
+        array([3, 4, 2], dtype=int64)
     """
 
     def __init__(self, n_features, c=2, k=3, alpha=1, beta=1, gamma=10e8,
                  sigma=1, max_iterations=1000, epsilon=1e-5):
-        self.n_features_ = n_features
+        self.n_features = n_features
         self.c = c
         self.k = k
         self.alpha = alpha
@@ -103,18 +107,12 @@ class NDFS(BaseTransformer):
                 "Cannot select %d nearest neighbors with n_samples = %d" % (
                 self.k, n_samples))
 
-        graph = NearestNeighbors(n_neighbors=self.n_features + 1,
+        graph = NearestNeighbors(n_neighbors=self.n_features, 
                                  algorithm='ball_tree').fit(
-            X).kneighbors_graph(X).toarray()
-        graph = graph + graph.T
+            X).kneighbors_graph().toarray()
+        graph = np.minimum(1, graph + graph.T)
 
-        indices = [[(i, j) for j in range(n_samples)] for i in
-                   range(n_samples)]
-        func = np.vectorize(
-            lambda xy: graph[xy[0]][xy[1]] * self.__scheme(X[xy[0]], X[xy[1]]),
-            signature='(1)->()')
-        S = func(indices)
-
+        S = graph * pairwise_distances(X, metric=lambda x, y: self.__scheme(x, y))
         A = np.diag(S.sum(axis=0))
         L = power_neg_half(A).dot(A - S).dot(power_neg_half(A))
 
@@ -130,7 +128,6 @@ class NDFS(BaseTransformer):
         I = np.eye(n_samples)
 
         previous_target = 0
-        W = np.zeros(self.n_features_)
         for step in range(self.max_iterations):
             M = L + self.alpha * (I - X.dot(
                 np.linalg.inv(X.T.dot(X) + self.beta * D)).dot(X.T))

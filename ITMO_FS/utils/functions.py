@@ -20,8 +20,8 @@ def f1_scorer(y_true, y_pred):
 
 def augmented_rvalue(X, y, k=7, theta=3):
     """
-    Calculates the augmented R-value for a dataset with two (0, 1) classes. 
-    The original paper supposes that the majority of objects are of class 0 (negative).
+    Calculates the augmented R-value for a dataset with two classes. 
+
         Parameters
         ----------
         X : array-like, shape (n_samples,n_features)
@@ -52,7 +52,7 @@ def augmented_rvalue(X, y, k=7, theta=3):
         count = 0
         for elem in [i for i, x in enumerate(y) if x == label]:
             nearest = knn(X, y, elem, k) # TODO: should probably rewrite this using sklearn's knn or pairwise_distances
-            count += np.sign(max(k - list(map(lambda x: y[x], nearest)).count(label) - theta, 0))
+            count += np.sign(k - list(map(lambda x: y[x], nearest)).count(label) - theta)
         Rs.append(count / frequency)
     Cs = Cs[::-1]
     return np.dot(Rs, Cs) / len(X)

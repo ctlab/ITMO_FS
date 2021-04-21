@@ -50,14 +50,18 @@ class MOS(BaseTransformer):
         >>> import numpy as np
         >>> from sklearn.datasets import make_classification
         >>> from sklearn.linear_model import LogisticRegression
-        >>> dataset = make_classification(n_samples=100, n_features=20)
-        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
-        >>> for i in range(50):  # create imbalance between classes
-        ...     target[i] = 0
-        >>> m = MOS(model=SGDClassifier(),
-        ...         weight_func=lambda model: model.coef_[0])
-        >>> m.fit_transform(data, target).shape[0]
-        100
+        >>> dataset = make_classification(n_samples=100, n_features=10, \
+            n_informative=5, n_redundant=0, weights=[0.85, 0.15], \
+            random_state=42, shuffle=False)
+        >>> X, y = np.array(dataset[0]), np.array(dataset[1])
+        >>> m = MOS(model=SGDClassifier(), \
+            weight_func=lambda model: model.coef_[0]).fit(X, y)
+        >>> m.selected_features_
+        [1, 3, 4]
+        >>> m = MOS(model=SGDClassifier(), sampling=True, \
+            weight_func=lambda model: model.coef_[0]).fit(X, y)
+        >>> m.selected_features_
+        [1, 3, 4, 6]
     """
 
     def __init__(
@@ -75,6 +79,7 @@ class MOS(BaseTransformer):
                 0.0002),
             sampling=False,
             k_neighbors=2):
+
         self.model = model
         self.weight_func = weight_func
         self.loss = loss

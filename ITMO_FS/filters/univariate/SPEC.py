@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.linalg import eigh
-from scipy.spatial.distance import cosine
 from ...utils import knn, l21_norm, matrix_norm, power_neg_half, BaseTransformer
 
 
@@ -29,16 +28,19 @@ class SPEC(BaseTransformer):
         Examples
         --------
         >>> from ITMO_FS.filters.univariate import SPEC
-        >>> from sklearn.datasets import make_classification
         >>> import numpy as np
-        >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
-        >>> model = SPEC(5)
-        >>> model.fit_transform(data, target).shape[0]
-        100
+        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
+[1, 1, 3, 1, 4],[2, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 1, 1, 2])
+        >>> model = SPEC(3).fit(X, y)
+        >>> model.selected_features_
+        array([0, 1, 4], dtype=int64)
+        >>> model = SPEC(3).fit(X)
+        >>> model.selected_features_
+        array([3, 4, 1], dtype=int64)
     """
 
-    def __init__(self, n_features, k=2, gamma=(lambda x: x ** 2), sigma=0.5, phi_type=1):
+    def __init__(self, n_features, k=2, gamma=(lambda x: x ** 2), sigma=0.5, phi_type=3):
         self.n_features = n_features
         self.k = k
         self.gamma = gamma
@@ -77,7 +79,7 @@ class SPEC(BaseTransformer):
             f_norm = np.sqrt(D).dot(f)
             f_norm /= np.linalg.norm(f_norm)
 
-            cosines = np.apply_along_axis(lambda vec: 1 - cosine(f_norm, vec), 0, eigvectors)
+            cosines = np.apply_along_axis(lambda vec: np.dot(vec / np.linalg.norm(vec), f_norm), 0, eigvectors)
             return phi(cosines, eigvals, k)
 
         if self.phi_type == 1:
@@ -94,7 +96,7 @@ class SPEC(BaseTransformer):
         if self.n_features > self.n_features_:
             raise ValueError("Cannot select %d features with n_features = %d" % (self.n_features, self.n_features_))
 
-        if (y == None).any():
+        if y is None:
             if self.k > n_samples:
                 raise ValueError("Cannot find %d clusters with n_samples = %d" % (self.k, n_samples))
             k = self.k
@@ -106,9 +108,9 @@ class SPEC(BaseTransformer):
             values, counts = np.unique(y, return_counts=True)
             values_dict = dict(zip(values, counts))
             k = len(values)
-            W = np.array(
-                [[(lambda i, j: 1 / values_dict[y[i]] if y[i] == y[j] else 0)(i, j) for j in range(n_samples)] for i in
-                 range(n_samples)])
+            indices = [[(i, j) for j in range(n_samples)] for i in range(n_samples)]
+            func = np.vectorize(lambda xy: 1 / values_dict[y[xy[0]]] if y[xy[0]] == y[xy[1]] else 0, signature='(1)->()')
+            W = func(indices)
 
         D = np.diag(W.sum(axis=1))
         L = D - W
