@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.linalg import eigh
-from ...utils import knn, l21_norm, matrix_norm, BaseTransformer
+from sklearn.neighbors import NearestNeighbors
+from ...utils import l21_norm, matrix_norm, BaseTransformer
 
 
 class UDFS(BaseTransformer):
@@ -35,12 +36,13 @@ class UDFS(BaseTransformer):
         >>> from ITMO_FS.filters.unsupervised import UDFS
         >>> from sklearn.datasets import make_classification
         >>> import numpy as np
-        >>> dataset = make_classification(n_samples=100, n_features=20, \
-n_informative=4, n_redundant=0, shuffle=False)
-        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
-        >>> model = UDFS(5)
-        >>> model.fit_transform(data, target).shape
-        (100, 5)
+        >>> dataset = make_classification(n_samples=500, n_features=100, \
+            n_informative=5, n_redundant=0, random_state=42, \
+            shuffle=False, n_clusters_per_class=1)
+        >>> X, y = np.array(dataset[0]), np.array(dataset[1])
+        >>> model = UDFS(5).fit(X)
+        >>> model.selected_features_
+        array([ 2,  3, 19, 90, 92], dtype=int64)
     """
 
     def __init__(self, n_features, c=2, k=3, gamma=1, l=1e-6,
@@ -53,7 +55,7 @@ n_informative=4, n_redundant=0, shuffle=False)
         self.max_iterations = max_iterations
         self.epsilon = epsilon
 
-    def _fit(self, X, y,**fit_params):
+    def _fit(self, X, y):
         """
             Fits filter
 
@@ -90,10 +92,12 @@ n_informative=4, n_redundant=0, shuffle=False)
             raise ValueError("Cannot select %d nearest neighbors with n_samples = %d" % (self.k, n_samples))
 
         indices = list(range(n_samples))
-        H = np.eye(self.k + 1) - np.ones((self.k + 1, self.k + 1)) / (self.k + 1)
         I = np.eye(self.k + 1)
-        neighbors = np.vectorize(lambda idx: np.append([idx], knn(X, y, idx, self.k)), signature='()->(1)')(indices)
+        H = I - np.ones((self.k + 1, self.k + 1)) / (self.k + 1)
+
+        neighbors = NearestNeighbors(n_neighbors=self.k + 1, algorithm='ball_tree').fit(X).kneighbors(X, return_distance=False)
         X_centered = np.apply_along_axis(lambda arr: X[arr].T.dot(H), 1, neighbors)
+
         S = np.apply_along_axis(lambda arr: construct_S(arr), 1, neighbors)
         B = np.vectorize(lambda idx: np.linalg.inv(X_centered[idx].T.dot(X_centered[idx]) + self.l * I),
                          signature='()->(1,1)')(indices)
@@ -104,7 +108,7 @@ n_informative=4, n_redundant=0, shuffle=False)
         previous_target = 0
         for step in range(self.max_iterations):
             P = M + self.gamma * D
-            _, W = eigh(a=P, eigvals=(0, self.c - 1))
+            _, W = eigh(a=P, subset_by_index=[0, self.c - 1])
             diag = 2 * matrix_norm(W)
             diag[diag < 1e-10] = 1e-10  # prevents division by zero
             D = np.diag(1 / diag)

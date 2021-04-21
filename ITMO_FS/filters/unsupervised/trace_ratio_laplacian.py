@@ -1,8 +1,8 @@
 import numpy as np
 from sklearn.metrics.pairwise import pairwise_distances
 from scipy.sparse import *
+from sklearn.neighbors import NearestNeighbors
 from ...utils import BaseTransformer
-
 
 # TODO requests changes for MultivariateFilter to be used there
 class TraceRatioLaplacian(BaseTransformer):
@@ -30,12 +30,12 @@ class TraceRatioLaplacian(BaseTransformer):
         Examples
         --------
         >>> from ITMO_FS.filters.unsupervised.trace_ratio_laplacian import TraceRatioLaplacian
-        >>> from sklearn.datasets import make_classification
-        >>> x, y = make_classification(1000, 100, n_informative = 10, \
-n_redundant = 30, n_repeated = 10, shuffle = False)
-        >>> tracer = TraceRatioLaplacian(10)
-        >>> tracer.fit_transform(x, y).shape
-        (1000, 10)
+        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
+[1, 1, 3, 1, 4],[2, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 1, 1, 2])
+        >>> tracer = TraceRatioLaplacian(2, k=2).fit(X)
+        >>> tracer.selected_features_
+        array([3, 2], dtype=int64)
     """
 
     def __init__(self, n_features, k=5, t=1, epsilon=1e-3):
@@ -65,41 +65,28 @@ n_redundant = 30, n_repeated = 10, shuffle = False)
         if self.k >= n_samples:
             raise ValueError("Cannot select %d nearest neighbors with n_samples = %d" % (self.k, n_samples))
 
-        Distances = pairwise_distances(X)
-        Distances **= 2
-        Distances_NN = np.sort(Distances, axis=1)[:, 0:self.k + 1]
-        Indices_NN = np.argsort(Distances, axis=1)[:, 0:self.k + 1]
-        Kernel = np.exp(-Distances_NN / self.t)
-        joined_distances = np.ravel(Kernel)
-        indices_axis_one = np.ravel(Indices_NN)
-        indices_axis_zero = np.repeat(np.arange(n_samples), self.k + 1)
-        A_within = csc_matrix((joined_distances, (indices_axis_zero, indices_axis_one)), shape=(n_samples, n_samples))
-        A_within = A_within - A_within.multiply(A_within.T > A_within) + A_within.T.multiply(A_within.T > A_within)
-        D_within = np.diag(np.ravel(A_within.sum(1)))  # check correctness
+        graph = NearestNeighbors(n_neighbors=self.n_features, algorithm='ball_tree').fit(X).kneighbors_graph().toarray()
+        graph = np.minimum(1, graph + graph.T)
+        A_within = graph * pairwise_distances(X, metric=lambda x, y: np.exp(-np.linalg.norm(x - y) ** 2 / self.t))
+        D_within = np.diag(A_within.sum(axis=1))
         L_within = D_within - A_within
         A_between = D_within.dot(np.ones((n_samples, n_samples))).dot(D_within) / np.sum(D_within)
-        D_between = np.diag(A_between.sum(1))
+        D_between = np.diag(A_between.sum(axis=1))
         L_between = D_between - A_between
 
-        L_within = (L_within.T + L_within) / 2
-        L_between = (L_between.T + L_between) / 2
         E = X.T.dot(L_within).dot(X)
         B = X.T.dot(L_between).dot(X)
-        E = (E.T + E) / 2
-        B = (B.T + B) / 2
 
         # we need only diagonal elements for trace calculation
-        e = np.absolute(np.diag(E))
-        b = np.absolute(np.diag(B))
-        b[b == 0] = 1e-14
+        e = np.array(np.diag(E))
+        b = np.array(np.diag(B))
         self.selected_features_ = np.argsort(np.divide(b, e))[::-1][0:self.n_features]
         lam = np.sum(b[self.selected_features_]) / np.sum(e[self.selected_features_])
         prev_lam = 0
         while (lam - prev_lam >= self.epsilon):  # TODO: optimize
             score = b - lam * e
-            self.selected_feaatures_ = np.argsort(score)[::-1][0:self.n_features]
+            self.selected_features_ = np.argsort(score)[::-1][0:self.n_features]
             prev_lam = lam
             lam = np.sum(b[self.selected_features_]) / np.sum(e[self.selected_features_])
         self.score_ = score
         self.lam_ = lam
-        #return features_indices, score, lam
