@@ -71,12 +71,12 @@ class MOS(BaseTransformer):
             loss='log',
             seed=42,
             l1_ratio=0.5,
-            threshold=10e-4,
+            threshold=1e-3,
             epochs=1000,
             alphas=np.arange(
-                0.0002,
-                0.02,
-                0.0002),
+                0.01,
+                0.2,
+                0.01),
             sampling=False,
             k_neighbors=2):
 
