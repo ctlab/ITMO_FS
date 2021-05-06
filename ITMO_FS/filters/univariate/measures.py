@@ -7,13 +7,14 @@ from scipy import sparse as sp
 from scipy.sparse import lil_matrix
 from scipy.stats import rankdata
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.metrics.pairwise import pairwise_distances, euclidean_distances
 from sklearn.neighbors import NearestNeighbors
 
 from ITMO_FS.utils.data_check import generate_features
 from ITMO_FS.utils.information_theory import conditional_entropy
 from ITMO_FS.utils.information_theory import entropy
 from ITMO_FS.utils.qpfs_body import qpfs_body
+from ITMO_FS.utils.functions import knn_from_class
 
 
 def _wrapped_partial(func, *args, **kwargs):
@@ -278,36 +279,6 @@ def fechner_corr(x, y):
     x_dev = x - np.mean(x, axis=0)
     return np.sum(np.sign(x_dev.T * y_dev), axis=1) / x.shape[0]
 
-
-def __distance_matrix(X, y, n_samples):
-    dm = np.zeros((n_samples, n_samples), dtype=tuple)
-    for i in range(n_samples):
-        for j in range(i, n_samples):
-            # using the Manhattan (L1) norm rather than
-            # the Euclidean (L2) norm,
-            # although the rationale is not specified
-            value = np.linalg.norm(X[i, :] - X[j, :], 1)
-            dm[i, j] = (value, j, y[j])
-            dm[j, i] = (value, i, y[i])
-    # sort_indices = dm.argsort(1)
-    # dm.sort(1)
-    # indices = np.arange(n_samples) #[sort_indices]
-    # dm = np.dstack((dm, indices))
-    return dm
-
-    # TODO redo with np.where
-
-
-def __take_k(dm_i, k, r_index, choice_func):
-    hits = []
-    dm_i = sorted(dm_i, key=lambda x: x[0])
-    for samp in dm_i:
-        if (samp[1] != r_index) & (k > 0) & (choice_func(samp[2])):
-            hits.append(samp)
-            k -= 1
-    return np.array(hits, int)
-
-
 def reliefF_measure(x, y, k_neighbors=1):
     """
     Counts ReliefF measure for each feature. Bigger values mean more important 
@@ -352,50 +323,53 @@ def reliefF_measure(x, y, k_neighbors=1):
     >>> from ITMO_FS.filters.univariate import reliefF_measure
     >>> import numpy as np
     >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-    >>> y = np.array([1, 3, 2, 1, 2])
+        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1], [1, 2, 1, 4, 2], [4, 3, 2, 3, 1]])
+    >>> y = np.array([1, 2, 2, 1, 2, 1, 2])
     >>> reliefF_measure(x, y)
-    array([-0.2       , -0.43333333,  0.075     , -0.31666667,  0.31666667])
+    array([-0.14285714, -0.57142857,  0.10714286, -0.14285714,  0.07142857])
+    >>> reliefF_measure(x, y, k_neighbors=2)
+    array([-0.07142857, -0.17857143, -0.07142857, -0.0952381 , -0.17857143])
     """
-    f_ratios = np.zeros(x.shape[1])
+
+    def __calc_misses(index):
+        misses_diffs_classes = np.abs(np.vectorize(lambda cl: 
+            (x[index] - x[knn_from_class(dm, y, index, k_neighbors, cl)]) * 
+            prior_prob[cl], 
+            signature='()->(n,m)')(classes[classes != y[index]]))
+        return np.sum(np.sum(misses_diffs_classes, axis=1), axis=0) / (
+            1 - prior_prob[y[index]])
+
     classes, counts = np.unique(y, return_counts=True)
+    if np.any(counts <= k_neighbors):
+        raise ValueError('Cannot calculate relieff measure because one of the \
+            classes has less than %d samples' % (k_neighbors + 1))
     prior_prob = dict(zip(classes, np.array(counts) / len(y)))
     n_samples = x.shape[0]
     n_features = x.shape[1]
-    dm = __distance_matrix(x, y, n_samples)
-    for i in range(n_samples):
-        r = x[i]
-        dm_i = dm[i]
-        hits = __take_k(dm_i, k_neighbors, i, lambda x: x == y[i])
-        if len(hits) != 0:
-            ind_hits = hits[:, 1]
-        else:
-            ind_hits = []
-        value_hits = x.take(ind_hits, axis=0)
-        m_c = np.empty(len(classes), np.ndarray)
-        for j in range(len(classes)):
-            if classes[j] != y[i]:
-                misses = __take_k(dm_i, k_neighbors, i,
-                                  lambda x: x == classes[j])
-                ind_misses = misses[:, 1]
-                m_c[j] = x.take(ind_misses, axis=0)
-        for A in range(n_features):
-            weight_hit = np.sum(np.abs(r[A] - value_hits[:, A]))
-            weight_miss = 0
-            for j in range(len(classes)):
-                if classes[j] != y[i]:
-                    weight_miss += prior_prob[classes[j]] * np.sum(
-                        np.abs(r[A] - m_c[j][:, A]))
-            f_ratios[A] += weight_miss / (1 - prior_prob[y[i]]) - weight_hit
+    # use manhattan distance instead of euclidean
+    dm = pairwise_distances(x, x, 'manhattan')
+
+    indices = np.arange(n_samples)
+    # use abs instead of square because of manhattan distance
+    hits_diffs = np.abs(np.vectorize(lambda index:
+        x[index] - x[knn_from_class(dm, y, index, k_neighbors, y[index])], 
+        signature='()->(n,m)')(indices))
+    H = np.sum(hits_diffs, axis=(0,1))
+
+    misses_sum_diffs = np.vectorize(lambda index: __calc_misses(index),
+        signature='()->(n)')(indices)
+    M = np.sum(misses_sum_diffs, axis=0)
+
+    weights = M - H
     # dividing by m * k guarantees that all final weights
     # will be normalized within the interval [ − 1, 1].
-    f_ratios /= n_samples * k_neighbors
+    weights /= n_samples * k_neighbors
     # The maximum and minimum values of A are determined over the entire
     # set of instances.
     # This normalization ensures that weight updates fall
     # between 0 and 1 for both discrete and continuous features.
     with np.errstate(divide='ignore', invalid="ignore"):  # todo
-        return f_ratios / (np.amax(x, axis=0) - np.amin(x, axis=0))
+        return weights / (np.amax(x, axis=0) - np.amin(x, axis=0))
 
 
 def relief_measure(x, y, m=None, random_state=42):
@@ -439,6 +413,9 @@ def relief_measure(x, y, m=None, random_state=42):
     classes, counts = np.unique(y, return_counts=True)
     if len(classes) == 1:
         raise ValueError('Cannot calculate relief measure with 1 class')
+    if 1 in counts:
+        raise ValueError('Cannot calculate relief measure because one of the \
+            classes has only 1 sample')
 
     n_samples = x.shape[0]
     n_features = x.shape[1]
@@ -447,22 +424,20 @@ def relief_measure(x, y, m=None, random_state=42):
 
     x_normalized = MinMaxScaler().fit_transform(x)
     dm = euclidean_distances(x_normalized, x_normalized)
-    indices = np.random.default_rng(random_state).integers(low=0, 
-        high=n_samples, size=m) 
-    for i in indices:
-        distances = dm[i]
-        order = np.argsort(distances)[1:]
+    indices = np.random.default_rng(random_state).integers(low=0,
+        high=n_samples, size=m)
+    objects = x_normalized[indices]
+    hits_diffs = np.square(np.vectorize(lambda index:
+        x_normalized[index] - x_normalized[knn_from_class(dm, y, index, 1, 
+            y[index])], signature='()->(n,m)')(indices))
+    misses_diffs = np.square(np.vectorize(lambda index:
+        x_normalized[index] - x_normalized[knn_from_class(dm, y, index, 1, 
+            y[index], anyClass=True)], signature='()->(n,m)')(indices))
 
-        for index in order:
-            if y[index] == y[i]:
-                weights -= np.square(x_normalized[i] - x_normalized[index])
-                break
+    H = np.sum(hits_diffs, axis=(0,1))
+    M = np.sum(misses_diffs, axis=(0,1))
 
-        for index in order:
-            if y[index] != y[i]:
-                weights += np.square(x_normalized[i] - x_normalized[index])
-                break
-
+    weights = M - H
     return weights / m
 
 

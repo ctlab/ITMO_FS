@@ -58,29 +58,40 @@ def augmented_rvalue(X, y, k=7, theta=3):
     return np.dot(Rs, Cs) / len(X)
 
 
-def knn(X, y, index, k, allClasses=True):
+def knn_from_class(distances, y, index, k, cl, anyClass=False):
     """
-    Returns the indices of k nearest neighbors of X[index].
+    Returns the indices of k nearest neighbors of X[index] from the selected class.
         Parameters
         ----------
-        X : array-like, shape (n_samples,n_features)
-            The input samples.
+        distances : array-like, shape (n_samples, n_samples)
+            The distance matrix of the input samples.
         y : array-like, shape (n_samples)
             The classes for the samples.
         index : int
             The index of an element.
         k : int
             The amount of nearest neighbors to return.
-        allClasses : bool
-            If false, returns only k nearest neighbors belonging to the same class.
+        cl : int
+            The class label for the nearest neighbors.
+        anyClass : bool
+            If True, returns neighbors not belonging to the same class
+            as X[index].
+
         Returns
         ------
-        array-like, shape(k) - the indices of the nearest neighbors
+        array-like, shape (k) - the indices of the nearest neighbors
     """
-    distances = map(lambda x: (x[0], np.linalg.norm(X[index] - x[1])),
-                    [(i, x) for i, x in enumerate(X) if i != index and (allClasses or y[i] == y[index])])
-    nearest = sorted(distances, key=lambda x: x[1])[:k]
-    return np.array(list(map(lambda x: x[0], nearest)))
+    y_c = np.copy(y)
+    if anyClass:
+        cl = y_c[index] + 1
+        y_c[y_c != y_c[index]] = cl
+    class_indices = np.nonzero(y_c == cl)[0]
+    distances_class = distances[index][class_indices]
+    nearest = np.argsort(distances_class)
+    if y_c[index] == cl:
+        nearest = nearest[1:]
+
+    return class_indices[nearest[:k]]
 
 def matrix_norm(M):
     """
