@@ -148,6 +148,115 @@ def JMI(selected_features, free_features, x, y, **kwargs):
                                1 / selected_features.size,
                                1 / selected_features.size, **kwargs)
 
+def JMIM(selected_features, free_features, x, y, **kwargs):
+    """
+    Joint Mutual Information Maximization feature scoring criterion. Given
+    set of already selected features and set of remaining features on
+    dataset X with labels y selects next feature.
+
+        Parameters
+        ----------
+        selected_features : list of ints,
+            already selected features
+        free_features : list of ints
+            free features
+        x : array-like, shape (n_samples, n_features)
+            The training input samples.
+        y : array-like, shape (n_samples, )
+            The target values.
+
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
+
+        Notes ----- For more details see `this paper
+        <https://www.sciencedirect.com/science/article/pii/S0957417415004674/>`_.
+
+
+        Examples
+        --------
+
+        >>> from ITMO_FS.filters.multivariate import JMIM
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
+[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> x = est.fit_transform(x)
+        >>> selected_features = []
+        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> JMIM(np.array(selected_features), np.array(other_features), x, y)
+        array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> JMIM(np.array(selected_features), np.array(other_features), x, y)
+        array([1.33217904, 0.67301167, 1.60943791])
+    """
+    relevance = matrix_mutual_information(x[:, free_features], y)
+    if selected_features.size == 0:
+        return relevance
+    cond_information = np.vectorize(lambda free_feature:
+            np.apply_along_axis(conditional_mutual_information, 0,
+                                x[:, selected_features],
+                                y, x[:, free_feature]), signature='()->(1)')(
+            free_features)
+    return np.min(cond_information.T + relevance, axis=0)
+
+def NJMIM(selected_features, free_features, x, y, **kwargs):
+    """
+    Normalized Joint Mutual Information Maximization feature scoring
+    criterion. Given set of already selected features and set of
+    remaining features on dataset X with labels y selects next feature.
+
+        Parameters
+        ----------
+        selected_features : list of ints,
+            already selected features
+        free_features : list of ints
+            free features
+        x : array-like, shape (n_samples, n_features)
+            The training input samples.
+        y : array-like, shape (n_samples, )
+            The target values.
+
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
+
+        Notes ----- For more details see `this paper
+        <https://www.sciencedirect.com/science/article/pii/S0957417415004674/>`_.
+
+
+        Examples
+        --------
+
+        >>> from ITMO_FS.filters.multivariate import NJMIM
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
+[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
+        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> x = est.fit_transform(x)
+        >>> selected_features = []
+        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> NJMIM(np.array(selected_features), np.array(other_features), x, y)
+        array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
+        >>> selected_features = [1, 2]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> NJMIM(np.array(selected_features), np.array(other_features), x, y)
+        array([0.82772938, 0.41816566, 1.        ])
+    """
+    if selected_features.size == 0:
+        return matrix_mutual_information(x, y)
+    sym_relevance = np.vectorize(lambda selected_feature:
+            np.apply_along_axis(symmetrical_relevance, 0,
+                                x[:, free_features],
+                                x[:, selected_feature], y), signature='()->(1)')(
+            selected_features)
+    return np.min(sym_relevance, axis=0)
+
 
 def CIFE(selected_features, free_features, x, y, **kwargs):
     """

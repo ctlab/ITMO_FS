@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import eigh
-from ...utils import knn, l21_norm, matrix_norm, power_neg_half, BaseTransformer
+from ...utils import l21_norm, matrix_norm, power_neg_half, BaseTransformer
 
 
 class SPEC(BaseTransformer):

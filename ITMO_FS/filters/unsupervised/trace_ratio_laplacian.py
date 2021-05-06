@@ -30,6 +30,7 @@ class TraceRatioLaplacian(BaseTransformer):
         Examples
         --------
         >>> from ITMO_FS.filters.unsupervised.trace_ratio_laplacian import TraceRatioLaplacian
+        >>> import numpy as np
         >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
 [1, 1, 3, 1, 4],[2, 4, 3, 1, 5]])
         >>> y = np.array([1, 2, 1, 1, 2])
@@ -80,9 +81,8 @@ class TraceRatioLaplacian(BaseTransformer):
         # we need only diagonal elements for trace calculation
         e = np.array(np.diag(E))
         b = np.array(np.diag(B))
-        self.selected_features_ = np.argsort(np.divide(b, e))[::-1][0:self.n_features]
-        lam = np.sum(b[self.selected_features_]) / np.sum(e[self.selected_features_])
-        prev_lam = 0
+        lam = 0
+        prev_lam = -1
         while (lam - prev_lam >= self.epsilon):  # TODO: optimize
             score = b - lam * e
             self.selected_features_ = np.argsort(score)[::-1][0:self.n_features]
