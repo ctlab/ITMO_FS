@@ -76,7 +76,7 @@ class STIR(BaseTransformer):
             y[index])], signature='()->(n,m)')(indices))
         misses_diffs = np.abs(np.vectorize(lambda index:
         x_normalized[index] - x_normalized[knn_from_class(dm, y, index, self.k, 
-            y[index], anyClass=True)], signature='()->(n,m)')(indices))
+            y[index], anyOtherClass=True)], signature='()->(n,m)')(indices))
 
         H = np.mean(hits_diffs, axis=(0,1))
         M = np.mean(misses_diffs, axis=(0,1))

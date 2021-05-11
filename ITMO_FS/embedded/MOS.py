@@ -57,11 +57,11 @@ class MOS(BaseTransformer):
         >>> m = MOS(model=SGDClassifier(), \
             weight_func=lambda model: model.coef_[0]).fit(X, y)
         >>> m.selected_features_
-        [1, 3, 4]
+        array([1, 3, 4], dtype=int64)
         >>> m = MOS(model=SGDClassifier(), sampling=True, \
             weight_func=lambda model: model.coef_[0]).fit(X, y)
         >>> m.selected_features_
-        [1, 3, 4, 6]
+        array([1, 3, 4, 6], dtype=int64)
     """
 
     def __init__(

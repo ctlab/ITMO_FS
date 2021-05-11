@@ -39,10 +39,9 @@ class UnivariateFilter(BaseTransformer):  # TODO ADD LOGGING
         >>> filter = UnivariateFilter(f_ratio_measure, \
             select_k_best(2)).fit(x, y)
         >>> filter.selected_features_
-        array([4, 2])
+        array([4, 2], dtype=int64)
         >>> filter.feature_scores_
-        {0: 0.59999999997, 1: 0.19999999999499998, 2: 0.99999999998, \
-3: 0.11999999999520002, 4: 5.39999999892}
+        array([0.6 , 0.2 , 1.  , 0.12, 5.4 ])
     """
 
     def __init__(self, measure, cutting_rule=("Best by percentage", 1.0)):
@@ -86,9 +85,8 @@ class UnivariateFilter(BaseTransformer):  # TODO ADD LOGGING
 
         check_restrictions(measure.__name__, cutting_rule.__name__)
 
-        features = generate_features(X)
-        feature_scores = dict(zip(features, measure(X, y)))
+        feature_scores = measure(X, y)
 
         if store_scores:
             self.feature_scores_ = feature_scores
-        self.selected_features_ = np.array(cutting_rule(feature_scores))
+        self.selected_features_ = cutting_rule(feature_scores)

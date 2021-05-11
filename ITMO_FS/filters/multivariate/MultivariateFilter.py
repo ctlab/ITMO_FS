@@ -44,7 +44,7 @@ class MultivariateFilter(BaseTransformer):
         >>> data = est.fit_transform(X)
         >>> model = MultivariateFilter('JMI', 3).fit(X, y)
         >>> model.selected_features_
-        array([4, 0, 1])
+        array([4, 0, 1], dtype=int64)
     """
 
     def __init__(self, measure, n_features, beta=None, gamma=None):
@@ -123,7 +123,6 @@ class MultivariateFilter(BaseTransformer):
                         relevance=relevance[free_features], 
                         redundancy=np.sum(redundancy[self.selected_features_], axis=0)[free_features])
                     )
-            print(values)
             to_add = np.argmax(values)
             self.selected_features_ = np.append(
                 self.selected_features_, free_features[to_add])

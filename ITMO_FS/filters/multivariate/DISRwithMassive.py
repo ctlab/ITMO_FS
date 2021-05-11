@@ -48,7 +48,7 @@ class DISRWithMassive(BaseTransformer):
         >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
         >>> disr = DISRWithMassive(3).fit(X, y)
         >>> disr.selected_features_
-        array([0, 1, 4])
+        array([0, 1, 4], dtype=int64)
     """
 
     def __init__(self, n_features):

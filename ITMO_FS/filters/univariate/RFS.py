@@ -36,7 +36,7 @@ class RFS(BaseTransformer):
         >>> y = np.array([1, 2, 1, 1, 2])
         >>> model = RFS(2).fit(X, y)
         >>> model.selected_features_
-        array([0, 2], dtype=int64)
+        array([0, 3], dtype=int64)
     """
 
     def __init__(self, n_features, gamma=1, max_iterations=1000, epsilon=1e-5):

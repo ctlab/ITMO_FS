@@ -432,7 +432,7 @@ def relief_measure(x, y, m=None, random_state=42):
             y[index])], signature='()->(n,m)')(indices))
     misses_diffs = np.square(np.vectorize(lambda index:
         x_normalized[index] - x_normalized[knn_from_class(dm, y, index, 1, 
-            y[index], anyClass=True)], signature='()->(n,m)')(indices))
+            y[index], anyOtherClass=True)], signature='()->(n,m)')(indices))
 
     H = np.sum(hits_diffs, axis=(0,1))
     M = np.sum(misses_diffs, axis=(0,1))
@@ -891,15 +891,10 @@ def select_worst_by_value(value):
 
 
 def __select_by_value(scores, value, more=True):
-    features = []
-    for key, sc_value in scores.items():
-        if more:
-            if sc_value >= value:
-                features.append(key)
-        else:
-            if sc_value <= value:
-                features.append(key)
-    return features
+    if more:
+        return np.flatnonzero(scores >= value)
+    else:
+        return np.flatnonzero(scores <= value)
 
 
 def select_k_best(k):
@@ -916,18 +911,15 @@ def __select_k(scores, k, reverse=False):
     if k > len(scores):
         raise ValueError("Cannot select %d features with n_features = %d" % (
             k, len(scores)))
-    return [keys[0] for keys in
-            sorted(scores.items(), key=lambda kv: kv[1], reverse=reverse)[:k]]
+    order = np.argsort(scores)
+    if reverse:
+        order = order[::-1]
+    return order[:k]
 
 
 def __select_percentage_best(scores, percent):
-    features = []
-    max_val = max(scores.values())
-    threshold = max_val * percent
-    for key, sc_value in scores.items():
-        if sc_value >= threshold:
-            features.append(key)
-    return features
+    return __select_k(scores, k=(int)(scores.shape[0] * percent),
+        reverse=True)
 
 
 def select_best_percentage(percent):
@@ -935,13 +927,8 @@ def select_best_percentage(percent):
 
 
 def __select_percentage_worst(scores, percent):
-    features = []
-    max_val = min(scores.values())
-    threshold = max_val * percent
-    for key, sc_value in scores.items():
-        if sc_value >= threshold:
-            features.append(key)
-    return features
+    return __select_k(scores, k=(int)(scores.shape[0] * percent),
+        reverse=False)
 
 
 def select_worst_percentage(percent):

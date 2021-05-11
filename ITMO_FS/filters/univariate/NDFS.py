@@ -48,10 +48,10 @@ class NDFS(BaseTransformer):
         >>> y = np.array([1, 2, 1, 1, 2])
         >>> model = NDFS(3).fit(X, y)
         >>> model.selected_features_
-        array([0, 2, 1], dtype=int64)
+        array([0, 3, 4], dtype=int64)
         >>> model = NDFS(3).fit(X)
         >>> model.selected_features_
-        array([3, 4, 2], dtype=int64)
+        array([3, 4, 1], dtype=int64)
     """
 
     def __init__(self, n_features, c=2, k=3, alpha=1, beta=1, gamma=10e8,

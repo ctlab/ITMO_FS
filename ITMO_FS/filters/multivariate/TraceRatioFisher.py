@@ -28,7 +28,7 @@ class TraceRatioFisher(BaseTransformer):
         >>> y = np.array([1, 2, 1, 1, 2])
         >>> tracer = TraceRatioFisher(3).fit(X, y)
         >>> tracer.selected_features_
-        array([0, 2, 1], dtype=int64)
+        array([0, 1, 3], dtype=int64)
     """
 
     def __init__(self, n_features, epsilon=1e-3):

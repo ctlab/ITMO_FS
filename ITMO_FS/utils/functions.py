@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.metrics import f1_score
+from sklearn.metrics.pairwise import euclidean_distances
 
 def normalize(x):
     x = np.abs(np.array(x))
@@ -31,11 +32,13 @@ def augmented_rvalue(X, y, k=7, theta=3):
         k : int
             The amount of nearest neighbors used in the calculation.
         theta : int
-            The threshold value: if from k nearest neighbors of an object more than theta of them are of a different class, 
-            then this object is in the overlap region.
+            The threshold value: if from k nearest neighbors of an object more
+            than theta of them are of a different class, then this object is in
+            the overlap region.
         Returns
         ------
-        float - the augmented R-value for the dataset; the value is in the range [-1, 1].
+        float - the augmented R-value for the dataset; the value is in
+        the range [-1, 1].
 
         Notes
         -----
@@ -44,6 +47,7 @@ def augmented_rvalue(X, y, k=7, theta=3):
     """
     unique, counts = np.unique(y, return_counts=True)
     freq = sorted(list(zip(unique, counts)), key=lambda x: x[1], reverse=True)
+    dm = euclidean_distances(X, X)
     Rs = []
     Cs = []
 
@@ -51,16 +55,19 @@ def augmented_rvalue(X, y, k=7, theta=3):
         Cs.append(frequency)
         count = 0
         for elem in [i for i, x in enumerate(y) if x == label]:
-            nearest = knn(X, y, elem, k) # TODO: should probably rewrite this using sklearn's knn or pairwise_distances
-            count += np.sign(k - list(map(lambda x: y[x], nearest)).count(label) - theta)
+            nearest = knn_from_class(dm, y, elem, k, 1, anyClass=True)
+            count += np.sign(k - list(map(lambda x: y[x], nearest)).count(label)
+                - theta)
         Rs.append(count / frequency)
     Cs = Cs[::-1]
     return np.dot(Rs, Cs) / len(X)
 
 
-def knn_from_class(distances, y, index, k, cl, anyClass=False):
+def knn_from_class(distances, y, index, k, cl, anyOtherClass=False,
+        anyClass=False):
     """
-    Returns the indices of k nearest neighbors of X[index] from the selected class.
+    Returns the indices of k nearest neighbors of X[index] from the selected 
+    class.
         Parameters
         ----------
         distances : array-like, shape (n_samples, n_samples)
@@ -82,9 +89,11 @@ def knn_from_class(distances, y, index, k, cl, anyClass=False):
         array-like, shape (k) - the indices of the nearest neighbors
     """
     y_c = np.copy(y)
-    if anyClass:
+    if anyOtherClass:
         cl = y_c[index] + 1
         y_c[y_c != y_c[index]] = cl
+    if anyClass:
+        y_c.fill(cl)
     class_indices = np.nonzero(y_c == cl)[0]
     distances_class = distances[index][class_indices]
     nearest = np.argsort(distances_class)

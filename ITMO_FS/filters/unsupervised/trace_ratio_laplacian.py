@@ -36,7 +36,7 @@ class TraceRatioLaplacian(BaseTransformer):
         >>> y = np.array([1, 2, 1, 1, 2])
         >>> tracer = TraceRatioLaplacian(2, k=2).fit(X)
         >>> tracer.selected_features_
-        array([3, 2], dtype=int64)
+        array([3, 1], dtype=int64)
     """
 
     def __init__(self, n_features, k=5, t=1, epsilon=1e-3):
