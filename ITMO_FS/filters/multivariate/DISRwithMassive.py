@@ -19,15 +19,15 @@ def _chained_information(x_i, x_j, y):
 
 class DISRWithMassive(BaseTransformer):
     """
-    Creates DISR (Double Input Symmetric Relevance) feature selection filter
-    based on kASSI criterin for feature selection which aims at maximizing
-    the mutual information avoiding, meanwhile, large multivariate density
-    estimation. Its a kASSI criterion with approximation of the information
-    of a set of variables by counting average information of subset on
-    combination of two features. This formulation thus deals with feature
-    complementarity up to order two by preserving the same computational
-    complexity of the MRMR and CMIM criteria The DISR calculation is done
-    using graph based solution.
+        Creates DISR (Double Input Symmetric Relevance) feature selection filter
+        based on kASSI criterin for feature selection which aims at maximizing
+        the mutual information avoiding, meanwhile, large multivariate density
+        estimation. Its a kASSI criterion with approximation of the information
+        of a set of variables by counting average information of subset on
+        combination of two features. This formulation thus deals with feature
+        complementarity up to order two by preserving the same computational
+        complexity of the MRMR and CMIM criteria The DISR calculation is done
+        using graph based solution.
 
         Parameters
         ----------
@@ -43,9 +43,9 @@ class DISRWithMassive(BaseTransformer):
         --------
         >>> from ITMO_FS.filters.multivariate import DISRWithMassive
         >>> import numpy as np
-        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> X = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> disr = DISRWithMassive(3).fit(X, y)
         >>> disr.selected_features_
         array([0, 1, 4], dtype=int64)
@@ -57,7 +57,7 @@ class DISRWithMassive(BaseTransformer):
 
     def _fit(self, x, y):
         """
-            Fits filter
+            Fits the filter.
 
             Parameters
             ----------

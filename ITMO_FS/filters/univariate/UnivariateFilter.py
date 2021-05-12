@@ -6,11 +6,11 @@ from ...utils import BaseTransformer, generate_features, check_restrictions, \
 
 class UnivariateFilter(BaseTransformer):  # TODO ADD LOGGING
     """
-    Basic interface for using univariate measures for feature selection.
-    List of available measures is in ITMO_FS.filters.univariate.measures,
-    also you can provide your own measure but it should suit the argument
-    scheme for measures, i.e. take two arguments x,y and return scores for
-    all the features in dataset x. Same applies to cutting rules.
+        Basic interface for using univariate measures for feature selection.
+        List of available measures is in ITMO_FS.filters.univariate.measures,
+        also you can provide your own measure but it should suit the argument
+        scheme for measures, i.e. take two arguments x,y and return scores for
+        all the features in dataset x. Same applies to cutting rules.
 
         Parameters
         ----------
@@ -34,10 +34,10 @@ class UnivariateFilter(BaseTransformer):  # TODO ADD LOGGING
         >>> from ITMO_FS.filters.univariate import UnivariateFilter
         >>> from ITMO_FS.filters.univariate import f_ratio_measure
         >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-            [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
         >>> y = np.array([1, 3, 2, 1, 2])
-        >>> filter = UnivariateFilter(f_ratio_measure, \
-            select_k_best(2)).fit(x, y)
+        >>> filter = UnivariateFilter(f_ratio_measure,
+        ... select_k_best(2)).fit(x, y)
         >>> filter.selected_features_
         array([4, 2], dtype=int64)
         >>> filter.feature_scores_
@@ -67,7 +67,7 @@ class UnivariateFilter(BaseTransformer):  # TODO ADD LOGGING
 
             Parameters
             ----------
-            X : array-like, shape (n_features, n_samples)
+            X : array-like, shape (n_samples, n_features)
                 The training input samples.
             y : array-like, shape (n_samples, )
                 The target values.

@@ -25,33 +25,35 @@ def _wrapped_partial(func, *args, **kwargs):
 
 def fit_criterion_measure(x, y):
     """
-    Calculates the FitCriterion score for features. Bigger values mean more 
-    important features.
+        Calculates the FitCriterion score for features. Bigger values mean
+        more important features.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The training input samples.
-    y : array-like, shape (n_samples, )
-        The target values.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The training input samples.
+        y : array-like, shape (n_samples, )
+            The target values.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
-        
-    Notes ----- For more details see `this paper
-    <https://core.ac.uk/download/pdf/191234514.pdf/>`_.
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
+
+        Notes
+        -----
+        For more details see `this paper
+        <https://core.ac.uk/download/pdf/191234514.pdf/>`_.
 
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import fit_criterion_measure
-    >>> import numpy as np
-    >>> x = np.array([[1, 2, 4, 1, 1],[2, 2, 2, 1, 2], [3, 5, 1, 1, 4], \
-[1, 1, 1, 1, 4],[2, 2, 2, 1, 5]], dtype = np.integer)
-    >>> y = np.array([1, 2, 3, 1, 2], dtype=np.integer)
-    >>> fit_criterion_measure(x, y)
-    array([1. , 0.8, 0.8, 0.4, 0.6])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import fit_criterion_measure
+        >>> import numpy as np
+        >>> x = np.array([[1, 2, 4, 1, 1], [2, 2, 2, 1, 2], [3, 5, 1, 1, 4], \
+[1, 1, 1, 1, 4], [2, 2, 2, 1, 5]])
+        >>> y = np.array([1, 2, 3, 1, 2])
+        >>> fit_criterion_measure(x, y)
+        array([1. , 0.8, 0.8, 0.4, 0.6])
     """
     def count_hits(feature):
         splits = {cl: feature[y == cl] for cl in classes}
@@ -67,33 +69,33 @@ def fit_criterion_measure(x, y):
 
 def f_ratio_measure(x, y):
     """
-    Calculates Fisher score for features. Bigger values mean more 
-    important features.
+        Calculates Fisher score for features. Bigger values mean more
+        important features.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    See Also
-    --------
-    https://papers.nips.cc/paper/2909-laplacian-score-for-feature-selection.pdf
+        See Also
+        --------
+        https://papers.nips.cc/paper/2909-laplacian-score-for-feature-selection.pdf
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import f_ratio_measure
-    >>> import numpy as np
-    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-    >>> y = np.array([1, 3, 2, 1, 2])
-    >>> f_ratio_measure(x, y)
-    array([0.6 , 0.2 , 1.  , 0.12, 5.4 ])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import f_ratio_measure
+        >>> import numpy as np
+        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+        >>> y = np.array([1, 3, 2, 1, 2])
+        >>> f_ratio_measure(x, y)
+        array([0.6 , 0.2 , 1.  , 0.12, 5.4 ])
     """
     def __F_ratio(feature):
         splits = {cl: feature[y == cl] for cl in classes}
@@ -111,36 +113,36 @@ def f_ratio_measure(x, y):
 
 def gini_index(x, y):
     """
-    Calculates Gini index for features. Bigger values mean more important 
-    features. This measure works best with discrete features due to being based 
-    on information theory.
+        Calculates Gini index for features. Bigger values mean more important
+        features. This measure works best with discrete features due to being
+        based on information theory.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    See Also
-    --------
-    http://lkm.fri.uni-lj.si/xaigor/slo/clanki/ijcai95z.pdf
+        See Also
+        --------
+        http://lkm.fri.uni-lj.si/xaigor/slo/clanki/ijcai95z.pdf
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import gini_index
-    >>> from sklearn.preprocessing import KBinsDiscretizer
-    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-    >>> y = np.array([1, 3, 2, 1, 2])
-    >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-    >>> x = est.fit_transform(x)
-    >>> gini_index(x, y)
-    array([0.14      , 0.04      , 0.64      , 0.24      , 0.37333333])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import gini_index
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+        >>> y = np.array([1, 3, 2, 1, 2])
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> x = est.fit_transform(x)
+        >>> gini_index(x, y)
+        array([0.14      , 0.04      , 0.64      , 0.24      , 0.37333333])
     """
 
     def __gini(feature):
@@ -159,39 +161,39 @@ def gini_index(x, y):
 
 def su_measure(x, y):
     """
-    SU is a correlation measure between the features and the class
-    calculated, via formula SU(X,Y) = 2 * I(X|Y) / (H(X) + H(Y)).
-    Bigger values mean more important features. This measure works
-    best with discrete features due to being based on information
-    theory.
+        SU is a correlation measure between the features and the class
+        calculated, via formula SU(X,Y) = 2 * I(X|Y) / (H(X) + H(Y)).
+        Bigger values mean more important features. This measure works
+        best with discrete features due to being based on information
+        theory.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    See Also
-    --------
-    https://pdfs.semanticscholar.org/9964/c7b42e6ab311f88e493b3fc552515e0c764a.pdf
+        See Also
+        --------
+        https://pdfs.semanticscholar.org/9964/c7b42e6ab311f88e493b3fc552515e0c764a.pdf
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import su_measure
-    >>> from sklearn.preprocessing import KBinsDiscretizer
-    >>> import numpy as np
-    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-    >>> y = np.array([1, 3, 2, 1, 2])
-    >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-    >>> x = est.fit_transform(x)
-    >>> su_measure(x, y)
-    array([0.28694182, 0.13715115, 0.79187567, 0.47435099, 0.67126949])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import su_measure
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+        >>> y = np.array([1, 3, 2, 1, 2])
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> x = est.fit_transform(x)
+        >>> su_measure(x, y)
+        array([0.28694182, 0.13715115, 0.79187567, 0.47435099, 0.67126949])
     """
     def __SU(feature):
         entropy_x = entropy(feature)
@@ -206,40 +208,41 @@ def su_measure(x, y):
 
 def kendall_corr(x, y):
     """
-    Calculates Sample sign correlation (Kendall correlation) for each feature.
-    Bigger absolute values mean more important features.
+        Calculates Sample sign correlation (Kendall correlation) for each
+        feature. Bigger absolute values mean more important features.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features) or (n_samples, )
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features) or (n_samples, )
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    See Also
-    --------
-    https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient
+        See Also
+        --------
+        https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import kendall_corr
-    >>> import numpy as np
-    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-    >>> y = np.array([1, 3, 2, 1, 2])
-    >>> kendall_corr(x, y)
-    array([-0.1,  0.2, -0.4, -0.2,  0.2])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import kendall_corr
+        >>> import numpy as np
+        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+        >>> y = np.array([1, 3, 2, 1, 2])
+        >>> kendall_corr(x, y)
+        array([-0.1,  0.2, -0.4, -0.2,  0.2])
     """
 
     def __kendall_corr(feature):
         k_corr = 0.0
         for i in range(len(feature)):
             for j in range(i + 1, len(feature)):
-                k_corr += np.sign(feature[i] - feature[j]) * np.sign(y[i] - y[j])
+                k_corr += np.sign(feature[i] - feature[j]) * np.sign(y[i] -
+                    y[j])
         return 2 * k_corr / (feature.shape[0] * (feature.shape[0] - 1))
 
     return np.apply_along_axis(__kendall_corr, 0, x)
@@ -247,32 +250,32 @@ def kendall_corr(x, y):
 
 def fechner_corr(x, y):
     """
-    Calculates Sample sign correlation (Fechner correlation) for each feature.
-    Bigger absolute values mean more important features.    
+        Calculates Sample sign correlation (Fechner correlation) for each
+        feature. Bigger absolute values mean more important features.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    See Also
-    --------
+        See Also
+        --------
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import fechner_corr
-    >>> import numpy as np
-    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-    >>> y = np.array([1, 3, 2, 1, 2])
-    >>> fechner_corr(x, y)
-    array([-0.2,  0.2, -0.4, -0.2, -0.2])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import fechner_corr
+        >>> import numpy as np
+        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+        >>> y = np.array([1, 3, 2, 1, 2])
+        >>> fechner_corr(x, y)
+        array([-0.2,  0.2, -0.4, -0.2, -0.2])
     """
 
     y_dev = y - np.mean(y)
@@ -281,54 +284,55 @@ def fechner_corr(x, y):
 
 def reliefF_measure(x, y, k_neighbors=1):
     """
-    Counts ReliefF measure for each feature. Bigger values mean more important 
-    features. 
+        Counts ReliefF measure for each feature. Bigger values mean more
+        important features.
 
-    Note:
-    Only for complete x
-    Rather than repeating the algorithm m(TODO Ask Nikita about user defined) 
-    times, implement it exhaustively (i.e. n times, once for each instance)
-    for relatively small n (up to one thousand).
+        Note:
+        Only for complete x
+        Rather than repeating the algorithm m(TODO Ask Nikita about user
+        defined) times, implement it exhaustively (i.e. n times, once for each
+        instance) for relatively small n (up to one thousand).
 
-    Calculates spearman correlation for each feature.
-    Spearman's correlation assesses monotonic relationships (whether linear or 
-    not). If there are no repeated data values, a perfect Spearman correlation 
-    of +1 or −1 occurs when each of the variables is a perfect monotone function 
-    of the other.
+        Calculates spearman correlation for each feature.
+        Spearman's correlation assesses monotonic relationships (whether
+        linear or not). If there are no repeated data values, a perfect
+        Spearman correlation of +1 or −1 occurs when each of the variables is
+        a perfect monotone function of the other.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples.
-    k_neighbors : int, optional
-        The number of neighbors to consider when assigning feature importance 
-        scores. More neighbors results in more accurate scores, but takes longer.
-        Selection of k hits and misses is the basic difference to Relief
-        and ensures greater robustness of the algorithm concerning noise.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
+        k_neighbors : int, optional
+            The number of neighbors to consider when assigning feature
+            importance scores. More neighbors results in more accurate scores,
+            but takes longer. Selection of k hits and misses is the basic
+            difference to Relief and ensures greater robustness of the
+            algorithm concerning noise.
 
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    See Also
-    --------
-    R.J. Urbanowicz et al. Relief-based feature selection: Introduction and review
-    Journal of Biomedical Informatics 85 (2018) 189–203
+        See Also
+        --------
+        R.J. Urbanowicz et al. Relief-based feature selection: Introduction
+        and review. Journal of Biomedical Informatics 85 (2018) 189–203
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import reliefF_measure
-    >>> import numpy as np
-    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1], [1, 2, 1, 4, 2], [4, 3, 2, 3, 1]])
-    >>> y = np.array([1, 2, 2, 1, 2, 1, 2])
-    >>> reliefF_measure(x, y)
-    array([-0.14285714, -0.57142857,  0.10714286, -0.14285714,  0.07142857])
-    >>> reliefF_measure(x, y, k_neighbors=2)
-    array([-0.07142857, -0.17857143, -0.07142857, -0.0952381 , -0.17857143])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import reliefF_measure
+        >>> import numpy as np
+        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1], [1, 2, 1, 4, 2], [4, 3, 2, 3, 1]])
+        >>> y = np.array([1, 2, 2, 1, 2, 1, 2])
+        >>> reliefF_measure(x, y)
+        array([-0.14285714, -0.57142857,  0.10714286, -0.14285714,  0.07142857])
+        >>> reliefF_measure(x, y, k_neighbors=2)
+        array([-0.07142857, -0.17857143, -0.07142857, -0.0952381 , -0.17857143])
     """
 
     def __calc_misses(index):
@@ -374,40 +378,41 @@ def reliefF_measure(x, y, k_neighbors=1):
 
 def relief_measure(x, y, m=None, random_state=42):
     """
-    Computes Relief measure for each feature. This measure is supposed to work 
-    only with binary classification datasets; for multi-class problems use the 
-    ReliefF measure. Bigger values mean more important features.
+        Computes Relief measure for each feature. This measure is supposed to
+        work only with binary classification datasets; for multi-class
+        problems use the ReliefF measure. Bigger values mean more important
+        features.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples.
-    m : int, optional
-        Amount of iterations to do. If not specified, n_samples iterations would 
-        be performed.
-    random_state : int, optional
-        Random state for numpy random.
-    
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
+        m : int, optional
+            Amount of iterations to do. If not specified, n_samples iterations
+            would be performed.
+        random_state : int, optional
+            Random state for numpy random.
 
-    See Also
-    --------
-    R.J. Urbanowicz et al. Relief-based feature selection: Introduction and review
-    Journal of Biomedical Informatics 85 (2018) 189–203
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import relief_measure
-    >>> import numpy as np
-    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-    >>> y = np.array([1, 2, 2, 1, 2])
-    >>> relief_measure(x, y)
-    array([ 0.    , -0.6   , -0.1875, -0.15  , -0.4   ])
+        See Also
+        --------
+        R.J. Urbanowicz et al. Relief-based feature selection: Introduction
+        and review. Journal of Biomedical Informatics 85 (2018) 189–203
+
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import relief_measure
+        >>> import numpy as np
+        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+        >>> y = np.array([1, 2, 2, 1, 2])
+        >>> relief_measure(x, y)
+        array([ 0.    , -0.6   , -0.1875, -0.15  , -0.4   ])
     """
     weights = np.zeros(x.shape[1])
     classes, counts = np.unique(y, return_counts=True)
@@ -443,37 +448,37 @@ def relief_measure(x, y, m=None, random_state=42):
 
 def chi2_measure(x, y):
     """
-    Calculates the Chi-squared measure for each feature. Bigger values mean more 
-    important features. This measure works best with discrete features due to 
-    being based on statistics. 
-    
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples.
+        Calculates the Chi-squared measure for each feature. Bigger values
+        mean more important features. This measure works best with discrete
+        features due to being based on statistics.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
 
-    See Also
-    --------
-    http://lkm.fri.uni-lj.si/xaigor/slo/clanki/ijcai95z.pdf
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    Example
-    -------
-    >>> from ITMO_FS.filters.univariate import chi2_measure
-    >>> from sklearn.preprocessing import KBinsDiscretizer
-    >>> import numpy as np
-    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-    >>> y = np.array([1, 3, 2, 1, 2])
-    >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-    >>> x = est.fit_transform(x)
-    >>> chi2_measure(x, y)
-    array([ 1.875     ,  0.83333333, 10.        ,  3.75      ,  6.66666667])
+        See Also
+        --------
+        http://lkm.fri.uni-lj.si/xaigor/slo/clanki/ijcai95z.pdf
+
+        Example
+        -------
+        >>> from ITMO_FS.filters.univariate import chi2_measure
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> import numpy as np
+        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+        >>> y = np.array([1, 3, 2, 1, 2])
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> x = est.fit_transform(x)
+        >>> chi2_measure(x, y)
+        array([ 1.875     ,  0.83333333, 10.        ,  3.75      ,  6.66666667])
     """
 
     def __chi2(feature):
@@ -488,7 +493,8 @@ def chi2_measure(x, y):
         return np.sum(np.square(e - n) / e)
 
     classes, counts = np.unique(y, return_counts=True)
-    prior_probs = {cl: counts[idx] / x.shape[0] for idx, cl in enumerate(classes)}
+    prior_probs = {cl: counts[idx] / x.shape[0] for idx, cl in
+        enumerate(classes)}
     
     return np.apply_along_axis(__chi2, 0, x)
 
@@ -545,34 +551,34 @@ def __mi(U, V):
 
 def spearman_corr(x, y):
     """
-    Calculates Spearman's correlation for each feature. Bigger absolute values 
-    mean more important features. This measure works best with discrete features 
-    due to being based on statistics.
+        Calculates Spearman's correlation for each feature. Bigger absolute
+        values mean more important features. This measure works best with
+        discrete features due to being based on statistics.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    See Also
-    --------
-    https://en.wikipedia.org/wiki/Spearman's_rank_correlation_coefficient
+        See Also
+        --------
+        https://en.wikipedia.org/wiki/Spearman's_rank_correlation_coefficient
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import spearman_corr
-    >>> import numpy as np
-    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-    >>> y = np.array([1, 3, 2, 1, 2])
-    >>> spearman_corr(x, y)
-    array([-0.186339  ,  0.30429031, -0.52704628, -0.30555556,  0.35355339])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import spearman_corr
+        >>> import numpy as np
+        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+        >>> y = np.array([1, 3, 2, 1, 2])
+        >>> spearman_corr(x, y)
+        array([-0.186339  ,  0.30429031, -0.52704628, -0.30555556,  0.35355339])
     """
     n = x.shape[0]
     if n < 2:
@@ -586,34 +592,34 @@ def spearman_corr(x, y):
 
 def pearson_corr(x, y):
     """
-    Calculates Pearson's correlation for each feature. Bigger absolute values 
-    mean more important features. This measure works best with discrete features 
-    due to being based on statistics.
+        Calculates Pearson's correlation for each feature. Bigger absolute
+        values mean more important features. This measure works best with
+        discrete features due to being based on statistics.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    See Also
-    --------
-    https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
+        See Also
+        --------
+        https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import pearson_corr
-    >>> import numpy as np
-    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-    >>> y = np.array([1, 3, 2, 1, 2])
-    >>> pearson_corr(x, y)
-    array([-0.13363062,  0.32732684, -0.56694671, -0.28571429,  0.53452248])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import pearson_corr
+        >>> import numpy as np
+        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+        >>> y = np.array([1, 3, 2, 1, 2])
+        >>> pearson_corr(x, y)
+        array([-0.13363062,  0.32732684, -0.56694671, -0.28571429,  0.53452248])
     """
     x_dev = x - np.mean(x, axis=0)
     y_dev = y - np.mean(y)
@@ -631,45 +637,45 @@ def pearson_corr(x, y):
 # TODO need to implement unsupervised way
 def laplacian_score(x, y, k_neighbors=5, t=1, metric='euclidean', **kwargs):
     """
-    Calculates Laplacian Score for each feature. Smaller values mean more 
-    important features.
+        Calculates Laplacian Score for each feature. Smaller values mean more
+        important features.
 
-    Parameters
-    ----------
-    x : numpy array, shape (n_samples, n_features)
-        The input samples.
-    y : numpy array, shape (n_samples, )
-        The classes for the samples.
-    k_neighbors : int, optional (by default k_neighbors=5)
-        The number of neighbors to construct a nearest neighbor graph.
-    t : float, optional
-        Suitable constant for weight matrix S, 
-        where Sij = exp(-(|xi - xj| ^ 2) / t).
-    metric : str or callable, optional
-        Norm function to compute distance between two points or one of the 
-        commonly used strings ('euclidean', 'manhattan' etc.) The default 
-        metric is euclidean.
-    weights : array-like, shape (n_samples, n_samples)
-        The weight matrix of the graph that models the local structure of the 
-        data space. By default it is constructed using KNN algorithm.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
+        k_neighbors : int, optional
+            The number of neighbors to construct a nearest neighbor graph.
+        t : float, optional
+            Suitable constant for weight matrix S,
+            where Sij = exp(-(|xi - xj| ^ 2) / t).
+        metric : str or callable, optional
+            Norm function to compute distance between two points or one of the
+            commonly used strings ('euclidean', 'manhattan' etc.) The default
+            metric is euclidean.
+        weights : array-like, shape (n_samples, n_samples)
+            The weight matrix of the graph that models the local structure of
+            the data space. By default it is constructed using KNN algorithm.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    See Also
-    --------
-    https://papers.nips.cc/paper/2909-laplacian-score-for-feature-selection.pdf
+        See Also
+        --------
+        https://papers.nips.cc/paper/2909-laplacian-score-for-feature-selection.pdf
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import laplacian_score
-    >>> import numpy as np
-    >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
-        [3, 1, 3, 1, 4], [4, 4, 3, 1, 5]], dtype=np.integer)
-    >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-    >>> laplacian_score(x, y)
-    array([1.98983619, 1.22248371,        nan, 0.79710221, 1.90648048])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import laplacian_score
+        >>> import numpy as np
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
+        >>> laplacian_score(x, y)
+        array([1.98983619, 1.22248371,        nan, 0.79710221, 1.90648048])
     """
     n, m = x.shape
     k_neighbors = min(k_neighbors, n - 1)
@@ -698,37 +704,37 @@ def laplacian_score(x, y, k_neighbors=5, t=1, metric='euclidean', **kwargs):
 
 def information_gain(x, y):
     """
-    Calculates mutual information for each feature by formula,
-    I(X,Y) = H(Y) - H(Y|X). Bigger values mean more important features. This 
-    measure works best with discrete features due to being based on information 
-    theory.
+        Calculates mutual information for each feature by formula,
+        I(X,Y) = H(Y) - H(Y|X). Bigger values mean more important features.
+        This measure works best with discrete features due to being based on
+        information theory.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    See Also
-    --------
+        See Also
+        --------
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import information_gain
-    >>> import numpy as np
-    >>> from sklearn.preprocessing import KBinsDiscretizer
-    >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
-        [3, 1, 3, 1, 4], [4, 4, 3, 1, 5]], dtype=np.integer)
-    >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-    >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-    >>> x = est.fit_transform(x)
-    >>> information_gain(x, y)
-    array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import information_gain
+        >>> import numpy as np
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> x = est.fit_transform(x)
+        >>> information_gain(x, y)
+        array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
     """
     entropy_x = entropy(y)
     cond_entropy = np.apply_along_axis(conditional_entropy, 0, x, y)
@@ -737,42 +743,43 @@ def information_gain(x, y):
 
 def anova(x, y):
     """
-    Calculates anova measure for each feature. Bigger values mean more important
-    features.
+        Calculates anova measure for each feature. Bigger values mean more
+        important features.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    See Also
-    --------
-    Lowry, Richard.  "Concepts and Applications of Inferential
-    Statistics". Chapter 14.
-    http://vassarstats.net/textbook/
+        See Also
+        --------
+        Lowry, Richard.  "Concepts and Applications of Inferential
+        Statistics". Chapter 14.
+        http://vassarstats.net/textbook/
 
-    Note:
-    The Anova score is counted for checking hypothesis if variances of two 
-    samples are similar, this measure only returns you counted F-score.
-    For understanding whether samples' variances are similar you should compare 
-    recieved result with value of F-distribution function, for example use:
-    https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.fdtrc.html#scipy.special.fdtrc
+        Note:
+        The Anova score is counted for checking hypothesis if variances of two
+        samples are similar, this measure only returns you counted F-score.
+        For understanding whether samples' variances are similar you should
+        compare recieved result with value of F-distribution function, for
+        example use:
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.fdtrc.html#scipy.special.fdtrc
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import anova
-    >>> import numpy as np
-    >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
-        [3, 1, 3, 1, 4], [4, 4, 3, 1, 5]], dtype=np.integer)
-    >>> y = np.array([1, 2, 1, 3, 3], dtype=np.integer)
-    >>> anova(x, y)
-    array([12.6 ,  0.04,   nan,  1.4 ,  3.  ])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import anova
+        >>> import numpy as np
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 1, 3, 3])
+        >>> anova(x, y)
+        array([12.6 ,  0.04,   nan,  1.4 ,  3.  ])
     """
     split_by_class = [x[y == k] for k in np.unique(y)]
     num_classes = len(np.unique(y))
@@ -798,33 +805,33 @@ def anova(x, y):
 
 def modified_t_score(x, y):
     """
-    Calculate the Modified T-score for each feature. Bigger values mean more 
-    important features.
+        Calculate the Modified T-score for each feature. Bigger values mean
+        more important features.
 
-    Parameters
-    ----------
-    x : array-like, shape (n_samples, n_features)
-        The input samples.
-    y : array-like, shape (n_samples, )
-        The classes for the samples. There can be only 2 classes.
+        Parameters
+        ----------
+        x : array-like, shape (n_samples, n_features)
+            The input samples.
+        y : array-like, shape (n_samples, )
+            The classes for the samples. There can be only 2 classes.
 
-    Returns
-    -------
-    array-like, shape (n_features) : feature scores
+        Returns
+        -------
+        array-like, shape (n_features) : feature scores
 
-    See Also
-    --------
-    For more details see paper <https://dergipark.org.tr/en/download/article-file/261247>.
+        See Also
+        --------
+        For more details see paper <https://dergipark.org.tr/en/download/article-file/261247>.
 
-    Examples
-    --------
-    >>> from ITMO_FS.filters.univariate import modified_t_score
-    >>> import numpy as np
-    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
-    >>> y = np.array([1, 1, 2, 1, 2])
-    >>> modified_t_score(x, y)
-    array([1.68968099, 0.12148022, 0.39653932, 0.17682997, 2.04387142])
+        Examples
+        --------
+        >>> from ITMO_FS.filters.univariate import modified_t_score
+        >>> import numpy as np
+        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+        >>> y = np.array([1, 1, 2, 1, 2])
+        >>> modified_t_score(x, y)
+        array([1.68968099, 0.12148022, 0.39653932, 0.17682997, 2.04387142])
     """
 
     classes = np.unique(y)
@@ -908,7 +915,7 @@ def select_k_worst(k):
 def __select_k(scores, k, reverse=False):
     if not isinstance(k, int):
         raise TypeError("Number of features should be integer")
-    if k > len(scores):
+    if k > scores.shape[0]:
         raise ValueError("Cannot select %d features with n_features = %d" % (
             k, len(scores)))
     order = np.argsort(scores)

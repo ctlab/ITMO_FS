@@ -19,12 +19,14 @@ class UDFS(BaseTransformer):
         gamma : float
             Regularization term in the target function.
         l : float
-            Parameter that controls the invertibility of the matrix used in computing of B.
+            Parameter that controls the invertibility of the matrix used in
+            computing of B.
         max_iterations : int
             Maximum amount of iterations to perform.
         epsilon : positive float
-            Specifies the needed residual between the target functions from consecutive iterations. If the residual
-            is smaller than epsilon, the algorithm is considered to have converged.
+            Specifies the needed residual between the target functions from
+            consecutive iterations. If the residual is smaller than epsilon,
+            the algorithm is considered to have converged.
 
         Notes
         -----
@@ -57,13 +59,13 @@ class UDFS(BaseTransformer):
 
     def _fit(self, X, y):
         """
-            Fits filter
+            Fits the filter.
 
             Parameters
             ----------
-            X : numpy array, shape (n_samples, n_features)
+            X : array-like, shape (n_samples, n_features)
                 The training input samples.
-            y : numpy array
+            y : array-like
                 The target values (ignored).
 
             Returns
@@ -78,30 +80,38 @@ class UDFS(BaseTransformer):
             return S
 
         if self.epsilon < 0:
-            raise ValueError("Epsilon should be positive, %d passed" % self.epsilon)
+            raise ValueError("Epsilon should be positive, %d passed" %
+                self.epsilon)
 
         n_samples = X.shape[0]
 
         if self.n_features > self.n_features_:
-            raise ValueError("Cannot select %d features with n_features = %d" % (self.n_features, self.n_features_))
+            raise ValueError("Cannot select %d features with n_features = %d" %
+                (self.n_features, self.n_features_))
 
         if self.c > n_samples:
-            raise ValueError("Cannot find %d clusters with n_samples = %d" % (self.c, n_samples))
+            raise ValueError("Cannot find %d clusters with n_samples = %d" %
+                (self.c, n_samples))
 
         if self.k >= n_samples:
-            raise ValueError("Cannot select %d nearest neighbors with n_samples = %d" % (self.k, n_samples))
+            raise ValueError("Cannot select %d nearest neighbors with n_samples \
+                = %d" % (self.k, n_samples))
 
         indices = list(range(n_samples))
         I = np.eye(self.k + 1)
         H = I - np.ones((self.k + 1, self.k + 1)) / (self.k + 1)
 
-        neighbors = NearestNeighbors(n_neighbors=self.k + 1, algorithm='ball_tree').fit(X).kneighbors(X, return_distance=False)
-        X_centered = np.apply_along_axis(lambda arr: X[arr].T.dot(H), 1, neighbors)
+        neighbors = NearestNeighbors(n_neighbors=self.k + 1,
+            algorithm='ball_tree').fit(X).kneighbors(X, return_distance=False)
+        X_centered = np.apply_along_axis(lambda arr: X[arr].T.dot(H), 1,
+            neighbors)
 
         S = np.apply_along_axis(lambda arr: construct_S(arr), 1, neighbors)
-        B = np.vectorize(lambda idx: np.linalg.inv(X_centered[idx].T.dot(X_centered[idx]) + self.l * I),
-                         signature='()->(1,1)')(indices)
-        Mi = np.vectorize(lambda idx: S[idx].dot(H).dot(B[idx]).dot(H).dot(S[idx].T), signature='()->(1,1)')(indices)
+        B = np.vectorize(lambda idx: np.linalg.inv(X_centered[idx].T
+                .dot(X_centered[idx]) + self.l * I), signature='()->(1,1)')(
+            indices)
+        Mi = np.vectorize(lambda idx: S[idx].dot(H).dot(B[idx]).dot(H).
+                dot(S[idx].T), signature='()->(1,1)')(indices)
         M = X.T.dot(Mi.sum(axis=0)).dot(X)
 
         D = np.eye(self.n_features_)

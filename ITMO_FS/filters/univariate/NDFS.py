@@ -43,8 +43,8 @@ class NDFS(BaseTransformer):
         --------
         >>> from ITMO_FS.filters.univariate import NDFS
         >>> import numpy as np
-        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[1, 1, 3, 1, 4],[2, 4, 3, 1, 5]])
+        >>> X = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[1, 1, 3, 1, 4], [2, 4, 3, 1, 5]])
         >>> y = np.array([1, 2, 1, 1, 2])
         >>> model = NDFS(3).fit(X, y)
         >>> model.selected_features_
@@ -71,13 +71,13 @@ class NDFS(BaseTransformer):
 
     def _fit(self, X, y, **kwargs):
         """
-            Fits filter
+            Fits the filter.
 
             Parameters
             ----------
-            X : numpy array, shape (n_samples, n_features)
+            X : array-like, shape (n_samples, n_features)
                 The training input samples.
-            y : numpy array, shape (n_samples) or (n_samples, n_classes)
+            y : array-like, shape (n_samples) or (n_samples, n_classes)
                 The target values or their one-hot encoding that are used to
                 compute F. If not present, a k-means clusterization algorithm
                 is used. If present, n_classes should be equal to c.
@@ -112,7 +112,8 @@ class NDFS(BaseTransformer):
             X).kneighbors_graph().toarray()
         graph = np.minimum(1, graph + graph.T)
 
-        S = graph * pairwise_distances(X, metric=lambda x, y: self.__scheme(x, y))
+        S = graph * pairwise_distances(X, metric=lambda x, y:
+                self.__scheme(x, y))
         A = np.diag(S.sum(axis=0))
         L = power_neg_half(A).dot(A - S).dot(power_neg_half(A))
 

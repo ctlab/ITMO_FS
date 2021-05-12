@@ -38,11 +38,11 @@ class MultivariateFilter(BaseTransformer):
         >>> import numpy as np
 
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-        >>> data = est.fit_transform(X)
-        >>> model = MultivariateFilter('JMI', 3).fit(X, y)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
+        >>> data = est.fit_transform(x)
+        >>> model = MultivariateFilter('JMI', 3).fit(x, y)
         >>> model.selected_features_
         array([4, 0, 1], dtype=int64)
     """
@@ -101,7 +101,8 @@ class MultivariateFilter(BaseTransformer):
                 values = self.measure(
                     self.selected_features_, free_features, X, y,
                     relevance=relevance[free_features],
-                    redundancy=np.sum(redundancy[self.selected_features_], axis=0)[free_features])
+                    redundancy=np.sum(redundancy[self.selected_features_],
+                        axis=0)[free_features])
             else:
                 if self.gamma is not None:
                     values = self.measure(
@@ -112,7 +113,8 @@ class MultivariateFilter(BaseTransformer):
                         self.beta,
                         self.gamma, 
                         relevance=relevance[free_features], 
-                        redundancy=np.sum(redundancy[self.selected_features_], axis=0)[free_features])
+                        redundancy=np.sum(redundancy[self.selected_features_],
+                            axis=0)[free_features])
                 else:
                     values = (self.measure(
                         self.selected_features_,
@@ -121,7 +123,8 @@ class MultivariateFilter(BaseTransformer):
                         y,
                         self.beta, 
                         relevance=relevance[free_features], 
-                        redundancy=np.sum(redundancy[self.selected_features_], axis=0)[free_features])
+                        redundancy=np.sum(redundancy[self.selected_features_],
+                            axis=0)[free_features])
                     )
             to_add = np.argmax(values)
             self.selected_features_ = np.append(

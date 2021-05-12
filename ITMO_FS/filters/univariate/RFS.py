@@ -5,8 +5,8 @@ from ...utils import l21_norm, matrix_norm, BaseTransformer
 
 class RFS(BaseTransformer):
     """
-    Performs the Robust Feature Selection via Joint L2,1-Norms Minimization
-    algorithm.
+        Performs the Robust Feature Selection via Joint L2,1-Norms Minimization
+        algorithm.
 
         Parameters
         ----------
@@ -31,8 +31,8 @@ class RFS(BaseTransformer):
         --------
         >>> from ITMO_FS.filters.univariate import RFS
         >>> import numpy as np
-        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[1, 1, 3, 1, 4],[2, 4, 3, 1, 5]])
+        >>> X = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[1, 1, 3, 1, 4], [2, 4, 3, 1, 5]])
         >>> y = np.array([1, 2, 1, 1, 2])
         >>> model = RFS(2).fit(X, y)
         >>> model.selected_features_
@@ -47,7 +47,7 @@ class RFS(BaseTransformer):
 
     def _fit(self, X, y):
         """
-            Fits the algorithm.
+            Fits the filter.
 
             Parameters
             ----------

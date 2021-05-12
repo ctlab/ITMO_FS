@@ -3,10 +3,10 @@ from ...utils.information_theory import *
 
 def MIM(selected_features, free_features, x, y, **kwargs):
     """
-    Mutual Information Maximization feature scoring criterion. This
-    criterion focuses only on increase of relevance. Given set of already
-    selected features and set of remaining features on dataset X with labels
-    y selects next feature.
+        Mutual Information Maximization feature scoring criterion. This
+        criterion focuses only on increase of relevance. Given set of already
+        selected features and set of remaining features on dataset X with labels
+        y selects next feature.
 
         Parameters
         ----------
@@ -23,7 +23,9 @@ def MIM(selected_features, free_features, x, y, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
         
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <http://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf/>`_.
 
 
@@ -33,13 +35,14 @@ def MIM(selected_features, free_features, x, y, **kwargs):
         >>> from ITMO_FS.filters.multivariate import MIM
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> MIM(np.array(selected_features), np.array(other_features), x, y)
         array([1.33217904, 0.67301167, 1.60943791])
     """
@@ -48,9 +51,9 @@ def MIM(selected_features, free_features, x, y, **kwargs):
 
 def MRMR(selected_features, free_features, x, y, **kwargs):
     """
-    Minimum-Redundancy Maximum-Relevance feature scoring criterion. Given
-    set of already selected features and set of remaining features on
-    dataset X with labels y selects next feature.
+        Minimum-Redundancy Maximum-Relevance feature scoring criterion. Given
+        set of already selected features and set of remaining features on
+        dataset X with labels y selects next feature.
 
         Parameters
         ----------
@@ -67,7 +70,9 @@ def MRMR(selected_features, free_features, x, y, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
 
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <http://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf/>`_.
 
 
@@ -77,17 +82,19 @@ def MRMR(selected_features, free_features, x, y, **kwargs):
         >>> from ITMO_FS.filters.multivariate import MRMR
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> MRMR(np.array(selected_features), np.array(other_features), x, y)
         array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> MRMR(np.array(selected_features), np.array(other_features), x, y)
         array([0.80471896, 0.33650583, 0.94334839])
     """
@@ -99,9 +106,9 @@ def MRMR(selected_features, free_features, x, y, **kwargs):
 
 def JMI(selected_features, free_features, x, y, **kwargs):
     """
-    Joint Mutual Information feature scoring criterion. Given set of already
-    selected features and set of remaining features on dataset X with labels
-    y selects next feature.
+        Joint Mutual Information feature scoring criterion. Given set of already
+        selected features and set of remaining features on dataset X with labels
+        y selects next feature.
 
         Parameters
         ----------
@@ -118,7 +125,9 @@ def JMI(selected_features, free_features, x, y, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
         
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <http://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf/>`_.
 
 
@@ -128,17 +137,19 @@ def JMI(selected_features, free_features, x, y, **kwargs):
         >>> from ITMO_FS.filters.multivariate import JMI
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> JMI(np.array(selected_features), np.array(other_features), x, y)
         array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> JMI(np.array(selected_features), np.array(other_features), x, y)
         array([0.80471896, 0.33650583, 0.94334839])
     """
@@ -150,9 +161,9 @@ def JMI(selected_features, free_features, x, y, **kwargs):
 
 def JMIM(selected_features, free_features, x, y, **kwargs):
     """
-    Joint Mutual Information Maximization feature scoring criterion. Given
-    set of already selected features and set of remaining features on
-    dataset X with labels y selects next feature.
+        Joint Mutual Information Maximization feature scoring criterion. Given
+        set of already selected features and set of remaining features on
+        dataset X with labels y selects next feature.
 
         Parameters
         ----------
@@ -169,7 +180,9 @@ def JMIM(selected_features, free_features, x, y, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
 
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <https://www.sciencedirect.com/science/article/pii/S0957417415004674/>`_.
 
 
@@ -179,17 +192,19 @@ def JMIM(selected_features, free_features, x, y, **kwargs):
         >>> from ITMO_FS.filters.multivariate import JMIM
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> JMIM(np.array(selected_features), np.array(other_features), x, y)
         array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> JMIM(np.array(selected_features), np.array(other_features), x, y)
         array([1.33217904, 0.67301167, 1.60943791])
     """
@@ -205,9 +220,9 @@ def JMIM(selected_features, free_features, x, y, **kwargs):
 
 def NJMIM(selected_features, free_features, x, y, **kwargs):
     """
-    Normalized Joint Mutual Information Maximization feature scoring
-    criterion. Given set of already selected features and set of
-    remaining features on dataset X with labels y selects next feature.
+        Normalized Joint Mutual Information Maximization feature scoring
+        criterion. Given set of already selected features and set of
+        remaining features on dataset X with labels y selects next feature.
 
         Parameters
         ----------
@@ -224,7 +239,9 @@ def NJMIM(selected_features, free_features, x, y, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
 
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <https://www.sciencedirect.com/science/article/pii/S0957417415004674/>`_.
 
 
@@ -234,17 +251,19 @@ def NJMIM(selected_features, free_features, x, y, **kwargs):
         >>> from ITMO_FS.filters.multivariate import NJMIM
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> NJMIM(np.array(selected_features), np.array(other_features), x, y)
         array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> NJMIM(np.array(selected_features), np.array(other_features), x, y)
         array([0.82772938, 0.41816566, 1.        ])
     """
@@ -260,9 +279,9 @@ def NJMIM(selected_features, free_features, x, y, **kwargs):
 
 def CIFE(selected_features, free_features, x, y, **kwargs):
     """
-    Conditional Infomax Feature Extraction feature scoring criterion. Given
-    set of already selected features and set of remaining features on
-    dataset X with labels y selects next feature.
+        Conditional Infomax Feature Extraction feature scoring criterion. Given
+        set of already selected features and set of remaining features on
+        dataset X with labels y selects next feature.
 
         Parameters
         ----------
@@ -279,7 +298,9 @@ def CIFE(selected_features, free_features, x, y, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
         
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <http://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf/>`_.
 
 
@@ -289,17 +310,19 @@ def CIFE(selected_features, free_features, x, y, **kwargs):
         >>> from ITMO_FS.filters.multivariate import CIFE
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> CIFE(np.array(selected_features), np.array(other_features), x, y)
         array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> CIFE(np.array(selected_features), np.array(other_features), x, y)
         array([0.27725887, 0.        , 0.27725887])
     """
@@ -309,11 +332,11 @@ def CIFE(selected_features, free_features, x, y, **kwargs):
 
 def MIFS(selected_features, free_features, x, y, beta, **kwargs):
     """
-    Mutual Information Feature Selection feature scoring criterion. This
-    criterion includes the I(X;Y) term to ensure feature relevance,
-    but introduces a penalty to enforce low correlations with features
-    already selected in set. Given set of already selected features and set
-    of remaining features on dataset X with labels y selects next feature.
+        Mutual Information Feature Selection feature scoring criterion. This
+        criterion includes the I(X;Y) term to ensure feature relevance,
+        but introduces a penalty to enforce low correlations with features
+        already selected in set. Given set of already selected features and set
+        of remaining features on dataset X with labels y selects next feature.
 
         Parameters
         ----------
@@ -332,7 +355,9 @@ def MIFS(selected_features, free_features, x, y, beta, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
         
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <http://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf/>`_.
 
 
@@ -342,18 +367,22 @@ def MIFS(selected_features, free_features, x, y, beta, **kwargs):
         >>> from ITMO_FS.filters.multivariate import MIFS
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
-        >>> MIFS(np.array(selected_features), np.array(other_features), x, y, 0.4)
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
+        >>> MIFS(np.array(selected_features), np.array(other_features), x, y,
+        ... 0.4)
         array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
-        >>> MIFS(np.array(selected_features), np.array(other_features), x, y, 0.4)
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
+        >>> MIFS(np.array(selected_features), np.array(other_features), x, y,
+        ... 0.4)
         array([0.91021097, 0.403807  , 1.0765663 ])
     """
     return generalizedCriteria(selected_features, free_features, x, y, beta, 0,
@@ -362,9 +391,9 @@ def MIFS(selected_features, free_features, x, y, beta, **kwargs):
 
 def CMIM(selected_features, free_features, x, y, **kwargs):
     """
-    Conditional Mutual Info Maximisation feature scoring criterion. Given
-    set of already selected features and set of remaining features on
-    dataset X with labels y selects next feature.
+        Conditional Mutual Info Maximisation feature scoring criterion. Given
+        set of already selected features and set of remaining features on
+        dataset X with labels y selects next feature.
 
         Parameters
         ----------
@@ -381,7 +410,9 @@ def CMIM(selected_features, free_features, x, y, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
         
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <http://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf/>`_.
 
 
@@ -391,17 +422,19 @@ def CMIM(selected_features, free_features, x, y, **kwargs):
         >>> from ITMO_FS.filters.multivariate import CMIM
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> CMIM(np.array(selected_features), np.array(other_features), x, y)
         array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> CMIM(np.array(selected_features), np.array(other_features), x, y)
         array([0.27725887, 0.        , 0.27725887])
     """
@@ -417,9 +450,9 @@ def CMIM(selected_features, free_features, x, y, **kwargs):
 
 def ICAP(selected_features, free_features, x, y, **kwargs):
     """
-    Interaction Capping feature scoring criterion. Given set of already
-    selected features and set of remaining features on dataset X with labels
-    y selects next feature.
+        Interaction Capping feature scoring criterion. Given set of already
+        selected features and set of remaining features on dataset X with labels
+        y selects next feature.
 
         Parameters
         ----------
@@ -436,7 +469,9 @@ def ICAP(selected_features, free_features, x, y, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
         
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <http://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf/>`_.
 
 
@@ -446,17 +481,19 @@ def ICAP(selected_features, free_features, x, y, **kwargs):
         >>> from ITMO_FS.filters.multivariate import ICAP
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> ICAP(np.array(selected_features), np.array(other_features), x, y)
         array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> ICAP(np.array(selected_features), np.array(other_features), x, y)
         array([0.27725887, 0.        , 0.27725887])
     """
@@ -481,16 +518,17 @@ def ICAP(selected_features, free_features, x, y, **kwargs):
             x[:, free_feature], y), signature='()->(1)')(
         free_features)
 
-    return relevance - np.sum(np.maximum(redundancy - cond_dependency, 0.), axis=1)
+    return relevance - np.sum(np.maximum(redundancy - cond_dependency, 0.),
+        axis=1)
 
 
 def DCSF(selected_features, free_features, x, y, **kwargs):
     """
-    Dynamic change of selected feature with the class scoring criterion.
-    DCSF employs both mutual information and conditional mutual information
-    to find an optimal subset of features. Given set of already selected
-    features and set of remaining features on dataset X with labels y
-    selects next feature.
+        Dynamic change of selected feature with the class scoring criterion.
+        DCSF employs both mutual information and conditional mutual information
+        to find an optimal subset of features. Given set of already selected
+        features and set of remaining features on dataset X with labels y
+        selects next feature.
 
         Parameters
         ----------
@@ -507,7 +545,9 @@ def DCSF(selected_features, free_features, x, y, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
         
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <https://www.sciencedirect.com/science/article/abs/pii
         /S0031320318300736/>`_.
         
@@ -518,17 +558,19 @@ def DCSF(selected_features, free_features, x, y, **kwargs):
         >>> from ITMO_FS.filters.multivariate import DCSF
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> DCSF(np.array(selected_features), np.array(other_features), x, y)
         array([0., 0., 0., 0., 0.])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> DCSF(np.array(selected_features), np.array(other_features), x, y)
         array([0.83177662, 0.65916737, 0.55451774])
     """
@@ -547,9 +589,9 @@ def DCSF(selected_features, free_features, x, y, **kwargs):
 
 def CFR(selected_features, free_features, x, y, **kwargs):
     """
-    The criterion of CFR maximizes the correlation and minimizes the
-    redundancy. Given set of already selected features and set of remaining
-    features on dataset X with labels y selects next feature.
+        The criterion of CFR maximizes the correlation and minimizes the
+        redundancy. Given set of already selected features and set of remaining
+        features on dataset X with labels y selects next feature.
 
         Parameters
         ----------
@@ -566,7 +608,9 @@ def CFR(selected_features, free_features, x, y, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
         
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <https://www.sciencedirect.com/science/article/pii/S2210832719302522
         />`_.
 
@@ -577,17 +621,19 @@ def CFR(selected_features, free_features, x, y, **kwargs):
         >>> from ITMO_FS.filters.multivariate import CFR
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> CFR(np.array(selected_features), np.array(other_features), x, y)
         array([0., 0., 0., 0., 0.])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> CFR(np.array(selected_features), np.array(other_features), x, y)
         array([0.55451774, 0.        , 0.55451774])
 
@@ -607,9 +653,9 @@ def CFR(selected_features, free_features, x, y, **kwargs):
 
 def MRI(selected_features, free_features, x, y, **kwargs):
     """
-    Max-Relevance and Max-Independence feature scoring criteria. Given set
-    of already selected features and set of remaining features on dataset X
-    with labels y selects next feature.
+        Max-Relevance and Max-Independence feature scoring criteria. Given set
+        of already selected features and set of remaining features on dataset X
+        with labels y selects next feature.
 
         Parameters
         ----------
@@ -626,7 +672,9 @@ def MRI(selected_features, free_features, x, y, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
         
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <https://link.springer.com/article/10.1007/s10489-019-01597-z/>`_.
 
         
@@ -636,17 +684,19 @@ def MRI(selected_features, free_features, x, y, **kwargs):
         >>> from ITMO_FS.filters.multivariate import MRI
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> MRI(np.array(selected_features), np.array(other_features), x, y)
         array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> MRI(np.array(selected_features), np.array(other_features), x, y)
         array([0.62889893, 0.22433722, 0.72131855])
     """
@@ -667,9 +717,9 @@ def __SU(xk, xj):
 
 def IWFS(selected_features, free_features, x, y, **kwargs):
     """
-    Interaction Weight base feature scoring criteria. IWFS is good at
-    identifyng Given set of already selected features and set of remaining
-    features on dataset X with labels y selects next feature.
+        Interaction Weight base feature scoring criteria. IWFS is good at
+        identifyng Given set of already selected features and set of remaining
+        features on dataset X with labels y selects next feature.
 
         Parameters
         ----------
@@ -686,7 +736,9 @@ def IWFS(selected_features, free_features, x, y, **kwargs):
         -------
         array-like, shape (n_features) : feature scores
         
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <https://www.sciencedirect.com/science/article/abs/pii
         /S0031320315000850/>`_.
         
@@ -697,17 +749,19 @@ def IWFS(selected_features, free_features, x, y, **kwargs):
         >>> from ITMO_FS.filters.multivariate import IWFS
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> IWFS(np.array(selected_features), np.array(other_features), x, y)
         array([0., 0., 0., 0., 0.])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
         >>> IWFS(np.array(selected_features), np.array(other_features), x, y)
         array([1.0824043 , 1.11033338, 1.04268505])
     """
@@ -727,10 +781,10 @@ def IWFS(selected_features, free_features, x, y, **kwargs):
 def generalizedCriteria(selected_features, free_features, x, y, beta, gamma,
                         **kwargs):
     """
-    This feature scoring criteria is a linear combination of all relevance,
-    redundancy, conditional dependency Given set of already selected
-    features and set of remaining features on dataset X with labels y
-    selects next feature.
+        This feature scoring criteria is a linear combination of all relevance,
+        redundancy, conditional dependency Given set of already selected
+        features and set of remaining features on dataset X with labels y
+        selects next feature.
 
         Parameters
         ----------
@@ -755,7 +809,9 @@ def generalizedCriteria(selected_features, free_features, x, y, beta, gamma,
         -----
         See the original paper [1]_ for more details.
 
-        References ---------- .. [1] Brown, Gavin et al. "Conditional
+        References
+        ----------
+        .. [1] Brown, Gavin et al. "Conditional
         Likelihood Maximisation: A Unifying Framework for Information
         Theoretic Feature Selection." JMLR 2012.
         
@@ -767,17 +823,21 @@ def generalizedCriteria(selected_features, free_features, x, y, beta, gamma,
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> x = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
         >>> x = est.fit_transform(x)
         >>> selected_features = []
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
-        >>> generalizedCriteria(np.array(selected_features), np.array(other_features), x, y, 0.4, 0.3)
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
+        >>> generalizedCriteria(np.array(selected_features),
+        ... np.array(other_features), x, y, 0.4, 0.3)
         array([1.33217904, 1.33217904, 0.        , 0.67301167, 1.60943791])
         >>> selected_features = [1, 2]
-        >>> other_features = [i for i in range(0, x.shape[1]) if i not in selected_features]
-        >>> generalizedCriteria(np.array(selected_features), np.array(other_features), x, y, 0.4, 0.3)
+        >>> other_features = [i for i in range(0, x.shape[1]) if i \
+not in selected_features]
+        >>> generalizedCriteria(np.array(selected_features),
+        ... np.array(other_features), x, y, 0.4, 0.3)
         array([0.91021097, 0.403807  , 1.0765663 ])
     """
 

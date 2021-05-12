@@ -3,8 +3,6 @@ from sklearn.metrics.pairwise import pairwise_distances
 from scipy.sparse import *
 from ...utils import BaseTransformer, generate_features
 
-
-# TODO requests changes for MultivariateFilter to be used there
 class TraceRatioFisher(BaseTransformer):
     """
         Creates TraceRatio(similarity based) feature selection filter
@@ -17,16 +15,18 @@ class TraceRatioFisher(BaseTransformer):
         epsilon : float
             Lambda change threshold.
 
-        Notes ----- For more details see `this paper
+        Notes
+        -----
+        For more details see `this paper
         <https://www.aaai.org/Papers/AAAI/2008/AAAI08-107.pdf/>`_.
 
         Examples
         --------
         >>> from ITMO_FS.filters.multivariate import TraceRatioFisher
-        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[1, 1, 3, 1, 4],[2, 4, 3, 1, 5]])
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
         >>> y = np.array([1, 2, 1, 1, 2])
-        >>> tracer = TraceRatioFisher(3).fit(X, y)
+        >>> tracer = TraceRatioFisher(3).fit(x, y)
         >>> tracer.selected_features_
         array([0, 1, 3], dtype=int64)
     """
@@ -37,13 +37,13 @@ class TraceRatioFisher(BaseTransformer):
 
     def _fit(self, X, y):
         """
-            Fits filter
+            Fits the filter.
 
             Parameters
             ----------
-            X : numpy array, shape (n_samples, n_features)
+            X : array-like, shape (n_samples, n_features)
               The training input samples
-            y : numpy array, shape (n_samples)
+            y : array-like, shape (n_samples)
               The target values
 
             Returns
@@ -59,10 +59,11 @@ class TraceRatioFisher(BaseTransformer):
         n_samples = X.shape[0]
         classes, counts = np.unique(y, return_counts=True)
         counts_d = {cl: counts[idx] for idx, cl in enumerate(classes)}
+
         A_within = pairwise_distances(y.reshape(-1, 1), metric=lambda x, y:
             (x[0] == y[0]) / counts_d[x[0]])
-
         L_within = np.eye(n_samples) - A_within
+
         L_between = A_within - np.ones((n_samples, n_samples)) / n_samples
 
         E = X.T.dot(L_within).dot(X)

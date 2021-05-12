@@ -26,7 +26,7 @@ class STIR(BaseTransformer):
         >>> from ITMO_FS.filters.multivariate import STIR
         >>> import numpy as np
         >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-        [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
         >>> y = np.array([1, 2, 2, 1, 2])
         >>> model = STIR(2).fit(X, y)
         >>> model.selected_features_
@@ -40,7 +40,7 @@ class STIR(BaseTransformer):
 
     def _fit(self, X, y):
         """
-            Computes the feature importance scores from the training data.
+            Fits the filter.
 
             Parameters
             ----------
@@ -72,10 +72,10 @@ class STIR(BaseTransformer):
 
         indices = np.arange(n_samples)
         hits_diffs = np.abs(np.vectorize(lambda index:
-        x_normalized[index] - x_normalized[knn_from_class(dm, y, index, self.k, 
+        x_normalized[index] - x_normalized[knn_from_class(dm, y, index, self.k,
             y[index])], signature='()->(n,m)')(indices))
         misses_diffs = np.abs(np.vectorize(lambda index:
-        x_normalized[index] - x_normalized[knn_from_class(dm, y, index, self.k, 
+        x_normalized[index] - x_normalized[knn_from_class(dm, y, index, self.k,
             y[index], anyOtherClass=True)], signature='()->(n,m)')(indices))
 
         H = np.mean(hits_diffs, axis=(0,1))
