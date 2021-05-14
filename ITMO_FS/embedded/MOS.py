@@ -13,8 +13,9 @@ class MOS(BaseTransformer):
         Parameters
         ----------
         model : object
-            The model that will be used. Currently only SGDClassifier should be
-            passed, other models would not work.
+            The model that should have a fit(X, y) method and a field
+            corresponding to feature weights. Currently only SGDClassifier
+            should be passed, other models would not work.
         weight_func : callable
             The function to extract weights from the model.
         loss : str, 'log' or 'hinge', optional

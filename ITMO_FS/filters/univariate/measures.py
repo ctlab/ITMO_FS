@@ -573,10 +573,13 @@ def spearman_corr(x, y):
         Examples
         --------
         >>> from ITMO_FS.filters.univariate import spearman_corr
+        >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
         >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
 [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
         >>> y = np.array([1, 3, 2, 1, 2])
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> x = est.fit_transform(x)
         >>> spearman_corr(x, y)
         array([-0.186339  ,  0.30429031, -0.52704628, -0.30555556,  0.35355339])
     """
@@ -614,12 +617,15 @@ def pearson_corr(x, y):
         Examples
         --------
         >>> from ITMO_FS.filters.univariate import pearson_corr
+        >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> import numpy as np
         >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
 [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
         >>> y = np.array([1, 3, 2, 1, 2])
+        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
+        >>> x = est.fit_transform(x)
         >>> pearson_corr(x, y)
-        array([-0.13363062,  0.32732684, -0.56694671, -0.28571429,  0.53452248])
+        array([-0.13363062,  0.32732684, -0.60631301, -0.26244533,  0.53452248])
     """
     x_dev = x - np.mean(x, axis=0)
     y_dev = y - np.mean(y)
