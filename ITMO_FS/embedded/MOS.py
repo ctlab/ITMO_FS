@@ -54,12 +54,14 @@ class MOS(BaseTransformer):
             n_informative=5, n_redundant=0, weights=[0.85, 0.15], \
             random_state=42, shuffle=False)
         >>> X, y = np.array(dataset[0]), np.array(dataset[1])
-        >>> m = MOS(model=SGDClassifier(), \
-            weight_func=lambda model: model.coef_[0]).fit(X, y)
+        >>> m = MOS(model=SGDClassifier(),
+        ... weight_func=lambda model: np.square(model.coef_)
+        ... .sum(axis=0)).fit(X, y)
         >>> m.selected_features_
         array([1, 3, 4], dtype=int64)
-        >>> m = MOS(model=SGDClassifier(), sampling=True, \
-            weight_func=lambda model: model.coef_[0]).fit(X, y)
+        >>> m = MOS(model=SGDClassifier(), sampling=True,
+        ... weight_func=lambda model: np.square(model.coef_)
+        ... .sum(axis=0)).fit(X, y)
         >>> m.selected_features_
         array([1, 3, 4, 6], dtype=int64)
     """
