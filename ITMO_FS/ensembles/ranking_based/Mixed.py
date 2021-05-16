@@ -38,7 +38,7 @@ class Mixed(BaseTransformer):
         self.fusion_function = fusion_function
 
     def _fit(self, X, y, **kwargs):
-        if self.k > self.n_features_:
+        if self .k > self.n_features_:
             raise ValueError(
                 "Cannot select %d best features with n_features = %d" %
                 (self.k, self.n_features_))

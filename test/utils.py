@@ -8,10 +8,13 @@ datasets = ["arcene.csv",
             "madelon.csv"]
 
 
-def load_dataset(name):#todo fails to hold header
+def load_dataset(name):  # todo fails to hold header
     with dvc.api.open(
             'test/datasets/' + name) as fd:
-        return pd.read_csv(fd)
+        df = pd.read_csv(fd, header=None)
+        features = ['v' + str(i) for i in range(df.shape[1] - 1)] + ["target"]
+        df.columns = features
+        return df
 
 
 def load_datasets():

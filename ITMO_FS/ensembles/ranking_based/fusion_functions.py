@@ -2,6 +2,18 @@ import random
 
 
 def best_goes_first_fusion(filter_results, k):
+    """
+        Fusion function mixes filter results according feature appearance in range
+        of each filter. Selects first k of them.
+        Parameters
+        ----------
+        filter_results : list of tuples
+        k : int,
+
+        Returns
+        -------
+        list of selected features
+    """
     result = []
     place = 0
     filter_results = [[r[0] for r in result] for result in filter_results]
@@ -16,6 +28,17 @@ def best_goes_first_fusion(filter_results, k):
 
 
 def borda_fusion(filter_results, k):
+    """
+        Fusion function according to borda function
+        Parameters
+        ----------
+        filter_results : list of tuples
+        k : int,
+
+        Returns
+        -------
+        list of selected features
+        """
     filter_results = [
         {r[0]: p for r, p in zip(result, range(1, len(result) + 1))} for result
         in filter_results]

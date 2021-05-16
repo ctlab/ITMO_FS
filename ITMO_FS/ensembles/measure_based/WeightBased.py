@@ -29,7 +29,7 @@ class WeightBased(BaseTransformer):
     def get_score(self, X, y):
         for __filter in self.filters:
             _filter = clone(__filter)
-            _filter.fit()
+            _filter.fit(X,y)
             _min = min(_filter.feature_scores_.values())
             _max = max(_filter.feature_scores_.values())
             for key, value in _filter.feature_scores_.items():
