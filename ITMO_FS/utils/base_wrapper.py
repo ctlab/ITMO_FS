@@ -31,6 +31,9 @@ class BaseWrapper(BaseTransformer):
         if not hasattr(self.estimator, 'fit'):
             raise TypeError("estimator should be an estimator implementing "
                             "'fit' method, %r was passed" % self.estimator)
+        if not hasattr(self.estimator, 'predict'):
+            raise TypeError("estimator should be an estimator implementing "
+                            "'predict' method, %r was passed" % self.estimator)
         self._estimator = clone(self.estimator)
 
         return super().fit(X, y, **fit_params)

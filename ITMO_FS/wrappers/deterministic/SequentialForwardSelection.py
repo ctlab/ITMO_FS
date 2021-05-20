@@ -13,7 +13,8 @@ class SequentialForwardSelection(BaseWrapper):
         Parameters
         ----------
         estimator: object
-            A supervised learning estimator that should have a fit(X, y) method.
+            A supervised learning estimator that should have a fit(X, y) method
+            and a predict(X) method.
         n_features : int
             Number of features to select.
         measure : string or callable

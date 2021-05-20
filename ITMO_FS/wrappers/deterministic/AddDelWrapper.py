@@ -14,7 +14,8 @@ class AddDelWrapper(BaseWrapper):
         Parameters
         ----------
         estimator : object
-            A supervised learning estimator that should have a fit(X, y) method.
+            A supervised learning estimator that should have a fit(X, y) method
+            and a predict(X) method.
         measure : string or callable
             A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable
             with signature measure(estimator, X, y) which should return only a

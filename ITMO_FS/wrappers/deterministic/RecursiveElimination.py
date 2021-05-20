@@ -14,8 +14,8 @@ class RecursiveElimination(BaseWrapper):
         Parameters
         ----------
         estimator : object
-            supervised learning estimator that should have a fit(X, y) method
-            and a field corresponding to feature weights.
+            A supervised learning estimator that should have a fit(X, y) method,
+            a predict(X) method and a field corresponding to feature weights.
         n_features : int
             Number of features to leave.
         measure : string or callable
