@@ -1,5 +1,9 @@
 import random
 import numpy as np
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from copy import copy
 
 
 class HybridRFE:
@@ -8,95 +12,92 @@ class HybridRFE:
 
         Parameters
         ----------
-        models : array-like, shape
+        estimator : Estimator instance
+            Model in which the target will be searched.
+        n_features_to_select : int, optional (by default half of the n_features)
+            The number of selected features.
+        weighted : boolean, optional (by default False)
+            Using simple sum or weighted sum functions.
+        n_cross_validation : int, optional (by default 5)
+            The parameter of k-fold cross-validation.
+        models : array-like, shape (n_models, ), optional (by default [SVM, RF, GBM])
             Models involved in feature elimination.
-        weight_functions : array-like, shape
+        weight_functions : array-like, shape (n_models, ),
+                optional (by deafault [coef_, feature_importances_, feature_importances_])
             Functions that return feature weights.
-        score_function : function
-            Combines the scores of the models.
 
         Examples
         --------
         >>> from ITMO_FS.hybrid.HybridRFE import HybridRFE
         >>> from sklearn.svm import SVC
-        >>> from sklearn.ensemble import RandomForestClassifier
-        >>> from sklearn.ensemble import GradientBoostingClassifier
         >>> from sklearn.datasets import make_classification
         >>> import numpy as np
         >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
         >>> data, target = np.array(dataset[0]), np.array(dataset[1])
         >>> svm = SVC(kernel='linear')
-        >>> rf = RandomForestClassifier(max_depth=2, random_state=0)
-        >>> gbm = GradientBoostingClassifier(learning_rate=1.0, max_depth=1, random_state=0)
-        >>> models = [svm, rf, gbm]
-        >>> hybrid = HybridRFE(models,
-        >>>                    [lambda x: (x.coef_ ** 2).sum(axis=0),
-        >>>                     lambda x: x.feature_importances_,
-        >>>                     lambda x: x.feature_importances_],
-        >>>                    lambda x: sum(x) / len(x))
-        >>> selected = hybrid.transform(data, target, weighted=True)
-        >>> for m in models:
-        >>>     m.fit(data, target)
-        >>> print([m.score(data, target) for m in models])
-        >>> for m in models:
-        >>>     m.fit(selected, target)
-        >>> print([m.score(selected, target) for m in models])
+        >>> hybrid = HybridRFE(svm)
+        >>> svm.fit(data, target)
+        >>> hybrid = hybrid.fit(data, target)
+        >>> print(svm.score(data, target))
+        >>> print(hybrid.score(data, target))
+
     """
 
-    def __init__(self, models, weight_functions, score_function):
-        self.models = models
-        self.weight_functions = weight_functions
-        self.score_function = score_function
+    def __init__(self, estimator, n_features_to_select=None, weighted=False, n_cross_validation=5, models=None,
+                 weight_functions=None):
+        self.__estimator = copy(estimator)
+        self.__n_features_to_select = n_features_to_select
+        self.__weighted = weighted
+        self.__n_cross_validation = n_cross_validation
+        self.__models = [SVC(kernel='linear'),
+                         RandomForestClassifier(max_depth=2, random_state=0),
+                         GradientBoostingClassifier(learning_rate=1.0, max_depth=1, random_state=0)] \
+            if models is None else models
+        self.__weight_functions = [lambda x: (x.coef_ ** 2).sum(axis=0),
+                                   lambda x: x.feature_importances_,
+                                   lambda x: x.feature_importances_]\
+            if weight_functions is None else weight_functions
+        self.__support = []
 
-    def transform(self, X_input, y_input, m=None, weighted=False, k=5, feature_names=None):
+    def fit(self, X, y):
         """
-            Hybrid-Recursive Feature Elimination.
+            Fit the Hybrid-Recursive Feature Elimination model and then the underlying estimator on the selected
 
             Parameters
             ----------
-            X_input : array-like, shape (n_features, n_samples)
-                The features values.
-            y_input : array-like, shape (n_samples, )
+            X : array-like, shape (n_samples, n_features)
+                The training input samples.
+            y : array-like, shape (n_samples, )
                 The target values.
-            m : int, optional (by default half of the n_features)
-                The number of selected features.
-            weighted : boolean, optional (by default False)
-                Using simple sum or weighted sum functions.
-            k : int, optional (by default 5)
-                The parameter of k-fold cross-validation.
-            feature_names : list of strings, optional
 
-            Returns
-            ------
-            X dataset sliced with features selected by the algorithm
-            and feature names sliced with features selected by the algorithm
-            if there is a corresponding parameter
         """
 
-        if m is None:
-            m = int(len(X_input[0]) / 2)
-        Xy = list(zip(X_input, y_input))
+        if self.__n_features_to_select is None:
+            self.__n_features_to_select = int(len(X[0]) / 2)
+        Xy = list(zip(X, y))
         random.shuffle(Xy)
-        X, y = zip(*Xy)
+        X_split, y_split = zip(*Xy)
         score_best = 0
         features_best = []
-        X = np.array_split(X, k)
-        y = np.array_split(y, k)
+        X_split = np.array_split(X_split, self.__n_cross_validation)
+        y_split = np.array_split(y_split, self.__n_cross_validation)
 
-        for i in range(k):
-            n = len(X[0][0])
-            Xk = X.copy()
-            yk = y.copy()
+        for i in range(self.__n_cross_validation):
+            n = len(X_split[0][0])
+            Xk = X_split.copy()
+            yk = y_split.copy()
             Xk.insert(0, Xk.pop(i))
             yk.insert(0, yk.pop(i))
             Xk.insert(0, [[i for i in range(n)]])
             features = []
 
             while n > 1:
-                if weighted:
-                    w = self.__step(self.__flatten(Xk[2:]), self.__flatten(yk[1:]), Xk[1], yk[0])
-                else:
-                    w = self.__step(self.__flatten(Xk[2:]), self.__flatten(yk[1:]))
+                for model in self.__models:
+                    model.fit(self.__flatten(Xk[2:]), self.__flatten(yk[1:]))
+                w = [self.__weight_functions[i](self.__models[i]) for i in range(len(self.__models))]
+                if self.__weighted:
+                    w = [w[i] * self.__models[i].score(Xk[1], yk[0]) for i in range(len(self.__models))]
+                w = np.sum(w, axis=0)
                 wns = list(zip(w, range(n)))
                 wns.sort()
                 _, ns = zip(*wns)
@@ -105,38 +106,116 @@ class HybridRFE:
                 n -= 1
 
             features.insert(0, Xk[0][0][0])
-            Xk = np.array_split(np.array_split([Xi[f] for Xi in X_input for f in features[:m]], len(X_input)), k)
-            yk = y.copy()
+            Xk = np.array_split(np.array_split([Xi[f] for Xi in X for f in
+                                                features[:self.__n_features_to_select]], len(X)),
+                                self.__n_cross_validation)
+            yk = y_split.copy()
 
             score = 0
-            for j in range(k):
+            for j in range(self.__n_cross_validation):
                 Xk.insert(0, Xk.pop(j))
                 yk.insert(0, yk.pop(j))
-                self.__fit_models(self.__flatten(Xk[1:]), self.__flatten(yk[1:]))
-                score += self.score_function([model.score(Xk[0], yk[0]) for model in self.models]) / len(Xk[0])
+                self.__estimator.fit(self.__flatten(Xk[1:]), self.__flatten(yk[1:]))
+                score += self.__estimator.score(Xk[0], yk[0]) * len(Xk[0])
 
             if score_best < score:
                 score_best = score
                 features_best = features
 
-        X_result = np.array_split([Xi[f] for Xi in X_input for f in features_best[:m]], len(X_input))
+        self.__support = [True for _ in range(len(features_best))]
+        for i in range(self.__n_features_to_select, len(features_best)):
+            self.__support[features_best[i]] = False
 
-        if feature_names is not None:
-            feature_names_result = [feature_names[f] for f in features_best[:m]]
-            return X_result, feature_names_result
+        self.__estimator.fit(self.transform(X), y)
 
-        return X_result
+        return self
 
-    def __step(self, X_training, y_training, X_test=None, y_test=None):
-        self.__fit_models(X_training, y_training)
-        w = [self.weight_functions[i](self.models[i]) for i in range(len(self.models))]
-        if (X_test is not None) and (y_test is not None):
-            w = [w[i] * self.models[i].score(X_test, y_test) for i in range(len(self.models))]
-        return np.sum(w, axis=0)
+    def transform(self, X):
+        """
+            Reduce X to the selected features.
+
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features)
+                The input samples.
+
+            Returns
+            ------
+            X : array-like, shape (n_samples, n_selected_features)
+                The input samples with only the selected features.
+
+        """
+
+        return [np.array(Xi)[self.__support] for Xi in X]
+
+    def fit_transform(self, X, y):
+        """
+            Fit to data, then transform it.
+
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features)
+                Input samples.
+            y : array-like, shape (n_samples, )
+                Target values.
+
+            Returns
+            ------
+            X_new : array-like, shape (n_samples, n_features)
+                Transformed array.
+
+        """
+
+        return self.fit(X, y).transform(X)
+
+    def predict(self, X):
+        """
+            Reduce X to the selected features and then predict using the underlying estimator.
+
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features)
+                The input samples.
+
+            Returns
+            ------
+            y : array-like, shape (n_samples, )
+                The predicted target values.
+
+        """
+
+        return self.__estimator.predict(X)
+
+    def get_support(self):
+        """
+            Get a mask, or integer index, of the features selected
+
+            Returns
+            ------
+            support : array-like, shape (n_features, )
+
+        """
+
+        return self.__support
+
+    def score(self, X, y):
+        """
+            Reduce X to the selected features and then return the score of the underlying estimator.
+
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features)
+                The input samples.
+            y : array-like, shape (n_samples, )
+                The target values.
+
+            Returns
+            ------
+            score : float
+
+        """
+
+        return self.__estimator.score(self.transform(X), y)
 
     def __flatten(self, X):
         return [item for sublist in X for item in sublist]
-
-    def __fit_models(self, X, y):
-        for model in self.models:
-            model.fit(X, y)
