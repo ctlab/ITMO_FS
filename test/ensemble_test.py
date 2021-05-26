@@ -1,6 +1,8 @@
 import time
 import unittest
 import numpy as np
+
+from ITMO_FS import BestSum
 from utils import load_dataset
 
 from sklearn.datasets import make_classification, make_regression
@@ -26,7 +28,6 @@ class MyTestCase(unittest.TestCase):
     madelon = load_dataset("madelon.csv")
 
     def test_ranking_based_error_mixed_ensemble(self):
-
         data, target = self.madelon.drop(['target'], axis=1), self.madelon[
             "target"]
         filters = [gini_index,
@@ -79,7 +80,7 @@ class MyTestCase(unittest.TestCase):
 
         ensemble.fit(data, target)
         ensemble.transform(data)
-        assert len(ensemble)==len(filters)
+        assert len(ensemble) == len(filters)
 
     def test_measure_based_weight_based_no_weights_ensemble(self):
         data, target = self.wide_classification[0], self.wide_classification[1]
@@ -173,6 +174,18 @@ class MyTestCase(unittest.TestCase):
     #
     #         print('Ensemble score', np.mean(scores_ens), np.std(scores_ens))
     #         print()
+
+    def test_model_based_best_sum_no_models(self):
+        models = []
+        with self.assertRaises(ValueError):
+            BestSum(models, select_k_best(100))
+
+    def test_model_based_best_sum(self):
+        data, target = self.madelon.drop(['target'], axis=1), self.madelon[
+            "target"]
+        models = [UnivariateFilter(pearson_corr,select_k_best(10))]
+        ensemble = BestSum(models, select_k_best(50))
+        ensemble.fit(data, target)
 
 
 if __name__ == '__main__':

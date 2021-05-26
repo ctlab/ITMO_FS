@@ -26,17 +26,17 @@ def fit_criterion_measure(X, y):
     y = np.asarray(y.reshape((-1,)))
     if len(x.shape) == 2:
         fc = np.zeros(x.shape[
-            1])  # Array with amounts of correct predictions for each feature
+                          1])  # Array with amounts of correct predictions for each feature
     else:
         fc = np.zeros(len(x))
     tokens_n = np.unique(y)  # Number of different class tokens
     # Array with centers of sets of feature values for each class token
-    centers = np.empty(tokens_n)
+    centers = np.empty((tokens_n,))
     # Array with variances of sets of feature values for each class token
-    variances = np.empty(tokens_n)
+    variances = np.empty((tokens_n,))
     # Each of arrays above will be separately calculated for each feature
     # Array with distances between sample's value and each class's center
-    distances = np.empty(tokens_n)
+    distances = np.empty((tokens_n,))
     # This array will be separately calculated for each feature and each sample
     for feature_index, feature in enumerate(x.T):  # For each feature
         # Initializing utility structures
@@ -151,8 +151,9 @@ def gini_index(X, y):
 
     if X.shape[0] < 2:
         raise ValueError("The input should contain more than 1 sample")
-    scaler = MinMaxScaler()
-    X = scaler.fit_transform(X)
+    # if len(X.shape) > 2:
+    #     scaler = MinMaxScaler()
+    #     X = scaler.fit_transform(X)
     cum_x = np.cumsum(X / np.linalg.norm(X, 1, axis=0), axis=0)
     cum_y = np.cumsum(y / np.linalg.norm(y, 1))
     diff_x = (cum_x[1:] - cum_x[:-1])
@@ -196,7 +197,7 @@ def su_measure(X, y):
         entropy_x = entropy(X[:, index])
         cond_entropy = conditional_entropy(y, X[:, index])
         f_ratios[index] = 2 * (entropy_x - cond_entropy) / (
-            entropy_x + entropy_y)
+                entropy_x + entropy_y)
     return f_ratios
 
 
@@ -463,7 +464,7 @@ def relief_measure(X, y, m=None):
         m = n_samples
 
     X_normalized = (X - np.min(X, axis=0)) / (
-        np.max(X, axis=0) - np.min(X, axis=0))
+            np.max(X, axis=0) - np.min(X, axis=0))
     dm = euclidean_distances(X_normalized, X_normalized)
     indices = np.random.randint(n_samples, size=m)
     for i in indices:
@@ -561,55 +562,56 @@ def chi2_measure(X, y):
     return __chisquare(observed, expected)
 
 
-def __contingency_matrix(labels_true, labels_pred):
-    """Build a contingency matrix describing the relationship between labels.
-        Parameters
-        ----------
-        labels_true : int array, shape = [n_samples]
-            Ground truth class labels to be used as a reference
-        labels_pred : array, shape = [n_samples]
-            Cluster labels to evaluate
-        Returns
-        -------
-        contingency : {array-like, sparse}, shape=[n_classes_true, n_classes_pred]
-            Matrix :math:`C` such that :math:`C_{i, j}` is the number of samples in
-            true class :math:`i` and in predicted class :math:`j`. If
-            ``eps is None``, the dtype of this array will be integer. If ``eps`` is
-            given, the dtype will be float.
-        """
-    classes, class_idx = np.unique(labels_true, return_inverse=True)
-    clusters, cluster_idx = np.unique(labels_pred, return_inverse=True)
-    n_classes = classes.shape[0]
-    n_clusters = clusters.shape[0]
-    # Using coo_matrix to accelerate simple histogram calculation,
-    # i.e. bins are consecutive integers
-    # Currently, coo_matrix is faster than histogram2d for simple cases
-    # TODO redo it with numpy
-    contingency = sp.coo_matrix((np.ones(class_idx.shape[0]),
-                                 (class_idx, cluster_idx)),
-                                shape=(n_classes, n_clusters),
-                                dtype=np.int)
-    contingency = contingency.tocsr()
-    contingency.sum_duplicates()
-    return contingency
-
-
-def __mi(U, V):
-    contingency = __contingency_matrix(U, V)
-    nzx, nzy, nz_val = sp.find(contingency)
-    contingency_sum = contingency.sum()
-    pi = np.ravel(contingency.sum(axis=1))
-    pj = np.ravel(contingency.sum(axis=0))
-    log_contingency_nm = np.log(nz_val)
-    contingency_nm = nz_val / contingency_sum
-    # Don't need to calculate the full outer product, just for non-zeroes
-    outer = (pi.take(nzx).astype(np.int64, copy=False)
-             * pj.take(nzy).astype(np.int64, copy=False))
-    log_outer = -np.log(outer) + log(pi.sum()) + log(pj.sum())
-    mi = (contingency_nm * (log_contingency_nm - log(contingency_sum)) +
-          contingency_nm * log_outer)
-    return mi.sum()
-
+#
+# def __contingency_matrix(labels_true, labels_pred):
+#     """Build a contingency matrix describing the relationship between labels.
+#         Parameters
+#         ----------
+#         labels_true : int array, shape = [n_samples]
+#             Ground truth class labels to be used as a reference
+#         labels_pred : array, shape = [n_samples]
+#             Cluster labels to evaluate
+#         Returns
+#         -------
+#         contingency : {array-like, sparse}, shape=[n_classes_true, n_classes_pred]
+#             Matrix :math:`C` such that :math:`C_{i, j}` is the number of samples in
+#             true class :math:`i` and in predicted class :math:`j`. If
+#             ``eps is None``, the dtype of this array will be integer. If ``eps`` is
+#             given, the dtype will be float.
+#         """
+#     classes, class_idx = np.unique(labels_true, return_inverse=True)
+#     clusters, cluster_idx = np.unique(labels_pred, return_inverse=True)
+#     n_classes = classes.shape[0]
+#     n_clusters = clusters.shape[0]
+#     # Using coo_matrix to accelerate simple histogram calculation,
+#     # i.e. bins are consecutive integers
+#     # Currently, coo_matrix is faster than histogram2d for simple cases
+#     # TODO redo it with numpy
+#     contingency = sp.coo_matrix((np.ones(class_idx.shape[0]),
+#                                  (class_idx, cluster_idx)),
+#                                 shape=(n_classes, n_clusters),
+#                                 dtype=np.int)
+#     contingency = contingency.tocsr()
+#     contingency.sum_duplicates()
+#     return contingency
+#
+#
+# def __mi(U, V):
+#     contingency = __contingency_matrix(U, V)
+#     nzx, nzy, nz_val = sp.find(contingency)
+#     contingency_sum = contingency.sum()
+#     pi = np.ravel(contingency.sum(axis=1))
+#     pj = np.ravel(contingency.sum(axis=0))
+#     log_contingency_nm = np.log(nz_val)
+#     contingency_nm = nz_val / contingency_sum
+#     # Don't need to calculate the full outer product, just for non-zeroes
+#     outer = (pi.take(nzx).astype(np.int64, copy=False)
+#              * pj.take(nzy).astype(np.int64, copy=False))
+#     log_outer = -np.log(outer) + log(pi.sum()) + log(pj.sum())
+#     mi = (contingency_nm * (log_contingency_nm - log(contingency_sum)) +
+#           contingency_nm * log_outer)
+#     return mi.sum()
+#
 
 def spearman_corr(X, y):
     """
@@ -942,7 +944,7 @@ def modified_t_score(X, y):
 
     mean_of_corr_with_others = (corr_with_others.sum(
         axis=1) - corr_with_others.diagonal()) / (
-        len(corr_with_others) - 1)
+                                       len(corr_with_others) - 1)
 
     t_score_numerator = abs(mean_class0 - mean_class1)
     t_score_denominator = np.sqrt(
@@ -957,16 +959,16 @@ def modified_t_score(X, y):
 
 
 MEASURE_NAMES = {"FitCriterion": fit_criterion_measure,
-                "FRatio": f_ratio_measure,
-                "GiniIndex": gini_index,
-                "SymmetricUncertainty": su_measure,
-                "SpearmanCorr": spearman_corr,
-                "PearsonCorr": pearson_corr,
-                "FechnerCorr": fechner_corr,
-                "KendallCorr": kendall_corr,
-                "ReliefF": reliefF_measure,
-                "Chi2": chi2_measure,
-                "Anova": anova,
+                 "FRatio": f_ratio_measure,
+                 "GiniIndex": gini_index,
+                 "SymmetricUncertainty": su_measure,
+                 "SpearmanCorr": spearman_corr,
+                 "PearsonCorr": pearson_corr,
+                 "FechnerCorr": fechner_corr,
+                 "KendallCorr": kendall_corr,
+                 "ReliefF": reliefF_measure,
+                 "Chi2": chi2_measure,
+                 "Anova": anova,
                  "LaplacianScore": laplacian_score,
                  "InformationGain": information_gain,
                  "ModifiedTScore": modified_t_score,
@@ -1040,11 +1042,11 @@ def select_worst_percentage(percent):
 
 
 CR_NAMES = {"Best by value": select_best_by_value,
-           "Worst by value": select_worst_by_value,
-           "K best": select_k_best,
-           "K worst": select_k_worst,
-           "Worst by percentage": select_worst_percentage,
-           "Best by percentage": select_best_percentage}
+            "Worst by value": select_worst_by_value,
+            "K best": select_k_best,
+            "K worst": select_k_worst,
+            "Worst by percentage": select_worst_percentage,
+            "Best by percentage": select_best_percentage}
 
 
 def qpfs_filter(X, y, r=None, sigma=None, solv='quadprog', fn=pearson_corr):

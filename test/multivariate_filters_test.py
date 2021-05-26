@@ -8,30 +8,61 @@ import numpy as np
 from sklearn.utils.estimator_checks import check_estimator
 
 from ITMO_FS.filters.multivariate import *
+from utils import load_dataset
 
 np.random.seed(42)
 
 
 class TestCases(unittest.TestCase):
-    data, target = np.random.randint(10, size=(100, 20)), np.random.randint(10, size=(100,))
+    data, target = np.random.randint(10, size=(100, 20)), np.random.randint(10,
+                                                                            size=(
+                                                                                100,))
+    madelon = load_dataset("madelon.csv")
 
     def test_FCBF(self):
         # FCBF
         res = FCBFDiscreteFilter().fit_transform(self.data, self.target)
         assert self.data.shape[0] == res.shape[0]
-        print("Fast Correlation Based filter:", self.data.shape, '--->', res.shape)
+        print("Fast Correlation Based filter:", self.data.shape, '--->',
+              res.shape)
 
     def test_DISR(self):
         # DISR
         res = DISRWithMassive(10).fit_transform(self.data, self.target)
         assert self.data.shape[0] == res.shape[0]
-        print("Double Input Symmetric Relevance:", self.data.shape, '--->', res.shape)
+        print("Double Input Symmetric Relevance:", self.data.shape, '--->',
+              res.shape)
+
+    def test_JMIM_error(self):
+        # JMIM
+        data, target = self.madelon.drop(['target'], axis=1), self.madelon[
+            "target"]
+        with self.assertRaises(ValueError):
+            JMIM(10000).fit_transform(data, target)
 
     def test_JMIM(self):
         # JMIM
         res = JMIM(10).fit_transform(self.data, self.target)
         assert self.data.shape[0] == res.shape[0]
-        print("Joint Mutual Information Maximisation:", self.data.shape, '--->', res.shape)
+        print("Joint Mutual Information Maximisation:", self.data.shape,
+              '--->', res.shape)
+
+    def test_JMIM_normalised(self):
+        # JMIM
+        res = JMIM(10, normalized=True).fit_transform(self.data, self.target)
+        assert self.data.shape[0] == res.shape[0]
+        print("Joint Mutual Information Maximisation:", self.data.shape,
+              '--->', res.shape)
+
+    def test_multivariate_interface_error_features(self):
+        with self.assertRaises(ValueError):
+            filter = MultivariateFilter("MRMR", 5000000)
+            filter.fit(self.data, self.target)
+
+    def test_multivariate_interface_error_name(self):
+        with self.assertRaises(KeyError):
+            filter = MultivariateFilter("asoikfhlkjfdslfh", 5)
+            filter.fit(self.data, self.target)
 
     def test_trace_ratio(self):
         # TraceRatioFisher
@@ -43,7 +74,8 @@ class TestCases(unittest.TestCase):
         # STIR
         res = STIR(10).fit_transform(self.data, self.target)
         assert self.data.shape[0] == res.shape[0]
-        print("Statistical Inference Relief:", self.data.shape, '--->', res.shape)
+        print("Statistical Inference Relief:", self.data.shape, '--->',
+              res.shape)
 
     def test_base_multivariate(self):
         # Multivariate with callable
@@ -51,7 +83,8 @@ class TestCases(unittest.TestCase):
         f.fit(self.data, self.target)
         res = f.transform(self.data)
         assert self.data.shape[0] == res.shape[0]
-        print("Multivariate with callable:", self.data.shape, '--->', res.shape)
+        print("Multivariate with callable:", self.data.shape, '--->',
+              res.shape)
 
         # Multivariate with string
         f = MultivariateFilter('MRMR', 10)
@@ -94,9 +127,11 @@ class TestCases(unittest.TestCase):
             assert self.data.shape[0] == res.shape[0] and res.shape[1] == 10
 
     def test_df(self):
-        for f in [FCBFDiscreteFilter(), DISRWithMassive(10), JMIM(10), MultivariateFilter(MIM, 10),\
+        for f in [FCBFDiscreteFilter(), DISRWithMassive(10), JMIM(10),
+                  MultivariateFilter(MIM, 10), \
                   TraceRatioFisher(10), STIR(10)]:
-            df = f.fit_transform(pd.DataFrame(self.data), pd.DataFrame(self.target))
+            df = f.fit_transform(pd.DataFrame(self.data),
+                                 pd.DataFrame(self.target))
             arr = f.fit_transform(self.data, self.target)
             np.testing.assert_array_equal(df, arr)
 
@@ -108,7 +143,8 @@ class TestCases(unittest.TestCase):
         assert self.data.shape[0] == res.shape[0] and res.shape[1] == 10
 
         # FS - estim
-        p = Pipeline([('FS1', FCBFDiscreteFilter()), ('E1', LogisticRegression(max_iter=10000))])
+        p = Pipeline([('FS1', FCBFDiscreteFilter()),
+                      ('E1', LogisticRegression(max_iter=10000))])
         p.fit(self.data, self.target)
         assert 0 <= p.score(self.data, self.target) <= 1
 
@@ -119,18 +155,19 @@ class TestCases(unittest.TestCase):
         assert self.data.shape[0] == res.shape[0] and res.shape[1] == 5
 
         # FS - FS - estim
-        p = Pipeline([('FS1', TraceRatioFisher(10)), ('FS2', DISRWithMassive(5)),
-                        ('E1', LogisticRegression(max_iter=10000))])
+        p = Pipeline(
+            [('FS1', TraceRatioFisher(10)), ('FS2', DISRWithMassive(5)),
+             ('E1', LogisticRegression(max_iter=10000))])
         p.fit(self.data, self.target)
         assert 0 <= p.score(self.data, self.target) <= 1
 
     def test_est(self):
         for f in [
-                  FCBFDiscreteFilter(),
-                  DISRWithMassive(2),
-                  MultivariateFilter(MIM, 2),
-                  TraceRatioFisher(2),
-                  STIR(2)]:
+            FCBFDiscreteFilter(),
+            DISRWithMassive(2),
+            MultivariateFilter(MIM, 2),
+            TraceRatioFisher(2),
+            STIR(2)]:
             check_estimator(f)
 
 
