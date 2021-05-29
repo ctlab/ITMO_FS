@@ -206,8 +206,7 @@ def su_measure(X, y):
 def _kendall_corr(X, y):
     k_corr = 0.0
     for i in range(len(X)):
-        for j in range(i + 1, len(X)):
-            k_corr += np.sign(X[i] - X[j]) * np.sign(y[i] - y[j])
+        k_corr += np.sum(np.sign(X[i] - X[i + 1:]) * np.sign(y[i] - y[i + 1:]))
     return k_corr
 
 
@@ -243,15 +242,11 @@ def kendall_corr(X, y):
 
     if len(X.shape) == 1:
         k_corr = _kendall_corr(X, y)
-        return float(2 * k_corr) / (len(X) * (len(X) - 1))
+        return float(2 * k_corr) / (X.shape[0] * (X.shape[0] - 1))
     else:
-        res = []
-        for var in range(X.shape[1]):
-            x = X[:, var]
-            k_corr = _kendall_corr(x, y)
-            k_corr = float(2 * k_corr) / (len(x) * (len(x) - 1))
-            res.append(k_corr)
-        return np.array(res)
+        res = np.apply_along_axis(partial(_kendall_corr, y=y), axis=0, arr=X)
+        res = 2 * res / (X.shape[0] * (X.shape[0] - 1))
+        return res
 
 
 def fechner_corr(X, y):
@@ -447,7 +442,7 @@ def relief_measure(X, y, m=None):
     Examples
     --------
     >>> import sklearn.datasets as datasets
-    >>> from ITMO_FS.filters.univariate import relief_measure
+    >>> from ITMO_FS.filters.univariate.measures import relief_measure
     >>> X = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
     >>> y = np.array([1, 3, 2, 1, 2])
     >>> scores = relief_measure(X, y)
@@ -655,7 +650,6 @@ def spearman_corr(X, y):
     if y.shape == X.shape:
         d = dict(zip(sorted(X), range(X.shape[0])))
         ranks_X = np.vectorize(d.get)(X)
-
         dif = ranks_X - ranks_y
     else:
         ranks_X = X.copy()
@@ -663,9 +657,8 @@ def spearman_corr(X, y):
             d = dict(zip(sorted(X[:, i]), range(X.shape[0])))
             ranks_X[:, i] = np.vectorize(d.get)(X[:, i])
 
-        dif = ranks_X - np.repeat(ranks_y, X.shape[1]).reshape(y.shape[0],
-                                                               X.shape[1])
-
+        dif = (ranks_X - np.repeat(ranks_y, X.shape[1]).reshape(y.shape[0],
+                                                                X.shape[1]))
     return 1 - c * np.sum(dif * dif, axis=0)
 
 
