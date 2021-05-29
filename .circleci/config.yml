@@ -29,6 +29,7 @@ jobs:
             pip install pandas sphinx_rtd_theme dvc
             pip install sphinx-gallery
             pip install dvc
+            pip install pydrive2
             pip install .
             cd docs
             make html
