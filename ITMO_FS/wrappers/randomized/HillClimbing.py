@@ -1,7 +1,6 @@
 import numpy as np
 
 from sklearn.model_selection import cross_val_score
-from sklearn.metrics import make_scorer
 from sklearn.base import clone
 
 from ...utils import generate_features, BaseWrapper

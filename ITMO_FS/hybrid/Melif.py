@@ -1,145 +1,182 @@
 import datetime as dt
 
 import numpy as np
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
 from sklearn.base import clone
 
 from ITMO_FS.ensembles import WeightBased
 from ITMO_FS.utils.data_check import *
-from ITMO_FS.utils import BaseTransformer
+from ITMO_FS.utils import BaseWrapper, apply_cr
 
 
-class Melif(BaseTransformer):
+class Melif(BaseWrapper):
+    """
+        Performs the MeLiF algorithm.
 
-    def __init__(self, estimator, cutting_rule, filter_ensemble, scorer=None,
-                 test_size=0.3,
-                 delta=0.5, points=None, verbose=False,
-                 seed=42):  # TODO scorer name
+        Parameters
+        ----------
+        estimator : object
+            A supervised learning estimator that should have a fit(X, y) method
+            and a predict(X) method.
+        measure : string or callable
+            A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable
+            with signature measure(estimator, X, y) which should return only a
+            single value.
+        cutting_rule : string or callable
+            A cutting rule name defined in GLOB_CR or a callable with signature
+            cutting_rule (features), which should return a list features ranked
+            by some rule.
+        filter_ensemble : object
+            A filter ensemble (e.g. WeightBased) or a list of filters that will
+            be used to create a WeightBased ensemble.
+        delta : float
+            The step in coordinate descent.
+        points : array-like
+            An array of starting points in the search.
+        seed : int
+            Random seed used to initialize np.random.default_rng().
+        cv : int
+            Number of folds in cross-validation.
+
+        See Also
+        --------
+        For more details see `this paper <https://www.researchgate.net/publication/317201206_MeLiF_Filter_Ensemble_Learning_Algorithm_for_Gene_Selection>`_.
+
+        Examples
+        --------
+        >>> from ITMO_FS.hybrid import Melif
+        >>> from ITMO_FS.filters.univariate import UnivariateFilter
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.preprocessing import KBinsDiscretizer
+        >>> from sklearn.linear_model import LogisticRegression
+        >>> dataset = make_classification(n_samples=100, n_features=20,
+        ... n_informative=5, n_redundant=0, shuffle=False, random_state=42)
+        >>> x, y = np.array(dataset[0]), np.array(dataset[1])
+        >>> x = KBinsDiscretizer(n_bins=10, encode='ordinal',
+        ... strategy='uniform').fit_transform(x)
+        >>> filters = [UnivariateFilter('GiniIndex'),
+        ... UnivariateFilter('FechnerCorr'),
+        ... UnivariateFilter('SpearmanCorr'),
+        ... UnivariateFilter('PearsonCorr')]
+        >>> algo = Melif(LogisticRegression(), 'f1_macro', ("K best", 5),
+        ... filters, delta=0.5).fit(x, y)
+        >>> algo.selected_features_
+        array([ 3,  4,  1, 13, 16], dtype=int64)
+    """
+    def __init__(self, estimator, measure, cutting_rule, filter_ensemble,
+                 delta=0.5, points=None, seed=42, cv=3):
         self.estimator = estimator
+        self.measure = measure
         self.cutting_rule = cutting_rule
         self.filter_ensemble = filter_ensemble
-        self.scorer = scorer
-        self.test_size = test_size
         self.delta = delta
         self.points = points
-        self.verbose = verbose
         self.seed = seed
+        self.cv = cv
 
     def _fit(self, X, y):
         """
+            Runs the MeLiF algorithm on the specified dataset.
 
-        :param X:
-        :param y:
-        :param estimator:
-        :param cutting_rule:
-        :param test_size:
-        :param delta:
-        :param points:
-        :return:
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features)
+                The input samples.
+            y : array-like, shape (n_samples)
+                The classes for the samples.
+
+            Returns
+            ------
+            None
         """
-        filter_ensemble = clone(self.filter_ensemble)
-        if filter_ensemble is list:
-            self.__ensemble = WeightBased(filter_ensemble)
+
+        rng = np.random.default_rng(self.seed)
+        if type(self.filter_ensemble) is list:
+            self.__ensemble = WeightBased(self.filter_ensemble)
         else:
-            self.__ensemble = filter_ensemble
-        if self.verbose:
-            print(
-                'Running basic MeLiF\nEnsemble of :{}'.format(self.__ensemble))
+            self.__ensemble = clone(self.filter_ensemble)
 
-        self.__filter_weights = np.ones(len(self.__ensemble)) / len(
-            self.__ensemble)
-        self.best_score_ = 0
-        self.best_point_ = []
-        self.best_f_ = {}
-        self.estimator_ = clone(self.estimator)
-
-        if self.verbose:
-            print('Estimator: {}'.format(self.estimator_))
-            print("Optimizer greedy search, optimizing measure is {}".format(
-                self.scorer))
-            time = dt.datetime.now()
-            print("time:{}".format(time))
+        self.n_filters = len(self.__ensemble)
+        self.__filter_weights = np.ones(self.n_filters) / self.n_filters
 
         check_cutting_rule(self.cutting_rule)
-        self._train_x, self._test_x, self._train_y, self._test_y = train_test_split(
-            X, y, test_size=self.test_size, random_state=self.seed)
-        nu = self.__ensemble.get_score(X, y)
+        cutting_rule = apply_cr(self.cutting_rule)
+        scores = self.__ensemble.get_scores(X, y)
 
         if self.points is None:
-            points = [self.__filter_weights]
-            for i in range(len(self.__ensemble)):
-                a = np.zeros(len(self.__ensemble))
-                a[i] = 1
-                points.append(a)
+            points = np.vstack((self.__filter_weights, np.eye(self.n_filters)))
         else:
             points = self.points
         best_point_ = points[0]
-        mapping = dict(zip(range(len(nu.keys())), nu.keys()))
-        n = dict(zip(nu.keys(),
-                     self.__measure(np.array(list(nu.values())), best_point_)))
 
-        self.selected_features_ = self.cutting_rule(n)
-        self.best_f_ = {i: nu[i] for i in self.selected_features_}
-        for k, v in mapping.items():
-            nu[k] = nu.pop(v)
-        self.__search(points, nu)
-        self.selected_features_ = [mapping[i] for i in self.selected_features_]
-        for k in list(self.best_f_.keys()):
-            self.best_f_[mapping[k]] = self.best_f_.pop(k)
-        if self.verbose:
-            print('Footer')
-            print("Best point:{}".format(self.best_point_))
-            print("Best Score:{}".format(self.best_score_))
-            print('Top features:')
-            for key, value in sorted(self.best_f_.items(), key=lambda x: x[1],
-                                     reverse=True):
-                print("Feature: {}, value: {}".format(key, value))
+        self.best_score_ = 0
+        for point in points:
+            new_point, new_score = self.__search(X, y, point, scores,
+                cutting_rule, rng)
+            if new_score > self.best_score_:
+                self.best_score_ = new_score
+                self.best_point_ = new_point
+        self.selected_features_ = cutting_rule(np.dot(scores.T,
+            self.best_point_))
+        self._estimator.fit(X[:, self.selected_features_], y)
 
-    def predict(self, X):
-        return self.estimator_.predict(self.transform(X))
+    def __search(self, X, y, point, scores, cutting_rule, rng):
+        """
+            Performs a coordinate descent from the given point.
 
-    def __search(self, points, features):
-        i = 0
-        border = len(points)
-        if self.verbose:
-            time = dt.datetime.now()
-        while i < len(points):
-            point = points[i]
-            if self.verbose:
-                print('Time:{}'.format(dt.datetime.now() - time))
-                print('point:{}'.format(point))
-            self.__values = np.array(list(features.values()))
-            n = dict(
-                zip(features.keys(), self.__measure(self.__values, point)))
-            self.selected_features_ = self.cutting_rule(n)
-            new_features = {i: features[i] for i in self.selected_features_}
-            if new_features == {}:
-                break  # TODO rewrite that thing
-            self.estimator_.fit()
-            predicted = self.estimator_.predict(
-                self._test_x[:, self.selected_features_])
-            score = self.scorer(self._test_y, predicted)
-            if self.verbose:
-                print('Score at current point : {}'.format(score))
-            if score > self.best_score_ or i < border:
-                self.best_score_ = score
-                self.best_point_ = point
-                self.best_f_ = new_features
-                points += self.__get_candidates(point, self.delta)
-            i += 1
+            Parameters
+            ----------
+            X : array-like, shape (n_samples, n_features)
+                The input samples.
+            y : array-like, shape (n_samples)
+                The classes for the samples.
+            point : array-like, shape (n_filters)
+                The starting point.
+            scores : array-like, shape (n_filters, n_features)
+                The scores for the features from all filters.
+            cutting_rule : callable
+                The cutting rule to use.
+            rng : object
+                Random number generator.
 
-    def __get_candidates(self, point, delta=0.1):
-        candidates = np.tile(point, (len(point) * 2, 1)) + np.vstack(
-            (np.eye(len(point)) * delta, np.eye(len(point)) * -delta))
-        return list(candidates)
+            Returns
+            -------
+            tuple (array-like, float) : the optimal point and its score
+        """
 
-    def __score_features(self, nu, candidate):
-        n = dict(zip(nu.keys(), self.__measure(nu, candidate)))
-        scores = self.cutting_rule(n)
-        keys = list(scores.keys())
-        self.estimator_.fit()
-        return self.scorer(self._test_y,
-                           self.estimator_.predict(self._test_x[keys]))
+        best_point = point
+        selected_features = cutting_rule(np.dot(scores.T, point))
+        best_score = cross_val_score(self._estimator, X[:, selected_features],
+            y, cv=self.cv, scoring=self.measure).mean()
+        delta = np.eye(self.n_filters) * self.delta
+        changed = True
+        while changed:
+            #the original paper descends starting from the first filter;
+            #we randomize the order instead to avoid local maximas
+            order = rng.permutation(self.n_filters)
+            changed = False
+            for f in order:
+                iteration_point_plus = best_point + delta[f]
+                selected_features = cutting_rule(np.dot(scores.T,
+                    iteration_point_plus))
+                score = cross_val_score(self._estimator,
+                    X[:, selected_features], y, cv=self.cv,
+                    scoring=self.measure).mean()
+                if score > best_score:
+                    best_score = score
+                    best_point = iteration_point_plus
+                    changed = True
+                    break
 
-    def __measure(self, nu, weights):
-        return np.dot(nu, weights)
+                iteration_point_minus = best_point - delta[f]
+                selected_features = cutting_rule(np.dot(scores.T,
+                    iteration_point_minus))
+                score = cross_val_score(self._estimator,
+                    X[:, selected_features], y, cv=self.cv,
+                    scoring=self.measure).mean()
+                if score > best_score:
+                    best_score = score
+                    best_point = iteration_point_minus
+                    changed = True
+                    break
+        return best_point, best_score

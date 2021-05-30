@@ -1,28 +1,28 @@
 import numpy as np
 from sklearn.model_selection import cross_val_score
-from sklearn.base import clone
 
-from ITMO_FS.utils.data_check import *
-from ITMO_FS.utils import BaseTransformer
+from ITMO_FS.utils import BaseWrapper
 from ITMO_FS.filters.univariate.measures import su_measure, relief_measure
 
 
-class IWSSr_SFLA(BaseTransformer):
-
+class IWSSr_SFLA(BaseWrapper):
     """
-        Performs the IWSSr-SFLA (Incremental Wrapper Subset Selection with replacement and Shuffled Frog Leaping Algorithm).
+        Performs the IWSSr-SFLA (Incremental Wrapper Subset Selection with
+        replacement and Shuffled Frog Leaping Algorithm).
 
         Parameters
         ----------
         estimator : object
-            A supervised learning estimator with a fit method
+            A supervised learning estimator that should have a fit(X, y) method
+            and a predict(X) method.
         measure_iwssr : string or callable
-            A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable object / function with signature 
-            measure(estimator, X, y) which should return only a single value that would be used in the IWSSr algorithm.
+            A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable
+            with signature measure(estimator, X, y) which should return only a
+            single value that would be used in the IWSSr algorithm.
         measure_frogs : string or callable
-            A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable object / function with signature 
-            measure(estimator, X, y) which should return only a single value that would be used to measure the frog's
-            fitness value.
+            A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable
+            with signature measure(estimator, X, y) which should return only a
+            single value that would be used to measure the frog's fitness value.
         cv : int
             Number of folds in cross-validation.
         relief_iterations : int
@@ -32,13 +32,16 @@ class IWSSr_SFLA(BaseTransformer):
         sfla_n : int
             Amount of frogs in each memplex in the SFLA algorithm.
         sfla_q : int
-            Amount of frogs in each submemplex in the SFLA algorithm. Should be lower than sfla_n.
+            Amount of frogs in each submemplex in the SFLA algorithm.
+            Should be lower than sfla_n.
         s : int
-            Maximum amount of features that can change during one leap in the SFLA algorithm.
+            Maximum amount of features that can change during one leap in the
+            SFLA algorithm.
         iterations : int
             Total iteration number in the SFLA algorithm.
         iterations_leaps : int
-            Total amount of leaps that each memplex would try to do during each iteration.
+            Total amount of leaps that each memplex would try to do during each
+            iteration.
         seed : int
             Python random seed.
 
@@ -53,16 +56,19 @@ class IWSSr_SFLA(BaseTransformer):
         >>> from sklearn.datasets import make_classification
         >>> from sklearn.preprocessing import KBinsDiscretizer
         >>> from sklearn.linear_model import LogisticRegression
-        >>> algo = IWSSr_SFLA(LogisticRegression())
-        >>> X, y = make_classification(n_informative=5, n_redundant=8, n_classes=3)
-        >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='uniform')
-        >>> est.fit()
-        >>> X = est.transform(X)
-        >>> algo.fit()
-        >>> print(algo.selected_features_)
+        >>> dataset = make_classification(n_samples=100, n_features=20,
+        ... n_informative=5, n_redundant=0, shuffle=False, random_state=42)
+        >>> x, y = np.array(dataset[0]), np.array(dataset[1])
+        >>> x = KBinsDiscretizer(n_bins=10, encode='ordinal',
+        ... strategy='uniform').fit_transform(x)
+        >>> algo = IWSSr_SFLA(LogisticRegression()).fit(x, y)
+        >>> algo.selected_features_
+        array([ 1,  3,  4, 10, 13, 15, 17], dtype=int64)
     """
-    def __init__(self, estimator, measure_iwssr='accuracy', measure_frogs='accuracy', cv=3, relief_iterations=None, sfla_m=5, 
-        sfla_n=20, sfla_q=8, s=3, iterations=20, iterations_leaps=10, seed=42):
+    def __init__(self, estimator, measure_iwssr='accuracy',
+            measure_frogs='accuracy', cv=3, relief_iterations=None, sfla_m=5,
+            sfla_n=20, sfla_q=8, s=3, iterations=20, iterations_leaps=10,
+            seed=42):
         self.estimator = estimator
         self.measure_iwssr = measure_iwssr
         self.measure_frogs = measure_frogs
@@ -76,70 +82,48 @@ class IWSSr_SFLA(BaseTransformer):
         self.iterations_leaps = iterations_leaps
         self.seed = seed
 
-    def __generate_frogs(self, weights):
+    def __generate_frog(self, weights, rng):
         """
-            Generates the initial population of frogs.
+            Generates a frog from the given feature weights.
 
             Parameters
             ----------
             weights : array-like, shape (n_features)
-                Weights for the features.
+                Probabilities for the features.
+            rng : object
+                Random number generator.
 
             Returns
             -------
-            array-like, shape (sfla_m * sfla_n, ) : array of frogs; each frog is described by the selected features
+            array-like, shape (n_features) : generated frog in the form of a
+            boolean array
         """
-        frogs = []
+        f_num = rng.integers(self.n_features_) + 1
+        features = rng.choice(self.n_features_, size=f_num,
+            replace=False, p=weights)
+        frog = np.full(self.n_features_, False)
+        frog[features] = True
+        return frog
 
-        for i in range(self.sfla_m * self.sfla_n):
-            f_num = np.random.randint(self.n_features_) + 1
-            features_selected = np.random.choice(self.n_features_, size=f_num, replace=False, p=weights)
-            frogs.append(features_selected)
-
-        return frogs
-
-    def __create_memplexes(self):
+    def __create_memplexes(self, rng):
         """
             Creates sfla_m memplexes.
+
+            Parameters
+            ----------
+            rng : object
+                Random number generator.
 
             Returns
             -------
             array-like, shape (sfla_m, sfla_n)
                 The indices of frogs in each of the memplexes.
         """
-        memplexes = [[] for i in range(self.sfla_m)]
-        perm = np.random.permutation(self.sfla_m * self.sfla_n)
-        for i in range(self.sfla_m * self.sfla_n):
-            memplexes[int(perm[i] / self.sfla_n)].append(i)
-        return np.array(memplexes)
 
+        return rng.permutation(self.sfla_m * self.sfla_n).reshape((self.sfla_m,
+            self.sfla_n))
 
-    def __apply_iwssr(self, frogs, X, y):
-        """
-            Applies the IWSSr algorithm for each of the frogs.
-
-            Parameters
-            ----------
-            frogs : array-like, shape (sfla_m * sfla_n)
-                The array of frogs.
-            X : array-like, shape (n_samples, n_features)
-                The training input samples.
-            y : array-like, shape (n_samples)
-                The target values.
-
-            Returns
-            -------
-            array-like, shape (sfla_m * sfla_n, ) : array of frogs
-        """
-        frogs_transformed = []
-
-        for frog in frogs:
-            transformed_frog = frog[self.__iwssr(X[:, frog], y)]
-            frogs_transformed.append(np.array(transformed_frog))
-
-        return frogs_transformed
-
-    def __iwssr(self, X, y):
+    def __iwssr(self, X, y, frog):
         """
             Performs the IWSSr algorithm for given data.
 
@@ -149,35 +133,48 @@ class IWSSr_SFLA(BaseTransformer):
                 The training input samples.
             y : array-like, shape (n_samples)
                 The target values.
+            frog : array-like, shape (n_features)
+                A frog (boolean array) of selected features.
 
             Returns
             -------
             array-like, shape (n_selected_features) : selected features
         """
+
+        def __check_subset(subset):
+            nonlocal best_measure
+            nonlocal best_iteration_set
+
+            measure = cross_val_score(self._estimator, X[:, subset], y,
+                cv=self.cv, scoring=self.measure_iwssr).mean()
+            if measure > best_measure:
+                    best_measure = measure
+                    best_iteration_set = subset
+
+        frog_features = np.flatnonzero(frog)
+
         weights = su_measure(X, y)
         order = np.argsort(weights)[::-1]
         selected_features = np.array([order[0]])
-        best_measure = cross_val_score(self._estimator, X[:, selected_features], y, cv=self.cv,
-                                                    scoring=self.measure_iwssr).mean()
+        best_measure = cross_val_score(self._estimator, X[:, selected_features],
+            y, cv=self.cv, scoring=self.measure_iwssr).mean()
         best_iteration_set = selected_features
-        for feature in order[1:]:
-            for i in range(len(selected_features)):
-                iteration_features = np.append(np.delete(selected_features, i), feature)
-                iteration_measure = cross_val_score(self._estimator, X[:, iteration_features], y, cv=self.cv,
-                                                    scoring=self.measure_iwssr).mean()
-                if iteration_measure > best_measure:
-                    best_measure = iteration_measure
-                    best_iteration_set = iteration_features
-            added_feature = np.append(selected_features, feature)
-            added_measure = cross_val_score(self._estimator, X[:, added_feature], y, cv=self.cv,
-                                                    scoring=self.measure_iwssr).mean()
-            if added_measure > best_measure:
-                best_measure = added_measure
-                best_iteration_set = added_feature
-            selected_features = best_iteration_set
-        return selected_features
 
-    def __create_submemplex(self, fitness_values):
+        for feature in order[1:]:
+            if selected_features.shape[0] != 1:
+                for i in range(selected_features.shape[0]):
+                    __check_subset(np.append(np.delete(selected_features, i),
+                        feature))
+            __check_subset(np.append(selected_features, feature))
+            selected_features = best_iteration_set
+
+        selected_features = frog_features[selected_features]
+
+        new_frog = np.full(self.n_features_, False)
+        new_frog[selected_features] = True
+        return new_frog
+
+    def __create_submemplex(self, fitness_values, rng):
         """
             Creates a submemplex from the memplex of frogs.
 
@@ -185,24 +182,31 @@ class IWSSr_SFLA(BaseTransformer):
             ----------
             fitness_values : array-like, shape (sfla_n)
                 Fitness values for all frogs in the memplex.
+            rng : object
+                Random number generator.
 
             Returns
             -------
             array-like, shape (sfla_q) : indices of frogs in the submemplex
         """
+
         order = np.argsort(fitness_values)[::-1]
         weights = np.zeros(self.sfla_n)
-        for i in range(self.sfla_n):
-            weights[order[i]] = 2 * (self.sfla_n - i) / (self.sfla_n * (self.sfla_n + 1))
-        return np.random.choice(self.sfla_n, size=self.sfla_q, replace=False, p=weights)
+        weights[order] = np.arange(self.sfla_n)
+        weights = 2 * (self.sfla_n - weights) / (self.sfla_n *
+            (self.sfla_n + 1))
+        return rng.choice(self.sfla_n, size=self.sfla_q, replace=False,
+            p=weights)
 
-    def __leap(self, frogs, fitness_values, memplex, submemplex, X, y, relief_weights):
+    def __leap(self, frogs, fitness_values, memplex, submemplex, X, y,
+        relief_weights, rng):
         """
-            Creates a new worst frog in the submemplex by trying to make it leap towards better frogs.
+            Creates a new worst frog in the submemplex by trying to make it
+            leap towards better frogs.
 
             Parameters
             ----------
-            frogs : array-like, shape (sfla_n * sfla_m, )
+            frogs : array-like, shape (sfla_n * sfla_m, n_features)
                 The population of frogs.
             fitness_values : array-like, shape (sfla_n * sfla_m)
                 Fitness value for each frog.
@@ -216,70 +220,89 @@ class IWSSr_SFLA(BaseTransformer):
                 The target values.
             relief_weights : array-like, shape (n_features)
                 Weights for the features.
+            rng : object
+                Random number generator.
 
             Returns
             -------
-            tuple (int, array-like, float) : index of the worst frog in the submemplex, the new worst frog and its fitness value
+            tuple (int, array-like, float) : index of the worst frog in the
+            submemplex, the new worst frog and its fitness value
         """
+
         memplex_best_frog = memplex[np.argsort(fitness_values[memplex])[-1]]
-        submemplex_worst_frog = submemplex[np.argsort(fitness_values[submemplex])[0]]
+        submemplex_worst_frog = submemplex[np.argsort(
+            fitness_values[submemplex])[0]]
         worst_frog_fitness = fitness_values[submemplex_worst_frog]
 
-        new_worst_frog = self.__leap_towards(frogs[memplex_best_frog], frogs[submemplex_worst_frog], X, y)
-        new_worst_frog_fitness = cross_val_score(self._estimator, X[:, new_worst_frog], y, cv=self.cv,
-                                                scoring=self.measure_frogs).mean()
+        new_worst_frog = self.__leap_towards(frogs[memplex_best_frog],
+            frogs[submemplex_worst_frog], X, y, rng)
+        new_worst_frog_fitness = cross_val_score(self._estimator,
+            X[:, new_worst_frog], y, cv=self.cv,
+            scoring=self.measure_frogs).mean()
         if new_worst_frog_fitness > worst_frog_fitness:
             return submemplex_worst_frog, new_worst_frog, new_worst_frog_fitness
 
         population_best_frog = np.argsort(fitness_values)[-1]
-        new_worst_frog = self.__leap_towards(frogs[population_best_frog], frogs[submemplex_worst_frog], X, y)
-        new_worst_frog_fitness = cross_val_score(self._estimator, X[:, new_worst_frog], y, cv=self.cv,
-                                                scoring=self.measure_frogs).mean()
+        new_worst_frog = self.__leap_towards(frogs[population_best_frog],
+            frogs[submemplex_worst_frog], X, y, rng)
+        new_worst_frog_fitness = cross_val_score(self._estimator,
+            X[:, new_worst_frog], y, cv=self.cv,
+            scoring=self.measure_frogs).mean()
         if new_worst_frog_fitness > worst_frog_fitness:
             return submemplex_worst_frog, new_worst_frog, new_worst_frog_fitness
 
-        new_worst_frog = np.random.choice(self.n_features_, size=np.random.randint(self.n_features_) + 1, 
-                                            replace=False, p=relief_weights)
-        new_worst_frog_fitness = cross_val_score(self._estimator, X[:, new_worst_frog], y, cv=self.cv,
-                                                scoring=self.measure_frogs).mean()
-        if new_worst_frog_fitness > worst_frog_fitness:
-            return submemplex_worst_frog, new_worst_frog, new_worst_frog_fitness
-        else:
-            return submemplex_worst_frog, frogs[submemplex_worst_frog], worst_frog_fitness
+        new_worst_frog = self.__generate_frog(relief_weights, rng)
+        new_worst_frog_fitness = cross_val_score(self._estimator,
+            X[:, new_worst_frog], y, cv=self.cv,
+            scoring=self.measure_frogs).mean()
+        return submemplex_worst_frog, new_worst_frog, new_worst_frog_fitness
 
-    def __leap_towards(self, frog_to, frog_from, X, y):
+    def __leap_towards(self, frog_to, frog_from, X, y, rng):
         """
             Performs a leap from the worse frog to the better frog.
 
             Parameters
             ----------
-            frog_to : array-like
+            frog_to : array-like, shape (n_features)
                 The better frog (one to leap to).
-            frog_from : array-like
+            frog_from : array-like, shape (n_features)
                 The worse frog (one that leaps).
             X : array-like, shape (n_samples, n_features)
                 The training input samples.
             y : array-like, shape (n_samples)
                 The target values.
+            rng : object
+                Random number generator.
 
             Returns
             -------
-            array-like : the new worst frog
+            array-like, shape (n_features) : the new worst frog
         """
-        if len(frog_to) > len(frog_from):
-            to_add = np.setdiff1d(frog_to, frog_from)
+
+        len_to = np.count_nonzero(frog_to)
+        len_from = np.count_nonzero(frog_from)
+        if len_to > len_from:
+            to_add = frog_to & np.logical_not(frog_from)
             weights = su_measure(X[:, to_add], y)
             weights /= np.sum(weights)
-            features_num = min(min(int(np.random.rand() * (len(frog_to) - len(frog_from))), self.s), len(to_add))
-            new_worst_frog = np.append(frog_from, np.random.choice(to_add, size=features_num, replace=False, p=weights))
+            features_num = min(min(int(rng.random() * (len_to - len_from)),
+                self.s), np.count_nonzero(to_add))
+            added_features = rng.choice(np.flatnonzero(to_add),
+                size=features_num, replace=False, p=weights)
+            new_worst_frog = np.copy(frog_from)
+            new_worst_frog[added_features] = True
         else:
             weights = su_measure(X[:, frog_from], y)
             weights /= np.sum(weights)
-            features_num = min(min(int(np.random.rand() * (len(frog_from) - len(frog_to))), self.s), len(frog_from) - 1)
-            new_worst_frog = np.random.choice(frog_from, size=len(frog_from) - features_num, replace=False, p=weights)
+            features_num = min(min(int(rng.random() * (len_from - len_to)),
+                self.s), len_from - 1)
+            left_features = rng.choice(np.flatnonzero(frog_from),
+                size=len_from - features_num, replace=False, p=weights)
+            new_worst_frog = np.full(self.n_features_, False)
+            new_worst_frog[left_features] = True
         return new_worst_frog
 
-    def __apply_sfla(self, frogs, X, y, relief_weights):
+    def __apply_sfla(self, frogs, X, y, relief_weights, rng):
         """
             Applies the SFLA algorithm to a population of frogs.
 
@@ -293,19 +316,28 @@ class IWSSr_SFLA(BaseTransformer):
                 The target values.
             relief_weights : array-like, shape (n_features)
                 Weights for the features.
+            rng : object
+                Random number generator.
 
             Returns
             -------
-            array-like, shape (sfla_n * sfla_m, ) : the evolved population of frogs
+            array-like, shape (sfla_n * sfla_m, ) : the evolved population of
+            frogs
         """
+
         for _ in range(self.iterations):
-            fitness_values = np.array(list(map(lambda frog: cross_val_score(self._estimator, X[:, frog], y, cv=self.cv,
-                                                    scoring=self.measure_frogs).mean(), frogs)))
-            memplexes = self.__create_memplexes()
+            fitness_values = np.vectorize(lambda frog:
+                cross_val_score(self._estimator, X[:, frog], y, cv=self.cv,
+                scoring=self.measure_frogs).mean(), signature='(1)->()')(frogs)
+            memplexes = self.__create_memplexes(rng)
             for memplex in memplexes:
                 for _ in range(self.iterations_leaps):
-                    submemplex = memplex[self.__create_submemplex(fitness_values[memplex])]
-                    worst_frog_index, new_worst_frog, new_worst_frog_fitness = self.__leap(frogs, fitness_values, memplex, submemplex, X, y, relief_weights)
+                    submemplex = memplex[self.__create_submemplex(
+                        fitness_values[memplex], rng)]
+                    (worst_frog_index, new_worst_frog,
+                        new_worst_frog_fitness) = self.__leap(frogs,
+                            fitness_values, memplex, submemplex, X, y,
+                            relief_weights, rng)
                     frogs[worst_frog_index] = new_worst_frog
                     fitness_values[worst_frog_index] = new_worst_frog_fitness
         return frogs
@@ -327,16 +359,22 @@ class IWSSr_SFLA(BaseTransformer):
             None
         """
 
-        np.random.seed(self.seed)
-        self._estimator = clone(self.estimator)
+        rng = np.random.default_rng(self.seed)
 
-        relief_weights = relief_measure(X, y, self.relief_iterations)
+        #TODO: adding 1 ensures we have no negative probabilities; the paper
+        #doesn't say anything about that
+        relief_weights = relief_measure(X, y, self.relief_iterations,
+            random_state=self.seed) + 1
         relief_weights /= np.sum(relief_weights)
 
-        frogs = self.__generate_frogs(relief_weights)
-        frogs = self.__apply_iwssr(frogs, X, y)
-        frogs = self.__apply_sfla(frogs, X, y, relief_weights)
+        frogs = np.vectorize(lambda _: self.__generate_frog(relief_weights,
+            rng), signature='()->(1)')(np.arange(self.sfla_m * self.sfla_n))
+        frogs = np.vectorize(lambda frog: self.__iwssr(X[:, frog], y, frog),
+            signature='(1)->(1)')(frogs)
+        frogs = self.__apply_sfla(frogs, X, y, relief_weights, rng)
 
-        fitness_values = np.array(list(map(lambda frog: cross_val_score(self._estimator, X[:, frog], y, cv=self.cv,
-                                                    scoring=self.measure_frogs).mean(), frogs)))
+        fitness_values = np.vectorize(lambda frog:
+            cross_val_score(self._estimator, X[:, frog], y, cv=self.cv,
+            scoring=self.measure_frogs).mean(), signature='(1)->()')(frogs)
+        self.best_score_ = np.max(fitness_values)
         self.selected_features_ = frogs[np.argmax(fitness_values)]

@@ -47,12 +47,8 @@ class WeightBased(BaseTransformer):
         >>> wb.selected_features_
         array([4, 1], dtype=int64)
     """
-    def __init__(
-            self,
-            filters,
-            cutting_rule,
-            fusion_function=weight_fusion,
-            weights=None):
+    def __init__(self, filters, cutting_rule=("K best", 2),
+            fusion_function=weight_fusion, weights=None):
         self.filters = filters
         self.cutting_rule = cutting_rule
         self.fusion_function = fusion_function
