@@ -38,16 +38,13 @@ class MultivariateFilter(BaseTransformer):
         >>> import numpy as np
 
         >>> est = KBinsDiscretizer(n_bins=10, encode='ordinal')
-        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-        >>> est.fit()
-        KBinsDiscretizer(encode='ordinal', n_bins=10)
-        >>> data = est.transform(X)
-        >>> model = MultivariateFilter('MIM', 3)
-        >>> model.fit()
+        >>> x = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 3, 4, 5])
+        >>> data = est.fit_transform(x)
+        >>> model = MultivariateFilter('JMI', 3).fit(x, y)
         >>> model.selected_features_
-        array([4, 0, 1])
+        array([4, 0, 1], dtype=int64)
     """
 
     def __init__(self, measure, n_features, beta=None, gamma=None):
@@ -85,21 +82,25 @@ class MultivariateFilter(BaseTransformer):
                 (self.n_features, self.n_features_))
         free_features = generate_features(X)
         self.selected_features_ = np.array([], dtype='int')
+
         relevance = np.apply_along_axis(mutual_information, 0,
                                         X[:, free_features],
                                         y)
 
         redundancy = np.vectorize(
-            lambda free_feature: np.sum(
-                matrix_mutual_information(X[:, free_feature],
-                                          X[:, free_feature])))(
+            lambda free_feature: 
+                matrix_mutual_information(X[:, free_features],
+                                          X[:, free_feature]),
+                signature='()->(1)')(
             free_features)
 
         while len(self.selected_features_) != self.n_features:
             if self.beta is None:
                 values = self.measure(
                     self.selected_features_, free_features, X, y,
-                    relevance=relevance)
+                    relevance=relevance[free_features],
+                    redundancy=np.sum(redundancy[self.selected_features_],
+                        axis=0)[free_features])
             else:
                 if self.gamma is not None:
                     values = self.measure(
@@ -108,14 +109,20 @@ class MultivariateFilter(BaseTransformer):
                         X,
                         y,
                         self.beta,
-                        self.gamma, relevance=relevance, redundancy=redundancy)
+                        self.gamma, 
+                        relevance=relevance[free_features], 
+                        redundancy=np.sum(redundancy[self.selected_features_],
+                            axis=0)[free_features])
                 else:
                     values = (self.measure(
                         self.selected_features_,
                         free_features,
                         X,
                         y,
-                        self.beta, relevance=relevance, redundancy=redundancy)
+                        self.beta, 
+                        relevance=relevance[free_features], 
+                        redundancy=np.sum(redundancy[self.selected_features_],
+                            axis=0)[free_features])
                     )
             to_add = np.argmax(values)
             self.selected_features_ = np.append(

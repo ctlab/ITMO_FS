@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.metrics import f1_score
+from sklearn.metrics.pairwise import euclidean_distances
 
 def normalize(x):
     x = np.abs(np.array(x))
@@ -15,13 +16,13 @@ def cartesian(rw, cl):  # returns cartesian product for passed numpy arrays as t
 def weight_func(model):  # weight function used in MOS testing
     return model.coef_[0]
 
-def test_scorer(y_true, y_pred):
+def f1_scorer(y_true, y_pred):
     return f1_score(y_true, y_pred, average='micro')
 
 def augmented_rvalue(X, y, k=7, theta=3):
     """
-    Calculates the augmented R-value for a dataset with two (0, 1) classes. 
-    The original paper supposes that the majority of objects are of class 0 (negative).
+    Calculates the augmented R-value for a dataset with two classes. 
+
         Parameters
         ----------
         X : array-like, shape (n_samples,n_features)
@@ -31,11 +32,13 @@ def augmented_rvalue(X, y, k=7, theta=3):
         k : int
             The amount of nearest neighbors used in the calculation.
         theta : int
-            The threshold value: if from k nearest neighbors of an object more than theta of them are of a different class, 
-            then this object is in the overlap region.
+            The threshold value: if from k nearest neighbors of an object more
+            than theta of them are of a different class, then this object is in
+            the overlap region.
         Returns
         ------
-        float - the augmented R-value for the dataset; the value is in the range [-1, 1].
+        float - the augmented R-value for the dataset; the value is in
+        the range [-1, 1].
 
         Notes
         -----
@@ -44,6 +47,7 @@ def augmented_rvalue(X, y, k=7, theta=3):
     """
     unique, counts = np.unique(y, return_counts=True)
     freq = sorted(list(zip(unique, counts)), key=lambda x: x[1], reverse=True)
+    dm = euclidean_distances(X, X)
     Rs = []
     Cs = []
 
@@ -51,36 +55,52 @@ def augmented_rvalue(X, y, k=7, theta=3):
         Cs.append(frequency)
         count = 0
         for elem in [i for i, x in enumerate(y) if x == label]:
-            nearest = knn(X, y, elem, k) # TODO: should probably rewrite this using sklearn's knn or pairwise_distances
-            count += np.sign(max(k - list(map(lambda x: y[x], nearest)).count(label) - theta, 0))
+            nearest = knn_from_class(dm, y, elem, k, 1, anyClass=True)
+            count += np.sign(k - list(map(lambda x: y[x], nearest)).count(label)
+                - theta)
         Rs.append(count / frequency)
     Cs = Cs[::-1]
     return np.dot(Rs, Cs) / len(X)
 
 
-def knn(X, y, index, k, allClasses=True):
+def knn_from_class(distances, y, index, k, cl, anyOtherClass=False,
+        anyClass=False):
     """
-    Returns the indices of k nearest neighbors of X[index].
+    Returns the indices of k nearest neighbors of X[index] from the selected 
+    class.
         Parameters
         ----------
-        X : array-like, shape (n_samples,n_features)
-            The input samples.
+        distances : array-like, shape (n_samples, n_samples)
+            The distance matrix of the input samples.
         y : array-like, shape (n_samples)
             The classes for the samples.
         index : int
             The index of an element.
         k : int
             The amount of nearest neighbors to return.
-        allClasses : bool
-            If false, returns only k nearest neighbors belonging to the same class.
+        cl : int
+            The class label for the nearest neighbors.
+        anyClass : bool
+            If True, returns neighbors not belonging to the same class
+            as X[index].
+
         Returns
         ------
-        array-like, shape(k) - the indices of the nearest neighbors
+        array-like, shape (k) - the indices of the nearest neighbors
     """
-    distances = map(lambda x: (x[0], np.linalg.norm(X[index] - x[1])),
-                    [(i, x) for i, x in enumerate(X) if i != index and (allClasses or y[i] == y[index])])
-    nearest = sorted(distances, key=lambda x: x[1])[:k]
-    return np.array(list(map(lambda x: x[0], nearest)))
+    y_c = np.copy(y)
+    if anyOtherClass:
+        cl = y_c[index] + 1
+        y_c[y_c != y_c[index]] = cl
+    if anyClass:
+        y_c.fill(cl)
+    class_indices = np.nonzero(y_c == cl)[0]
+    distances_class = distances[index][class_indices]
+    nearest = np.argsort(distances_class)
+    if y_c[index] == cl:
+        nearest = nearest[1:]
+
+    return class_indices[nearest[:k]]
 
 def matrix_norm(M):
     """

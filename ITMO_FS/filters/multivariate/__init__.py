@@ -1,6 +1,5 @@
 from .DISRwithMassive import *
 from .FCBF import *
-from .JMIM import *
 from .MultivariateFilter import MultivariateFilter
 from .measures import *
 from .TraceRatioFisher import TraceRatioFisher

@@ -45,6 +45,7 @@ class MyTestCase(unittest.TestCase):
                    fechner_corr,
                    spearman_corr,
                    pearson_corr]
+
         ensemble = Mixed(filters, k=100, fusion_function=borda_fusion)
         ensemble.fit(data, target)
         ensemble.transform(data)
@@ -77,7 +78,6 @@ class MyTestCase(unittest.TestCase):
                    UnivariateFilter(pearson_corr)]
         weights = [0.5, 0.5, 0.5, 0.5]
         ensemble = WeightBased(filters, select_k_best(100), weights=weights)
-
         ensemble.fit(data, target)
         ensemble.transform(data)
         assert len(ensemble) == len(filters)
@@ -186,7 +186,6 @@ class MyTestCase(unittest.TestCase):
         models = [UnivariateFilter(pearson_corr,select_k_best(10))]
         ensemble = BestSum(models, select_k_best(50))
         ensemble.fit(data, target)
-
 
 if __name__ == '__main__':
     unittest.main()

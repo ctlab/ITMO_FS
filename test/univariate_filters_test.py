@@ -182,13 +182,13 @@ class TestCases(unittest.TestCase):
             res = univ_filter.transform(data)
             assert i == res.shape[1]
 
-    def test_igain(self):  # TODO: wrong values
+    def test_igain(self):
         iris_dataset = load_iris()
         X = iris_dataset.data
         y = iris_dataset.target
         X = X.astype(int)
         res = information_gain(X, y)
-        true_res = mutual_info_classif(X, y)
+        true_res = mutual_info_classif(X, y, discrete_features=True)
         np.testing.assert_allclose(res, true_res, rtol=0.12)
 
     def test_mi(self):
@@ -240,14 +240,14 @@ class TestCases(unittest.TestCase):
         # univ_filter.fit(X, y)
         # print(univ_filter.selected_features_)
 
-    def test_def_cr(self):  # TODO: wrong values
+    def test_def_cr(self):
         iris_dataset = load_iris()
         X = iris_dataset.data
         y = iris_dataset.target
         X = X.astype(int)
-        univ_filter = UnivariateFilter('FechnerCorr')
+        univ_filter = UnivariateFilter('FechnerCorr', cutting_rule=('K best', 2))
         univ_filter.fit(X, y)
-        assert univ_filter.selected_features_ == [0, 2, 3]
+        assert univ_filter.selected_features_ == [3, 2]
 
     def test_pipeline(self):
         iris_dataset = load_iris()
@@ -265,7 +265,7 @@ class TestCases(unittest.TestCase):
         p.fit(X, y)
         assert 0 <= p.score(X, y) <= 1
 
-        p = Pipeline([('FS1', UnivariateFilter('FechnerCorr', ('K best', 3))),
+        p = Pipeline([('FS1', NDFS(3)),
                       ('FS2', UnivariateFilter('PearsonCorr', ('K best', 1)))])
 
         result = p.fit_transform(X, y)
@@ -277,10 +277,30 @@ class TestCases(unittest.TestCase):
         p.fit(X, y)
         assert 0 <= p.score(X, y) <= 1
 
-    def test_est(self):
-        univ_filter = UnivariateFilter('FechnerCorr', ('K best', 2))
+    def test_NDFS(self):
+        # NDFS
+        data, target = self.wide_classification[0], self.wide_classification[1]
+        res = NDFS(10).fit_transform(data, target)
+        assert data.shape[0] == res.shape[0]
+        print("NDFS:", data.shape, '--->', res.shape)
 
-        check_estimator(univ_filter)
+    def test_RFS(self):
+        # RFS
+        data, target = self.wide_classification[0], self.wide_classification[1]
+        res = RFS(10).fit_transform(data, target)
+        assert data.shape[0] == res.shape[0]
+        print("RFS:", data.shape, '--->', res.shape)
+
+    def test_SPEC(self):
+        # SPEC
+        data, target = self.wide_classification[0], self.wide_classification[1]
+        res = SPEC(10).fit_transform(data, target)
+        assert data.shape[0] == res.shape[0]
+        print("SPEC:", data.shape, '--->', res.shape)
+
+    def test_est(self):
+        for f in [UnivariateFilter('FechnerCorr', ('K best', 2)), NDFS(2), RFS(2), SPEC(2, gamma=np.square)]:
+            check_estimator(f)
 
     def test_qpfs_restrictions(self):
         iris_dataset = load_iris()

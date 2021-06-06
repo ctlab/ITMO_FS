@@ -10,7 +10,7 @@ from sklearn.utils.estimator_checks import check_estimator
 from ITMO_FS.ensembles import WeightBased
 from ITMO_FS.filters import *
 from ITMO_FS.hybrid.Melif import Melif
-from ITMO_FS.utils import test_scorer
+from ITMO_FS.utils import f1_scorer
 
 
 class MyTestCase(unittest.TestCase):
@@ -70,7 +70,7 @@ class MyTestCase(unittest.TestCase):
             print('|', datetime.datetime.now() - start, '|')
 
     def test_est(self):
-        melif = Melif(self.estimator, select_k_best(2), self.ensemble, scorer=test_scorer)
+        melif = Melif(self.estimator, select_k_best(2), self.ensemble, scorer=f1_scorer)
         check_estimator(melif)
 
 
