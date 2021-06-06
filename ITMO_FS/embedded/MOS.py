@@ -13,8 +13,9 @@ class MOS(BaseTransformer):
         Parameters
         ----------
         model : object
-            The model that will be used. Currently only SGDClassifier should be
-            passed, other models would not work.
+            The model that should have a fit(X, y) method and a field
+            corresponding to feature weights. Currently only SGDClassifier
+            should be passed, other models would not work.
         weight_func : callable
             The function to extract weights from the model.
         loss : str, 'log' or 'hinge', optional
@@ -50,15 +51,20 @@ class MOS(BaseTransformer):
         >>> import numpy as np
         >>> from sklearn.datasets import make_classification
         >>> from sklearn.linear_model import LogisticRegression
-        >>> dataset = make_classification(n_samples=100, n_features=20)
-        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
-        >>> for i in range(50):  # create imbalance between classes
-        ...     target[i] = 0
+        >>> dataset = make_classification(n_samples=100, n_features=10, \
+            n_informative=5, n_redundant=0, weights=[0.85, 0.15], \
+            random_state=42, shuffle=False)
+        >>> X, y = np.array(dataset[0]), np.array(dataset[1])
         >>> m = MOS(model=SGDClassifier(),
-        ...         weight_func=lambda model: model.coef_[0])
-        >>> m.fit()
-        >>> m.transform(data).shape[0]
-        100
+        ... weight_func=lambda model: np.square(model.coef_)
+        ... .sum(axis=0)).fit(X, y)
+        >>> m.selected_features_
+        array([1, 3, 4], dtype=int64)
+        >>> m = MOS(model=SGDClassifier(), sampling=True,
+        ... weight_func=lambda model: np.square(model.coef_)
+        ... .sum(axis=0)).fit(X, y)
+        >>> m.selected_features_
+        array([1, 3, 4, 6], dtype=int64)
     """
 
     def __init__(
@@ -68,14 +74,15 @@ class MOS(BaseTransformer):
             loss='log',
             seed=42,
             l1_ratio=0.5,
-            threshold=10e-4,
+            threshold=1e-3,
             epochs=1000,
             alphas=np.arange(
-                0.0002,
-                0.02,
-                0.0002),
+                0.01,
+                0.2,
+                0.01),
             sampling=False,
             k_neighbors=2):
+
         self.model = model
         self.weight_func = weight_func
         self.loss = loss

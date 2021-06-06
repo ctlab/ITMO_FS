@@ -5,8 +5,8 @@ from ...utils import l21_norm, matrix_norm, BaseTransformer
 
 class RFS(BaseTransformer):
     """
-    Performs the Robust Feature Selection via Joint L2,1-Norms Minimization
-    algorithm.
+        Performs the Robust Feature Selection via Joint L2,1-Norms Minimization
+        algorithm.
 
         Parameters
         ----------
@@ -30,23 +30,24 @@ class RFS(BaseTransformer):
         Examples
         --------
         >>> from ITMO_FS.filters.univariate import RFS
-        >>> from sklearn.datasets import make_classification
         >>> import numpy as np
-        >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
-        >>> model = RFS(gamma=15, epsilon=1e-12)
-        >>> model.fit_transform(data, target)
+        >>> X = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[1, 1, 3, 1, 4], [2, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 1, 1, 2])
+        >>> model = RFS(2).fit(X, y)
+        >>> model.selected_features_
+        array([0, 3], dtype=int64)
     """
 
     def __init__(self, n_features, gamma=1, max_iterations=1000, epsilon=1e-5):
-        self.n_features_ = n_features
+        self.n_features = n_features
         self.gamma = gamma
         self.max_iterations = max_iterations
         self.epsilon = epsilon
 
     def _fit(self, X, y):
         """
-            Fits the algorithm.
+            Fits the filter.
 
             Parameters
             ----------
@@ -81,16 +82,13 @@ class RFS(BaseTransformer):
         previous_target = 0
         for step in range(self.max_iterations):
             D_inv = np.linalg.inv(D)
-            U = D_inv.dot(A.T).dot(np.linalg.inv(A.dot(D_inv).dot(A.T))).dot(Y)
             U = np.dot(np.dot(np.dot(D_inv, A.T),
                               np.linalg.inv(np.dot(np.dot(A, D_inv), A.T))), Y)
             diag = 2 * matrix_norm(U)
             diag[diag < 1e-10] = 1e-10  # prevents division by zero
             D = np.diag(1 / diag)
 
-            target = l21_norm(
-                X.dot(U[:self.n_features_]) - Y) + self.gamma * l21_norm(
-                U[:self.n_features_])
+            target = l21_norm(U)
             if step > 0 and abs(target - previous_target) < self.epsilon:
                 break
             previous_target = target

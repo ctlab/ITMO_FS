@@ -1,28 +1,28 @@
 import random
-
+import numpy as np
 
 def best_goes_first_fusion(filter_results, k):
     """
-        Fusion function mixes filter results according feature appearance in range
-        of each filter. Selects first k of them.
+        Fusion function mixes filter results according feature appearance in
+        range of each filter. Selects first k of them.
+
         Parameters
         ----------
-        filter_results : list of tuples
-        k : int,
+        filter_results : array-like, shape (n_filters, n_features)
+            Feature ranking for all filters.
+        k : int
+            Amount of features to select.
 
         Returns
         -------
-        list of selected features
+        array-like, shape (k) : selected features
     """
-    result = []
+    result = np.array([], dtype='int')
     place = 0
-    filter_results = [[r[0] for r in result] for result in filter_results]
-    while (len(result) < k) and (place < k):
-        placed_features = list(map(list, zip(*filter_results)))[
-            place]  # take only features at index=place in filter array
+    while len(result) < k:
+        placed_features = np.setdiff1d(filter_results[:, place], result)
         random.shuffle(placed_features)
-        [result.append(z) for z in list(set(placed_features)) if
-         z not in result]
+        result = np.append(result, placed_features)
         place += 1
     return result[:k]
 
@@ -30,21 +30,20 @@ def best_goes_first_fusion(filter_results, k):
 def borda_fusion(filter_results, k):
     """
         Fusion function according to borda function
+
         Parameters
         ----------
-        filter_results : list of tuples
-        k : int,
+        filter_results : array-like, shape (n_filters, n_features)
+            Feature ranking for all filters.
+        k : int
+            Amount of features to select.
 
         Returns
         -------
-        list of selected features
-        """
-    filter_results = [
-        {r[0]: p for r, p in zip(result, range(1, len(result) + 1))} for result
-        in filter_results]
-    result = filter_results[0]
-    for filter_ in filter_results[1:]:
-        for key in filter_.keys():
-            result[key] += filter_[key]
-    return list(dict(
-        sorted(result.items(), key=lambda kv: kv[1], reverse=True)).keys())[:k]
+        array-like, shape (k) : selected features
+    """
+    n_features = filter_results.shape[1]
+    scores = np.zeros(n_features)
+    for f in filter_results:
+        scores[f] += np.arange(1, n_features + 1)
+    return np.argsort(scores)[:k]

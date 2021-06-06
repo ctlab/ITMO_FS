@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.linalg import eigh
-from ...utils import knn, l21_norm, matrix_norm, BaseTransformer
+from sklearn.neighbors import NearestNeighbors
+from ...utils import l21_norm, matrix_norm, BaseTransformer
 
 
 class UDFS(BaseTransformer):
@@ -18,12 +19,14 @@ class UDFS(BaseTransformer):
         gamma : float
             Regularization term in the target function.
         l : float
-            Parameter that controls the invertibility of the matrix used in computing of B.
+            Parameter that controls the invertibility of the matrix used in
+            computing of B.
         max_iterations : int
             Maximum amount of iterations to perform.
         epsilon : positive float
-            Specifies the needed residual between the target functions from consecutive iterations. If the residual
-            is smaller than epsilon, the algorithm is considered to have converged.
+            Specifies the needed residual between the target functions from
+            consecutive iterations. If the residual is smaller than epsilon,
+            the algorithm is considered to have converged.
 
         Notes
         -----
@@ -35,11 +38,13 @@ class UDFS(BaseTransformer):
         >>> from ITMO_FS.filters.unsupervised import UDFS
         >>> from sklearn.datasets import make_classification
         >>> import numpy as np
-        >>> dataset = make_classification(n_samples=100, n_features=20, \
-n_informative=4, n_redundant=0, shuffle=False)
-        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
-        >>> model = UDFS(p=5, c=2)
-        >>> model.fit_transform(data, target)
+        >>> dataset = make_classification(n_samples=500, n_features=100, \
+            n_informative=5, n_redundant=0, random_state=42, \
+            shuffle=False, n_clusters_per_class=1)
+        >>> X, y = np.array(dataset[0]), np.array(dataset[1])
+        >>> model = UDFS(5).fit(X)
+        >>> model.selected_features_
+        array([ 2,  3, 19, 90, 92], dtype=int64)
     """
 
     def __init__(self, n_features, c=2, k=3, gamma=1, l=1e-6,
@@ -52,15 +57,15 @@ n_informative=4, n_redundant=0, shuffle=False)
         self.max_iterations = max_iterations
         self.epsilon = epsilon
 
-    def _fit(self, X, y,**fit_params):
+    def _fit(self, X, y):
         """
-            Fits filter
+            Fits the filter.
 
             Parameters
             ----------
-            X : numpy array, shape (n_samples, n_features)
+            X : array-like, shape (n_samples, n_features)
                 The training input samples.
-            y : numpy array
+            y : array-like
                 The target values (ignored).
 
             Returns
@@ -75,35 +80,45 @@ n_informative=4, n_redundant=0, shuffle=False)
             return S
 
         if self.epsilon < 0:
-            raise ValueError("Epsilon should be positive, %d passed" % self.epsilon)
+            raise ValueError("Epsilon should be positive, %d passed" %
+                self.epsilon)
 
         n_samples = X.shape[0]
 
         if self.n_features > self.n_features_:
-            raise ValueError("Cannot select %d features with n_features = %d" % (self.n_features, self.n_features_))
+            raise ValueError("Cannot select %d features with n_features = %d" %
+                (self.n_features, self.n_features_))
 
         if self.c > n_samples:
-            raise ValueError("Cannot find %d clusters with n_samples = %d" % (self.c, n_samples))
+            raise ValueError("Cannot find %d clusters with n_samples = %d" %
+                (self.c, n_samples))
 
         if self.k >= n_samples:
-            raise ValueError("Cannot select %d nearest neighbors with n_samples = %d" % (self.k, n_samples))
+            raise ValueError("Cannot select %d nearest neighbors with n_samples \
+                = %d" % (self.k, n_samples))
 
         indices = list(range(n_samples))
-        H = np.eye(self.k + 1) - np.ones((self.k + 1, self.k + 1)) / (self.k + 1)
         I = np.eye(self.k + 1)
-        neighbors = np.vectorize(lambda idx: np.append([idx], knn(X, y, idx, self.k)), signature='()->(1)')(indices)
-        X_centered = np.apply_along_axis(lambda arr: X[arr].T.dot(H), 1, neighbors)
+        H = I - np.ones((self.k + 1, self.k + 1)) / (self.k + 1)
+
+        neighbors = NearestNeighbors(n_neighbors=self.k + 1,
+            algorithm='ball_tree').fit(X).kneighbors(X, return_distance=False)
+        X_centered = np.apply_along_axis(lambda arr: X[arr].T.dot(H), 1,
+            neighbors)
+
         S = np.apply_along_axis(lambda arr: construct_S(arr), 1, neighbors)
-        B = np.vectorize(lambda idx: np.linalg.inv(X_centered[idx].T.dot(X_centered[idx]) + self.l * I),
-                         signature='()->(1,1)')(indices)
-        Mi = np.vectorize(lambda idx: S[idx].dot(H).dot(B[idx]).dot(H).dot(S[idx].T), signature='()->(1,1)')(indices)
+        B = np.vectorize(lambda idx: np.linalg.inv(X_centered[idx].T
+                .dot(X_centered[idx]) + self.l * I), signature='()->(1,1)')(
+            indices)
+        Mi = np.vectorize(lambda idx: S[idx].dot(H).dot(B[idx]).dot(H).
+                dot(S[idx].T), signature='()->(1,1)')(indices)
         M = X.T.dot(Mi.sum(axis=0)).dot(X)
 
         D = np.eye(self.n_features_)
         previous_target = 0
         for step in range(self.max_iterations):
             P = M + self.gamma * D
-            _, W = eigh(a=P, eigvals=(0, self.c - 1))
+            _, W = eigh(a=P, subset_by_index=[0, self.c - 1])
             diag = 2 * matrix_norm(W)
             diag[diag < 1e-10] = 1e-10  # prevents division by zero
             D = np.diag(1 / diag)

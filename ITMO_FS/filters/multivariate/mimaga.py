@@ -114,6 +114,9 @@ def cross_and_mutate(pc, pm, population):
 
 class MIMAGA(BaseTransformer):
 
+    def _fit(self, X, y, param):
+        pass
+
     def __init__(self, mim_size, pop_size, max_iter=20, f_target=0.8, k1=0.6,
                  k2=0.3, k3=0.9, k4=0.001):
         """

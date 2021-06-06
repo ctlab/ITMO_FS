@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.linalg import eigh
-from scipy.spatial.distance import cosine
-from ...utils import knn, l21_norm, matrix_norm, power_neg_half, BaseTransformer
+from ...utils import l21_norm, matrix_norm, power_neg_half, BaseTransformer
+from sklearn.metrics.pairwise import pairwise_distances
 
 
 class SPEC(BaseTransformer):
@@ -15,7 +15,8 @@ class SPEC(BaseTransformer):
         k : int
             Amount of clusters to find.
         gamma : callable
-            An "increasing function that penalizes high frequency components". Default is gamma(x) = x^2.
+            An "increasing function that penalizes high frequency components".
+            Default is gamma(x) = x^2.
         sigma : float
             Parameter for the weighting scheme.
         phi_type : int (1, 2 or 3)
@@ -29,16 +30,20 @@ class SPEC(BaseTransformer):
         Examples
         --------
         >>> from ITMO_FS.filters.univariate import SPEC
-        >>> from sklearn.datasets import make_classification
         >>> import numpy as np
-        >>> dataset = make_classification(n_samples=100, n_features=20, n_informative=4, n_redundant=0, shuffle=False)
-        >>> data, target = np.array(dataset[0]), np.array(dataset[1])
-        >>> model = SPEC(5)
-        >>> model.fit_transform(data, target)
-
+        >>> X = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3], \
+[1, 1, 3, 1, 4], [2, 4, 3, 1, 5]])
+        >>> y = np.array([1, 2, 1, 1, 2])
+        >>> model = SPEC(3).fit(X, y)
+        >>> model.selected_features_
+        array([0, 1, 4], dtype=int64)
+        >>> model = SPEC(3).fit(X)
+        >>> model.selected_features_
+        array([3, 4, 1], dtype=int64)
     """
 
-    def __init__(self, n_features, k=2, gamma=(lambda x: x ** 2), sigma=0.5, phi_type=1):
+    def __init__(self, n_features, k=2, gamma=(lambda x: x ** 2), sigma=0.5,
+            phi_type=3):
         self.n_features = n_features
         self.k = k
         self.gamma = gamma
@@ -52,21 +57,25 @@ class SPEC(BaseTransformer):
         return np.sum(cosines * cosines * self.gamma(eigvals))
 
     def __phi2(self, cosines, eigvals, k):
-        return np.sum(cosines[1:] * cosines[1:] * self.gamma(eigvals[1:])) / np.sum(cosines[1:] * cosines[1:])
+        return (np.sum(cosines[1:] * cosines[1:] * self.gamma(eigvals[1:])) /
+        np.sum(cosines[1:] * cosines[1:]))
 
     def __phi3(self, cosines, eigvals, k):
-        return np.sum(cosines[1:k] * cosines[1:k] * (self.gamma(2) - self.gamma(eigvals[1:k])))
+        return np.sum(cosines[1:k] * cosines[1:k] * (self.gamma(2) -
+            self.gamma(eigvals[1:k])))
 
     def _fit(self, X, y):
         """
-            Fits filter
+            Fits the filter.
 
             Parameters
             ----------
-            X : numpy array, shape (n_samples, n_features)
+            X : array-like, shape (n_samples, n_features)
                 The training input samples.
-            y : numpy array
-                The target values. If present, label values are used to construct the similarity graph and the amount of classes overrides k.
+            y : array-like
+                The target values. If present, label values are used to
+                construct the similarity graph and the amount of classes
+                overrides k.
 
             Returns
             ----------
@@ -77,7 +86,8 @@ class SPEC(BaseTransformer):
             f_norm = np.sqrt(D).dot(f)
             f_norm /= np.linalg.norm(f_norm)
 
-            cosines = np.apply_along_axis(lambda vec: 1 - cosine(f_norm, vec), 0, eigvectors)
+            cosines = np.apply_along_axis(lambda vec: np.dot(vec /
+                np.linalg.norm(vec), f_norm), 0, eigvectors)
             return phi(cosines, eigvals, k)
 
         if self.phi_type == 1:
@@ -87,28 +97,29 @@ class SPEC(BaseTransformer):
         elif self.phi_type == 3:
             phi = self.__phi3
         else:
-            raise ValueError("phi_type should be 1, 2 or 3, %d passed" % self.phi_type)
+            raise ValueError("phi_type should be 1, 2 or 3, %d passed" %
+                self.phi_type)
 
         n_samples = X.shape[0]
 
         if self.n_features > self.n_features_:
-            raise ValueError("Cannot select %d features with n_features = %d" % (self.n_features, self.n_features_))
+            raise ValueError("Cannot select %d features with n_features = %d" %
+                (self.n_features, self.n_features_))
 
-        if (y == None).any():
+        if y is None:
             if self.k > n_samples:
-                raise ValueError("Cannot find %d clusters with n_samples = %d" % (self.k, n_samples))
+                raise ValueError("Cannot find %d clusters with n_samples = %d" %
+                    (self.k, n_samples))
             k = self.k
             graph = np.ones((n_samples, n_samples))
-            indices = [[(i, j) for j in range(n_samples)] for i in range(n_samples)]
-            func = np.vectorize(lambda xy: graph[xy[0]][xy[1]] * self.__scheme(X[xy[0]], X[xy[1]]), signature='(1)->()')
-            W = func(indices)
+            W = graph * pairwise_distances(X, metric=lambda x, y:
+                    self.__scheme(x, y))
         else:
             values, counts = np.unique(y, return_counts=True)
             values_dict = dict(zip(values, counts))
             k = len(values)
-            W = np.array(
-                [[(lambda i, j: 1 / values_dict[y[i]] if y[i] == y[j] else 0)(i, j) for j in range(n_samples)] for i in
-                 range(n_samples)])
+            W = pairwise_distances(y.reshape(-1, 1), metric=lambda x, y:
+                (x[0] == y[0]) / values_dict[x[0]])
 
         D = np.diag(W.sum(axis=1))
         L = D - W

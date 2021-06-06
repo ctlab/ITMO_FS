@@ -1,8 +1,5 @@
 from numpy import dot
 
 
-def weight_fusion(filter_results, weights):
-    result = {}
-    for key, value in filter_results.items():
-        result[key] = dot(value, weights)
-    return result
+def weight_fusion(filter_scores, weights):
+    return filter_scores.T.dot(weights)
