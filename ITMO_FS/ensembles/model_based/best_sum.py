@@ -80,6 +80,9 @@ class BestSum(BaseTransformer):
             perf = cross_val_score(_model, X, y, cv=self.cv,
                 scoring=self.metric).mean()
             return weights * perf
+          
+        if len(self.models) == 0:
+            raise ValueError("No models are set")
 
         model_scores = np.vectorize(lambda model: __get_weights(model),
             signature='()->(1)')(self.models)

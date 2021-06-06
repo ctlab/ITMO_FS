@@ -81,10 +81,8 @@ class MultivariateFilter(BaseTransformer):
                 "Cannot select %d features with n_features = %d" %
                 (self.n_features, self.n_features_))
         free_features = generate_features(X)
-        if "selected_features" in kwargs:
-            self.selected_features_ = kwargs["selected_features"]
-        else:
-            self.selected_features_ = np.array([], dtype='int')
+        self.selected_features_ = np.array([], dtype='int')
+
         relevance = np.apply_along_axis(mutual_information, 0,
                                         X[:, free_features],
                                         y)
