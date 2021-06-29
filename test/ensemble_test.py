@@ -1,6 +1,7 @@
 import time
 import unittest
 import numpy as np
+from sklearn.linear_model import LogisticRegression, RidgeClassifier
 
 from ITMO_FS import BestSum
 from utils import load_dataset
@@ -49,26 +50,23 @@ class MyTestCase(unittest.TestCase):
         ensemble = Mixed(filters, k=100, fusion_function=borda_fusion)
         ensemble.fit(data, target)
         ensemble.transform(data)
-        d = [{'f' + str(i): i for i in range(100)}.items()] * 5
+
+        d = np.array([['f' + str(i) for i in range(100)]]* 5)
         self.assertEqual(borda_fusion(d, 100),
                          ['f' + str(i) for i in reversed(range(100))])
 
     def test_ranking_based_bgf_fusion_function(self):
         random.seed(42)
-        filter_results = [
-            [(1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0),
-             (9, 0), (10, 0)],
-            [(3, 0), (2, 0), (1, 0), (5, 0), (7, 0), (9, 0), (6, 0), (4, 0),
-             (8, 0), (10, 0)],
-            [(10, 0), (9, 0), (8, 0), (7, 0), (6, 0), (5, 0), (4, 0), (3, 0),
-             (2, 0), (1, 0)],
-            [(10, 0), (1, 0), (9, 0), (2, 0), (8, 0), (3, 0), (7, 0), (4, 0),
-             (6, 0), (5, 0)],
-            [(5, 0), (4, 0), (6, 0), (3, 0), (7, 0), (2, 0), (8, 0), (1, 0),
-             (9, 0), (10, 0)]
-        ]
-        self.assertListEqual(best_goes_first_fusion(filter_results, 10),
-                             [1, 10, 3, 5, 2, 4, 9, 6, 8, 7])
+        filter_results = np.array([
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            [3, 2, 10, 5, 7, 9, 6, 4, 8, 1],
+            [10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+            [1, 10, 9, 2, 8, 3, 7, 4, 6, 5],
+            [5, 4, 6, 3, 7, 2, 8, 10, 9, 1]
+        ])
+        np.testing.assert_array_equal(
+            best_goes_first_fusion(filter_results, 10),
+            [5, 3, 10, 1, 4, 9, 2, 8, 6, 7])
 
     def test_measure_based_weight_based_ensemble(self):
         data, target = self.wide_classification[0], self.wide_classification[1]
@@ -177,15 +175,26 @@ class MyTestCase(unittest.TestCase):
 
     def test_model_based_best_sum_no_models(self):
         models = []
-        with self.assertRaises(ValueError):
-            BestSum(models, select_k_best(100))
-
-    def test_model_based_best_sum(self):
         data, target = self.madelon.drop(['target'], axis=1), self.madelon[
             "target"]
-        models = [UnivariateFilter(pearson_corr,select_k_best(10))]
-        ensemble = BestSum(models, select_k_best(50))
-        ensemble.fit(data, target)
+        with self.assertRaises(ValueError):
+            m = BestSum(models, select_k_best(100), lambda x: x)
+            m.fit(data, target)
+
+    def test_model_based_best_sum(self):
+        x = np.array([[3, 3, 3, 2, 2],
+                      [3, 3, 1, 2, 3],
+                      [1, 3, 5, 1, 1],
+                      [3, 1, 4, 3, 1],
+                      [3, 1, 2, 3, 1]])
+        y = np.array([1, 2, 2, 1, 2])
+        models = [SVC(kernel='linear'), LogisticRegression(),
+                  RidgeClassifier()]
+        ensemble = BestSum(models, select_k_best(2),
+                           lambda model: np.square(model.coef_).sum(axis=0),
+                           cv=2)
+        ensemble.fit(x, y)
+
 
 if __name__ == '__main__':
     unittest.main()

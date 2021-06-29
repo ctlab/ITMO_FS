@@ -43,16 +43,21 @@ class BestSum(BaseTransformer):
         >>> models = [SVC(kernel='linear'),
         ... LogisticRegression(),
         ... RidgeClassifier()]
-        >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1], \
-[3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+        >>> x = np.array([[3, 3, 3, 2, 2],
+        ...               [3, 3, 1, 2, 3],
+        ...               [1, 3, 5, 1, 1],
+        ...               [3, 1, 4, 3, 1],
+        ...               [3, 1, 2, 3, 1]])
         >>> y = np.array([1, 2, 2, 1, 2])
         >>> bs = BestSum(models, ("K best", 2),
         ... lambda model: np.square(model.coef_).sum(axis=0), cv=2).fit(x, y)
         >>> bs.selected_features_
         array([0, 2], dtype=int64)
     """
+
     def __init__(self, models, cutting_rule, weight_func, metric='f1_micro',
-            cv=3):
+                 cv=3):
+        super().__init__()
         self.models = models
         self.cutting_rule = cutting_rule
         self.weight_func = weight_func
@@ -74,18 +79,19 @@ class BestSum(BaseTransformer):
             ------
             None
         """
+
         def __get_weights(model):
             _model = clone(model).fit(X, y)
             weights = self.weight_func(_model)
             perf = cross_val_score(_model, X, y, cv=self.cv,
-                scoring=self.metric).mean()
+                                   scoring=self.metric).mean()
             return weights * perf
-          
+
         if len(self.models) == 0:
             raise ValueError("No models are set")
 
         model_scores = np.vectorize(lambda model: __get_weights(model),
-            signature='()->(1)')(self.models)
+                                    signature='()->(1)')(self.models)
         self.feature_scores_ = model_scores.sum(axis=0)
         self.selected_features_ = apply_cr(self.cutting_rule)(
             self.feature_scores_)

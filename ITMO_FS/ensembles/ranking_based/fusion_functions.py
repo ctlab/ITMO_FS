@@ -1,6 +1,7 @@
 import random
 import numpy as np
 
+
 def best_goes_first_fusion(filter_results, k):
     """
         Fusion function mixes filter results according feature appearance in

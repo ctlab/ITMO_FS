@@ -74,5 +74,5 @@ class BaseTransformer(TransformerMixin, BaseEstimator):
             return X_[:, self.selected_features_]
 
     @abstractmethod
-    def _fit(self, X, y, param):
+    def _fit(self, X, y):
         pass

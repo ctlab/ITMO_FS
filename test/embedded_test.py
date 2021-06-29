@@ -51,19 +51,18 @@ class TestCases(unittest.TestCase):
         # MOSS
         with self.assertRaises(ValueError):
             MOS(
-            model=SGDClassifier(),
-            weight_func=weight_func,
-            sampling=True,k_neighbors=1000).fit_transform(
-            self.data,
-            self.target)
-
+                model=SGDClassifier(),
+                weight_func=weight_func,
+                sampling=True, k_neighbors=1000).fit_transform(
+                self.data,
+                self.target)
 
     def test_MOSS_hinge(self):
         # MOSS
         res = MOS(
             model=SGDClassifier(),
             weight_func=weight_func,
-            sampling=True,loss="hinge").fit_transform(
+            sampling=True, loss="hinge").fit_transform(
             self.data,
             self.target)
         assert self.data.shape[0] == res.shape[0]
@@ -141,7 +140,7 @@ class TestCases(unittest.TestCase):
         p = Pipeline([('FS1',
                        MOS(model=SGDClassifier(), weight_func=weight_func,
                            loss='log')), ('FS2', MOS(
-            model=SGDClassifier(), weight_func=weight_func, loss='hinge')),
+                               model=SGDClassifier(), weight_func=weight_func, loss='hinge')),
                       ('E1', LogisticRegression())])
         p.fit(self.data, self.target)
         assert 0 <= p.score(self.data, self.target) <= 1
