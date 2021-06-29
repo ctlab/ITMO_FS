@@ -1,37 +1,37 @@
 import numpy as np
 from sklearn.base import clone
-from ...utils import BaseTransformer, apply_cr
 from sklearn.model_selection import cross_val_score
+from logging import getLogger
+from ...utils import BaseTransformer, apply_cr
 
 
 class BestSum(BaseTransformer):
-    """
-        Best weighted sum ensemble. The ensemble fits the input models and
-        computes the feature scores as the weighted sum of the models' feature
-        scores and some performance metric (e.g. accuracy)
+    """Best weighted sum ensemble. The ensemble fits the input models and
+    computes the feature scores as the weighted sum of the models' feature
+    scores and some performance metric (e.g. accuracy)
 
-        Parameters
-        ----------
-        models : collection
-            Collection of model objects. Models should have a fit(X, y) method
-            and a field corresponding to feature weights.
-        cutting_rule : string or callable
-            A cutting rule name defined in GLOB_CR or a callable with signature
-            cutting_rule (features), which should return a list features ranked
-            by some rule.
-        weight_func : callable
-            The function to extract weights from the model.
-        metric : string or callable
-            A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable
-            object / function with signature measure(estimator, X, y) which
-            should return only a single value.
-        cv : int
-            Number of folds in cross-validation.
+    Parameters
+    ----------
+    models : collection
+        Collection of model objects. Models should have a fit(X, y) method and
+        a field corresponding to feature weights.
+    cutting_rule : string or callable
+        A cutting rule name defined in GLOB_CR or a callable with signature
+        cutting_rule (features), which should return a list features ranked by
+        some rule.
+    weight_func : callable
+        The function to extract weights from the model.
+    metric : string or callable
+        A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable
+        object / function with signature measure(estimator, X, y) which
+        should return only a single value.
+    cv : int
+        Number of folds in cross-validation.
 
-        See Also
-        --------
-        Jeon, H.; Oh, S. Hybrid-Recursive Feature Elimination for Efficient
-        Feature Selection. Appl. Sci. 2020, 10, 3211.
+    See Also
+    --------
+    Jeon, H.; Oh, S. Hybrid-Recursive Feature Elimination for Efficient
+    Feature Selection. Appl. Sci. 2020, 10, 3211.
 
         Examples
         --------
@@ -75,9 +75,9 @@ class BestSum(BaseTransformer):
             y : array-like, shape (n_samples, )
                 The target values.
 
-            Returns
-            ------
-            None
+        Returns
+        -------
+        None
         """
 
         def __get_weights(model):
@@ -88,10 +88,14 @@ class BestSum(BaseTransformer):
             return weights * perf
 
         if len(self.models) == 0:
+            getLogger(__name__).error("No models are set")
             raise ValueError("No models are set")
 
-        model_scores = np.vectorize(lambda model: __get_weights(model),
-                                    signature='()->(1)')(self.models)
+        model_scores = np.vectorize(
+            lambda model: __get_weights(model),
+            signature='()->(1)')(self.models)
+        getLogger(__name__).info("Weighted model scores: %s", model_scores)
         self.feature_scores_ = model_scores.sum(axis=0)
+        getLogger(__name__).info("Feature scores: %s", self.feature_scores_)
         self.selected_features_ = apply_cr(self.cutting_rule)(
             self.feature_scores_)
