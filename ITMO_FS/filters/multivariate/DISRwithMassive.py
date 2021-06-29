@@ -1,162 +1,124 @@
-import numpy as np
+from logging import getLogger
 
-from ITMO_FS.utils.information_theory import entropy
-from ITMO_FS.utils.information_theory import mutual_information
-from ...utils import DataChecker, generate_features
+import numpy as np
+from sklearn.metrics import pairwise_distances
+
+from ...utils import BaseTransformer, generate_features
+from ...utils.information_theory import (entropy, joint_entropy,
+                                         mutual_information)
+
 
 def _complementarity(x_i, x_j, y):
-    return entropy(x_i) + entropy(x_j) + entropy(y) - entropy(list(zip(x_i, x_j))) - \
-           entropy(list(zip(x_i, y))) - entropy(list(zip(x_j, y))) + entropy(list(zip(x_i, x_j, y)))
+    return (entropy(x_i) + entropy(x_j) + entropy(y) - joint_entropy(x_i, x_j)
+            - joint_entropy(x_i, y) - joint_entropy(x_j, y)
+            + joint_entropy(x_i, x_j, y))
 
 
 def _chained_information(x_i, x_j, y):
-    return mutual_information(x_i, y) + mutual_information(x_j, y) + _complementarity(x_i, x_j, y)
+    return (mutual_information(x_i, y) + mutual_information(x_j, y)
+            + _complementarity(x_i, x_j, y))
 
-class DISRWithMassive(DataChecker):
+
+class DISRWithMassive(BaseTransformer):
+    """Create DISR (Double Input Symmetric Relevance) feature selection filter
+    based on kASSI criterin for feature selection which aims at maximizing the
+    mutual information avoiding, meanwhile, large multivariate density
+    estimation. Its a kASSI criterion with approximation of the information of
+    a set of variables by counting average information of subset on combination
+    of two features. This formulation thus deals with feature complementarity
+    up to order two by preserving the same computational complexity of the
+    MRMR and CMIM criteria The DISR calculation is done using graph based
+    solution.
+
+    Parameters
+    ----------
+    n_features : int
+        Number of features to select.
+
+    Notes
+    -----
+    For more details see `this paper
+    <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.318.6576&rep=rep1&type=pdf/>`_.
+
+    Examples
+    --------
+    >>> from ITMO_FS.filters.multivariate import DISRWithMassive
+    >>> import numpy as np
+    >>> X = np.array([[1, 2, 3, 3, 1], [2, 2, 3, 3, 2], [1, 3, 3, 1, 3],
+    ... [3, 1, 3, 1, 4], [4, 4, 3, 1, 5]])
+    >>> y = np.array([1, 2, 3, 4, 5])
+    >>> disr = DISRWithMassive(3).fit(X, y)
+    >>> disr.selected_features_
+    array([0, 1, 4], dtype=int64)
     """
-        Creates DISR (Double Input Symmetric Relevance) feature selection filter
-        based on kASSI criterin for feature selection
-        which aims at maximizing the mutual information avoiding, meanwhile, large multivariate density estimation.
-        Its a kASSI criterion with approximation of the information of a set of variables
-        by counting average information of subset on combination of two features.
-        This formulation thus deals with feature complementarity up to order two
-        by preserving the same computational complexity of the MRMR and CMIM criteria
-        The DISR calculation is done using graph based solution.
+    def __init__(self, n_features):
+        self.n_features = n_features
+
+    def _fit(self, x, y):
+        """Fit the filter.
 
         Parameters
         ----------
-        expected_size : int
-            Expected size of subset of features.
+        x : array-like, shape (n_samples, n_features)
+            The training input samples.
+        y : array-like, shape (n_samples,)
+            The target values.
 
-        Notes
-        -----
-        For more details see `this paper
-        <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.318.6576&rep=rep1&type=pdf/>`_.
-
-        Examples
-        --------
-        >>> from ITMO_FS.filters.multivariate import DISRWithMassive
-        >>> import numpy as np
-        >>> X = np.array([[1, 2, 3, 3, 1],[2, 2, 3, 3, 2], [1, 3, 3, 1, 3],\
-[3, 1, 3, 1, 4],[4, 4, 3, 1, 5]], dtype = np.integer)
-        >>> y = np.array([1, 2, 3, 4, 5], dtype=np.integer)
-        >>> disr = DISRWithMassive(3)
-        >>> disr.fit_transform(X, y)
-        array([[1, 2, 1],
-               [2, 2, 2],
-               [1, 3, 3],
-               [3, 1, 4],
-               [4, 4, 5]])
-    """
-
-    def __init__(self, expected_size=None):
-        self.expected_size = expected_size
-        self.n_features = None
-        self._vertices = None
-        self._edges = None
-        self.selected_features = None
-
-    def __count_weight(self, i):
-        return np.sum(2 * self._vertices[i] * np.multiply(self._edges[i], self._vertices))
-
-    def fit(self, X, y, feature_names=None):
+        Returns
+        -------
+        None
         """
-            Fits filter
+        free_features = np.array([], dtype='int')
+        self.selected_features_ = generate_features(x)
+        self._edges = pairwise_distances(
+            x.T, x.T, lambda xi, xj: (_chained_information(xi, xj, y)
+                                      / (joint_entropy(xi, xj) + 1e-15)))
+        np.fill_diagonal(self._edges, 0)
+        getLogger(__name__).info("Graph weights: %s", self._edges)
+    
+        while len(self.selected_features_) != self.n_features:
+            min_index = np.argmin(
+                np.sum(self._edges[np.ix_(self.selected_features_,
+                                          self.selected_features_)], axis=0))
+            getLogger(__name__).info(
+                "Removing feature %d from selected set",
+                self.selected_features_[min_index])
+            free_features = np.append(
+                free_features, self.selected_features_[min_index])
+            self.selected_features_ = np.delete(
+                self.selected_features_, min_index)
 
-            Parameters
-            ----------
-            X : array-like, shape (n_samples, n_features)
-                The training input samples.
-            y : array-like, shape (n_samples, )
-                The target values.
-            feature_names : list of strings, optional
-                In case you want to define feature names
+        getLogger(__name__).info(
+            "Selected set: %s, free set: %s", self.selected_features_,
+            free_features)
 
-            Returns
-            -------
-            None
-        """
-        
-        features = generate_features(X)
-        X, y, feature_names = self._check_input(X, y, feature_names)
-        self.feature_names = dict(zip(features, feature_names))
-        self.n_features = X.shape[1]
-        if self.expected_size is None:
-            self.expected_size = self.n_features // 3
-        free_features = np.array([], dtype='object')
-        self.selected_features = generate_features(X)
-        self._vertices = np.ones(self.n_features)
-        self._edges = np.zeros((self.n_features, self.n_features))
-        for i in range(self.n_features):
-            for j in range(self.n_features):
-                entropy_pair = entropy(list(zip(X[:, i], X[:, j])))
-                if entropy_pair != 0.:
-                    self._edges[i][j] = _chained_information(X[:, i], X[:, j], y) / entropy_pair
+        while True:
+            selected_weights = np.sum(
+                self._edges[np.ix_(self.selected_features_,
+                                   self.selected_features_)], axis=0)
+            getLogger(__name__).info(
+                "Graph of selected set: %s", selected_weights)
 
-        # TODO apply vectorize to selected_features and not arange(n_features)?
-        while self.selected_features.size != self.expected_size:
-            min_index = np.argmin(np.vectorize(lambda x: self.__count_weight(x))(self.selected_features))
-            self._vertices[min_index] = 0
-            free_features = np.append(free_features, min_index)
-            self.selected_features = np.delete(self.selected_features, min_index)
+            free_weights = np.sum(self._edges[np.ix_(self.selected_features_,
+                                                     free_features)], axis=0)
+            getLogger(__name__).info(
+                "Free weights that would be added: %s", free_weights)
 
-        change = True
-        while change:
-            change = False
-            swap_index = (-1, -1)
-            max_difference = 0
-            for i in range(len(free_features)):
-                for j in range(len(self.selected_features)):
-                    temp_difference = self.__count_weight(free_features[i]) - self.__count_weight(
-                        self.selected_features[j])
-                    if temp_difference > max_difference:
-                        max_difference = temp_difference
-                        swap_index = (i, j)
-            if max_difference > 0:
-                change = True
-                new_selected, new_free = swap_index
-                free_features = np.append(free_features, new_free)
-                free_features = np.delete(free_features, new_selected)
-                self.selected_features = np.append(self.selected_features, new_selected)
-                self.selected_features = np.delete(self.selected_features, new_free)
-        self.selected_features = features[self.selected_features]
+            difference = (
+                free_weights.reshape(-1, 1)
+                - self._edges[np.ix_(free_features, self.selected_features_)]
+                - selected_weights)
+            getLogger(__name__).info("Difference matrix: %s", difference)
 
-    def transform(self, X):
-        """
-            Transform given data by slicing it with selected features.
+            if np.all(difference <= 0):
+                getLogger(__name__).info(
+                    "All differences are non-positive, terminating")
+                break
+            index_add, index_del = np.unravel_index(
+                np.argmax(difference), difference.shape)
+            getLogger(__name__).info(
+                "Maximum difference found at index (%d, %d), swapping those "
+                "features", index_add, index_del)
 
-            Parameters
-            ----------
-            X : array-like, shape (n_samples, n_features)
-                The training input samples.
-
-            Returns
-            -------
-            Transformed 2D numpy array
-        """
-
-        if type(X) is np.ndarray:
-            return X[:, self.selected_features]
-        else:
-            return X[self.selected_features]
-
-    def fit_transform(self, X, y, feature_names=None):
-        """
-            Fits the filter and transforms given dataset X.
-
-            Parameters
-            ----------
-            X : array-like, shape (n_features, n_samples)
-                The training input samples.
-            y : array-like, shape (n_samples, )
-                The target values.
-            feature_names : list of strings, optional
-                In case you want to define feature names
-
-            Returns
-            -------
-            X dataset sliced with features selected by the filter
-        """
-
-        self.fit(X, y, feature_names)
-        return self.transform(X)
+            self.selected_features_[index_del], free_features[index_add] = (
+                free_features[index_add], self.selected_features_[index_del])

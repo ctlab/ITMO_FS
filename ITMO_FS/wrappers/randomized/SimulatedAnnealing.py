@@ -1,131 +1,149 @@
-import math
-import random
+from logging import getLogger
 
 import numpy as np
+from sklearn.model_selection import cross_val_score
+
+from ...utils import BaseWrapper, generate_features
 
 
-class SimulatedAnnealing(object):
-    """
-        Performs feature selection using simulated annealing
+class SimulatedAnnealing(BaseWrapper):
+    """Simulated Annealing algorithm.
 
-        Parameters
-        ----------
-        seed : integer
-            Random seed used to initialize np.random.seed()
-        iteration_number : integer
-            number of iterations of algorithm
-        classifier : Classifier instance
-            ``Classifier`` used for training and testing on provided datasets.
-
-            - Note that algorithm implementation assumes that classifier has fit, predict methods. Default algorithm \
-            uses ``sklearn.neighbors.KNeighborsClassifier``
-
-        c : integer
-            constant c is used t o control the rate of feature perturbation
-        init_number_of_features : float
-            number of features to initialize start features subset,
-            Note: by default (5-10) percents of number of features is used
+    Parameters
+    ----------
+    estimator : object
+        A supervised learning estimator that should have a fit(X, y) method and
+        a predict(X) method.
+    measure : string or callable
+        A standard estimator metric (e.g. 'f1' or 'roc_auc') or a callable with
+        signature measure(estimator, X, y) which should return only a single
+        value.
+    seed : int
+        Random seed used to initialize np.random.default_rng().
+    iteration_number : int
+        Number of iterations of the algorithm.
+    c : int
+        A constant that is used to control the rate of feature perturbation.
+    init_number_of_features : int
+        The number of features to initialize start features subset with, by
+        default 5-10 percents of features is used.
+    cv : int
+        Number of folds in cross-validation.
         
-        Notes
-        -----
-        For more details see `this paper <http://www.feat.engineering/simulated-annealing.html/>`_.
+    Notes
+    -----
+    For more details see `this paper <http://www.feat.engineering/simulated-annealing.html/>`_.
 
-        Examples
-        --------
-        >>> from sklearn.datasets import make_classification
-        >>> from sklearn.model_selection import KFold
-        >>> from ITMO_FS.wrappers.randomized import SimulatedAnnealing
-        >>> x, y = make_classification(1000, 100, n_informative = 10, n_redundant = 30, n_repeated = 10, shuffle = False)
-        >>> kf = KFold(n_splits=2)
-        >>> sa = SimulatedAnnealing()
-        >>> for train_index, test_index in kf.split(x):
-        ...    sa.fit(x[train_index], y[train_index], x[test_index], y[test_index])
-        ...    print(sa.selected_features)
-
-        
+    Examples
+    --------
+    >>> from sklearn.datasets import make_classification
+    >>> from sklearn.linear_model import LogisticRegression
+    >>> from ITMO_FS.wrappers.randomized import SimulatedAnnealing
+    >>> dataset = make_classification(n_samples=100, n_features=20,
+    ... n_informative=5, n_redundant=0, shuffle=False, random_state=42)
+    >>> x, y = np.array(dataset[0]), np.array(dataset[1])
+    >>> sa = SimulatedAnnealing(LogisticRegression(), measure='f1_macro',
+    ... iteration_number=50).fit(x, y)
+    >>> sa.selected_features_
+    array([ 1,  4,  3, 17, 10, 16, 11, 14,  5], dtype=int64)
     """
-
-    def __init__(self, classifier, score, seed=1, iteration_number=100, c=1, init_number_of_features=None):
+    def __init__(self, estimator, measure, seed=42, iteration_number=100, c=1,
+                 init_number_of_features=None, cv=3):
+        self.estimator = estimator
+        self.measure = measure
         self.seed = seed
         self.iteration_number = iteration_number
-        self.classifier = classifier
-        self.score = score
         self.c = c
         self.init_number_of_features = init_number_of_features
+        self.cv = cv
 
     def __acceptance(self, i, prev_score, cur_score):
-        return math.exp(-i / self.c * (prev_score - cur_score) / prev_score)
+        return np.exp((i + 1) / self.c * (cur_score - prev_score) / prev_score)
 
-    def fit(self, train_x, train_y, test_x, test_y):
-        """
-        Runs the Simulated Annealing algorithm on the specified dataset and fits the classifier.
-        
+    def _fit(self, X, y):
+        """Fit the wrapper.
+
         Parameters
         ----------
-        train_x : array-like, shape (n_samples, n_features)
-            The input training samples.
-        train_y : array-like, shape (n_samples)
-            The classes for training samples.
-        test_x : array-like, shape (n_samples, n_features)
-            The input testing samples.
-        test_y : array-like, shape (n_samples)
-            The classes for testing samples.
+        X : array-like, shape (n_samples, n_features)
+            The training input samples.
+        y : array-like, shape (n_samples,)
+            the target values.
 
-        Return
-        ------
+        Returns
+        -------
         None
         """
-        np.random.seed(self.seed)
-        random.seed(self.seed)
-        feature_number = train_x.shape[1]
+        rng = np.random.default_rng(self.seed)
+        features = generate_features(X)
+
         if self.init_number_of_features is None:
-            percentage = random.randint(5, 11)
-            self.init_number_of_features = int(feature_number * percentage / 100)
-        feature_subset = np.unique((np.random.randint(0, feature_number, self.init_number_of_features)))
-        prev_score = self.__get_score(train_x, train_y, test_x, test_y, feature_subset)
+            percentage = rng.integers(5, 11)
+            init_number_of_features = int(
+                self.n_features_ * percentage / 100) + 1
+        elif self.init_number_of_features == 0:
+            getLogger(__name__).warning(
+                "Initial number of features was set to zero; would use one "
+                "instead")
+            init_number_of_features = 1
+        else:
+            init_number_of_features = self.init_number_of_features
+
+        feature_subset = np.unique(
+            rng.integers(0, self.n_features_, init_number_of_features))
+        getLogger(__name__).info("Initial selected set: %s", feature_subset)
+        prev_score = cross_val_score(
+            self._estimator, X[:, feature_subset], y, cv=self.cv,
+            scoring=self.measure).mean()
+        getLogger(__name__).info("Initial score: %d", prev_score)
+
         for i in range(self.iteration_number):
-            operation = random.randint(0, 1)
-            percentage = random.randint(1, 5)
-            if operation == 1:
+            getLogger(__name__).info("Current best score: %d", prev_score)
+            operation = rng.integers(0, 2)
+            percentage = rng.integers(1, 5)
+            if operation == 1 & feature_subset.shape[0] != self.n_features_:
                 # inc
-                include_number = int(feature_number * (percentage / 100))
-                not_included_features = np.array([f for f in np.arange(0, feature_number) if f not in feature_subset])
-                cur_subset = np.append(feature_subset,
-                                       np.random.choice(not_included_features, size=include_number, replace=False))
+                not_included_features = np.setdiff1d(features, feature_subset)
+                include_number = min(
+                    not_included_features.shape[0],
+                    int(self.n_features_ * (percentage / 100)) + 1)
+                to_add = rng.choice(
+                    not_included_features, size=include_number, replace=False)
+                getLogger(__name__).info(
+                    "Trying to add features %s into the selected set", to_add)
+                cur_subset = np.append(feature_subset, to_add)
             else:
                 # exc
-                exclude_number = int(feature_number * (percentage / 100))
-                cur_subset = np.delete(feature_subset,
-                                       np.random.choice(feature_subset, size=exclude_number, replace=False))
-            cur_score = self.__get_score(train_x, train_y, test_x, test_y, feature_subset)
+                exclude_number = min(
+                    feature_subset.shape[0] - 1,
+                    int(self.n_features_ * (percentage / 100)) + 1)
+                to_delete = rng.choice(
+                    np.arange(feature_subset.shape[0]), size=exclude_number,
+                    replace=False)
+                getLogger(__name__).info(
+                    "Trying to delete features %s from the selected set",
+                    feature_subset[to_delete])
+                cur_subset = np.delete(feature_subset, to_delete)
+            cur_score = cross_val_score(
+                self._estimator, X[:, cur_subset], y, cv=self.cv,
+                scoring=self.measure).mean()
+            getLogger(__name__).info("New score: %d", cur_score)
             if cur_score > prev_score:
                 feature_subset = cur_subset
                 prev_score = cur_score
             else:
-                ruv = random.random()
-                if ruv > self.__acceptance(i, prev_score, cur_score):
+                getLogger(__name__).info(
+                    "Score has not improved; trying to accept the new subset "
+                    "anyway")
+                ruv = rng.random()
+                acceptance = self.__acceptance(i, prev_score, cur_score)
+                getLogger(__name__).info(
+                    "Random value = %d, acceptance = %d", ruv, acceptance)
+                if ruv < acceptance:
+                    getLogger(__name__).info("Accepting the new subset")
                     feature_subset = cur_subset
                     prev_score = cur_score
-        self.selected_features = feature_subset
 
-    def __get_score(self, train_x, train_y, test_x, test_y, subset):
-        self.classifier.fit(train_x[:, subset], train_y)
-        pred_labels = self.classifier.predict(test_x[:, subset])
-        score = self.score(pred_labels, test_y)
-        return score
-
-    def predict(self, test_x):
-        """
-        Predicts labels on test dataset
-
-        Parameters
-        ----------
-        test_x : array-like, shape (n_samples, n_features)
-            The input testing samples.
-        
-        Return
-        ------
-        array-like, shape (n_samples,n_selected_features) : array of feature numbers
-        
-        """
-        return self.classifier.predict(test_x[:, self.selected_features])
+        self.selected_features_ = feature_subset
+        self.best_score_ = prev_score
+        self._estimator.fit(X[:, self.selected_features_], y)

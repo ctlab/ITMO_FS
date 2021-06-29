@@ -1,85 +1,119 @@
-from collections import defaultdict
+from logging import getLogger
 
-from numpy import ndarray, ones
-from sklearn.base import TransformerMixin
+import numpy as np
+from sklearn.base import clone
 
-from ITMO_FS.utils.data_check import *
 from .fusion_functions import *
+from ...utils import BaseTransformer, apply_cr, check_filters
 
 
-class WeightBased(TransformerMixin):
-    __filters = []
+class WeightBased(BaseTransformer):
+    """Weight-based filter ensemble. The ensemble first computes all filter
+    scores for the dataset and then aggregates them using a selected fusion
+    function.
 
-    def __init__(self, filters):
+    Parameters
+    ----------
+    filters : collection
+        Collection of filter objects. Filters should have a fit(X, y) method
+        and a feature_scores_ field that contains scores for all features.
+    cutting_rule : string or callable
+        A cutting rule name defined in GLOB_CR or a callable with signature
+        cutting_rule (features), which should return a list features ranked by
+        some rule.
+    fusion_function : callable
+        A function with signature (filter_scores (array-like, shape
+        (n_filters, n_features)), weights (array-like, shape (n_filters,)))
+        that should return the aggregated weights for all features.
+    weights : array-like
+        An array of shape (n_filters,) defining the weights for input filters.
+
+    See Also
+    --------
+
+    Examples
+    --------
+    >>> from ITMO_FS.ensembles import WeightBased
+    >>> from ITMO_FS.filters.univariate import UnivariateFilter
+    >>> import numpy as np
+    >>> filters = [UnivariateFilter('GiniIndex'),
+    ... UnivariateFilter('FechnerCorr'),
+    ... UnivariateFilter('SpearmanCorr'),
+    ... UnivariateFilter('PearsonCorr')]
+    >>> x = np.array([[3, 3, 3, 2, 2], [3, 3, 1, 2, 3], [1, 3, 5, 1, 1],
+    ... [3, 1, 4, 3, 1], [3, 1, 2, 3, 1]])
+    >>> y = np.array([1, 3, 2, 1, 2])
+    >>> wb = WeightBased(filters, ("K best", 2)).fit(x, y)
+    >>> wb.selected_features_
+    array([4, 1], dtype=int64)
+    """
+    def __init__(self, filters, cutting_rule=("K best", 2),
+                 fusion_function=weight_fusion, weights=None):
+        self.filters = filters
+        self.cutting_rule = cutting_rule
+        self.fusion_function = fusion_function
+        self.weights = weights
+
+    def get_scores(self, X, y):
+        """Return the normalized feature scores for all filters.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            The training input samples.
+        y : array-like, shape (n_samples,)
+            The target values.
+
+        Returns
+        -------
+        array-like, shape (n_filters, n_features) : feature scores
         """
-        TODO comments
-        :param filters:
-        """
-        check_filters(filters)
-        self.__filters = filters
-        self.selected_features = None
-        self.feature_scores = None
+        scores = np.vectorize(
+            lambda f: clone(f).fit(X, y).feature_scores_,
+            signature='()->(1)')(self.filters)
+        getLogger(__name__).info("Scores for all filters: %s", scores)
+        mins = np.min(scores, axis=1).reshape(-1, 1)
+        maxs = np.max(scores, axis=1).reshape(-1, 1)
+        return (scores - mins) / (maxs - mins)
 
     def __len__(self):
-        return len(self.__filters)
+        """Return the number of filters used in the ensemble.
 
-    def score(self, X, y, feature_names=None):
-        self.feature_scores = defaultdict(list)
-        for _filter in self.__filters:
-            _filter.fit(X, y, feature_names=feature_names, store_scores=True)
-            _min = min(_filter.feature_scores.values())
-            _max = max(_filter.feature_scores.values())
-            for key, value in _filter.feature_scores.items():
-                self.feature_scores[key].append((value - _min) / (_max - _min))
-        return self.feature_scores
+        Parameters
+        ----------
 
-    def fit(self, X, y, feature_names=None):
+        Returns
+        -------
+        int : number of filters
         """
-        TODO comments
-        :param X:
-        :param y:
-        :param feature_names:
-        :return:
-        """
-        feature_names = generate_features(X, feature_names)
-        check_shapes(X, y)
-        # check_features(features_names)
-        _feature_names = feature_names
-        _X = X
-        _y = y
-        self.feature_scores = self.score(_X, _y, _feature_names)
+        return len(self.filters)
 
-    def transform(self, x, cutting_rule, fusion_function=weight_fusion, weights=None):
+    def _fit(self, X, y):
+        """Fit the ensemble.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            The training input samples.
+        y : array-like, shape (n_samples,)
+            The target values.
+
+        Returns
+        -------
+        None
         """
-        Transfrom dataset
-        :param x:
-        :param cutting_rule:
-        :param fusion_function:
-        :param weights:
-        :return:
-        """
-        if weights is None:
-            weights = ones(len(self.__filters)) / len(self.__filters)
-        self.selected_features = cutting_rule(fusion_function(self.feature_scores, weights))
-        if type(x) is ndarray:
-            return x[:, self.selected_features]
+        check_filters(self.filters)
+        getLogger(__name__).info(
+            "Running WeightBased with filters: %s", self.filters)
+        filter_scores = self.get_scores(X, y)
+        getLogger(__name__).info(
+            "Normalized scores for all filters: %s", filter_scores)
+        if self.weights is None:
+            weights = np.ones(len(self.filters)) / len(self.filters)
         else:
-            return x[self.selected_features]
-
-    def fit_transform(self, X, y=None, **fit_params):
-        """
-        TODO comments
-        :param X:
-        :param y:
-        :param fit_params:
-        :return:
-        """
-        cutting_rule, feature_names, fusion_function, weights = fit_params
-        self.fit(X, y, feature_names)
-        return self.transform(X, cutting_rule, fusion_function, weights)
-
-    def __repr__(self):
-        result = 'Filter weight based ensemble with: \n'
-        for f in self.__filters:
-            result += str(f) + ' filter \n'
-        return result
+            weights = self.weights
+        getLogger(__name__).info("Weights vector: %s", weights)
+        self.feature_scores_ = self.fusion_function(filter_scores, weights)
+        getLogger(__name__).info("Feature scores: %s", self.feature_scores_)
+        self.selected_features_ = apply_cr(self.cutting_rule)(
+            self.feature_scores_)

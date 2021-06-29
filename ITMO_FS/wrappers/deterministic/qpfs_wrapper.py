@@ -1,8 +1,8 @@
 from ITMO_FS.filters.univariate.measures import pearson_corr
 from ITMO_FS.utils.qpfs_body import qpfs_body
+from ...utils import BaseWrapper
 
-
-def qpfs_wrapper(X, y, alpha, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
+class QPFSWrapper(BaseWrapper):
     """
     #TODO rewrite to the proper notation
     Performs Quadratic Programming Feature Selection algorithm.
@@ -12,20 +12,16 @@ def qpfs_wrapper(X, y, alpha, r=None, sigma=None, solv='quadprog', fn=pearson_co
 
     Parameters
     ----------
-    X : array-like, shape (n_samples,n_features)
-        The input samples.
-    y : array-like, shape (n_samples)
-        The classes for the samples.
     alpha : double value
         That represents balance between relevance and redundancy of features.
-    r : int, optional
+    r : int
         The number of samples to be used in Nystrom optimization.
-    sigma : double, optional
+    sigma : double
         The threshold for eigenvalues to be used in solving QP optimization.
-    solv : string, optional
+    solv : string
         The name of qp solver according to qpsolvers(https://pypi.org/project/qpsolvers/) naming.
         Note quadprog is used by default.
-    fn : function(array, array), optional
+    fn : function(array, array)
         The function to count correlation, for example pearson correlation or  mutual information.
         Note pearson_corr from ITMO_FS measures is used by default.
     Returns
@@ -46,4 +42,25 @@ def qpfs_wrapper(X, y, alpha, r=None, sigma=None, solv='quadprog', fn=pearson_co
     >>> print(ranks)
 
     """
-    return qpfs_body(X, y, fn, alpha=alpha, r=r, sigma=sigma, solv=solv)
+    def __init__(self, alpha, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
+        self.alpha = alpha
+        self.r = r
+        self.sigma = sigma
+        self.solv = solv
+        self.fn = fn
+
+    def _fit(X, y):
+        """
+            Fits wrapper.
+
+            Parameters
+            ----------
+            X : array-like, shape (n_samples,n_features)
+                The training input samples.
+            y : array-like, shape (n_samples,)
+                The target values.
+            Returns
+            ------
+            None
+        """        
+        return qpfs_body(X, y, fn, alpha=alpha, r=r, sigma=sigma, solv=solv)

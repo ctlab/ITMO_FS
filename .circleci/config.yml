@@ -26,8 +26,10 @@ jobs:
             conda create -n testenv --yes --quiet python=3
             source activate testenv
             pip install -r requirements.txt
-            pip install pandas sphinx_rtd_theme
+            pip install pandas sphinx_rtd_theme dvc
             pip install sphinx-gallery
+            pip install dvc
+            pip install pydrive2
             pip install .
             cd docs
             make html
@@ -50,8 +52,9 @@ jobs:
             pip install -r requirements.txt
             pip install pandas sphinx_rtd_theme
             pip install pandas pandas
+            pip install dvc
             pip install pytest
-            pytest .
+            pytest --cov=ITMO_FS test/
 
       - store_artifacts:
           path: test-reports

@@ -1,6 +1,12 @@
 import codecs
 
 from setuptools import find_packages, setup
+import os
+base_dir = os.path.dirname(__file__)
+
+about = {}
+with open(os.path.join(base_dir, "ITMO_FS", "__about__.py")) as f:
+    exec(f.read(), about)
 
 DISTNAME = 'ITMO_FS'
 DESCRIPTION = 'Python Feature Selection library from ITMO University.'
@@ -11,7 +17,7 @@ MAINTAINER_EMAIL = 'somacruz@bk.ru'
 URL = 'https://github.com/ctlab/ITMO_FS'
 LICENSE = 'new BSD'
 DOWNLOAD_URL = 'https://github.com/ctlab/ITMO_FS'
-VERSION = '0.3.3'
+VERSION = about["__version__"],
 INSTALL_REQUIRES = ['numpy', 'scipy', 'scikit-learn', 'imblearn', 'qpsolvers']
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Intended Audience :: Developers',
@@ -26,7 +32,8 @@ CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Programming Language :: Python :: 2.7',
                'Programming Language :: Python :: 3.5',
                'Programming Language :: Python :: 3.6',
-               'Programming Language :: Python :: 3.7']
+               'Programming Language :: Python :: 3.7',
+               'Programming Language :: Python :: 3.8']
 EXTRAS_REQUIRE = {
     'tests': [
         'pytest',
