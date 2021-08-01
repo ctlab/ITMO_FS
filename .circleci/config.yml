@@ -54,6 +54,7 @@ jobs:
             pip install pandas pandas
             pip install dvc
             pip install pytest
+            pip install pytest-cov
             pytest --cov=ITMO_FS test/
 
       - store_artifacts:
