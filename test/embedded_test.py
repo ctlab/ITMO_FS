@@ -99,7 +99,7 @@ class TestCases(unittest.TestCase):
         arr = f.fit_transform(self.data, self.target)
         np.testing.assert_array_equal(df, arr)
 
-        f = MOS(model=SGDClassifier(), weight_func=weight_func, sampling=False)
+        f = MOS(model=SGDClassifier(), weight_func=weight_func)
 
         df = f.fit_transform(
             pd.DataFrame(
@@ -140,7 +140,7 @@ class TestCases(unittest.TestCase):
         p = Pipeline([('FS1',
                        MOS(model=SGDClassifier(), weight_func=weight_func,
                            loss='log')), ('FS2', MOS(
-                               model=SGDClassifier(), weight_func=weight_func, loss='hinge')),
+            model=SGDClassifier(), weight_func=weight_func, loss='hinge')),
                       ('E1', LogisticRegression())])
         p.fit(self.data, self.target)
         assert 0 <= p.score(self.data, self.target) <= 1
