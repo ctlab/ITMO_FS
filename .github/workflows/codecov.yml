@@ -8,6 +8,11 @@ jobs:
         uses: actions/checkout@master
       - name: Test
         run: |
+          pip install -r requirements.txt
+          pip install pandas sphinx_rtd_theme
+          pip install pandas pandas
+          pip install dvc
+          pip install pytest
           pip install pytest-cov
           pytest --cov=./
       - name: Upload
