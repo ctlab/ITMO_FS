@@ -14,6 +14,8 @@ jobs:
           pip install dvc
           pip install pytest
           pip install pytest-cov
+          pip install dvc
+          pip install pydrive2
           pytest --cov=./
       - name: Upload
         uses: codecov/codecov-action@v1
