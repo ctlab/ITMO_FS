@@ -11,11 +11,11 @@ jobs:
           pip install -r requirements.txt
           pip install pandas sphinx_rtd_theme
           pip install pandas pandas
-          pip install dvc
           pip install pytest
           pip install pytest-cov
           pip install dvc
           pip install pydrive2
+          pip install .
           pytest --cov=./
       - name: Upload
         uses: codecov/codecov-action@v1
