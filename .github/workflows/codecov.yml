@@ -8,9 +8,8 @@ jobs:
         uses: actions/checkout@master
       - name: Test
         run: |
-          gcc -ftest-coverage -fprofile-arcs -O0 -o test test.c lib.c
-          ./test
-          gcov -abcfu lib.c
+          pip install pytest-cov
+          pytest --cov=./
       - name: Upload
         uses: codecov/codecov-action@v1
         with:
