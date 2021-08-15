@@ -15,7 +15,8 @@ jobs:
           pip install pytest-cov
           pip install dvc
           pip install pydrive2
-          export GDRIVE_CREDENTIALS_DATA={"access_token": "ya29.a0ARrdaM_g2c6sBQNKRc_-V0HorKeBW5OwaU_F0btIrKOL79oNdK2e-DOvFSIuuPg9ZUwWuL67-rwQQ3Fd48derxG1NDXsOEMLY6jTKWTzS07HahE7quFZVucrmvCaWYv07b9ng4oQUmi6BRFcqXbawemi-1RQ_3U", "client_id": "710796635688-iivsgbgsb6uv1fap6635dhvuei09o66c.apps.googleusercontent.com", "client_secret": "a1Fz59uTpVNeG_VGuSKDLJXv", "refresh_token": "1//0cF7DEPRT4z-gCgYIARAAGAwSNwF-L9Ir5QI7YCoKKuN9SefKu6Pgwm_uXbsF6vcQuMDHJwNIa0MRIL5r44f0nyeRsCUpPdu6KuI", "token_expiry": "2021-08-07T14:41:01Z", "token_uri": "https://oauth2.googleapis.com/token", "user_agent": null, "revoke_uri": "https://oauth2.googleapis.com/revoke", "id_token": null, "id_token_jwt": null, "token_response": {"access_token": "ya29.a0ARrdaM_g2c6sBQNKRc_-V0HorKeBW5OwaU_F0btIrKOL79oNdK2e-DOvFSIuuPg9ZUwWuL67-rwQQ3Fd48derxG1NDXsOEMLY6jTKWTzS07HahE7quFZVucrmvCaWYv07b9ng4oQUmi6BRFcqXbawemi-1RQ_3U", "expires_in": 3599, "scope": "https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive", "token_type": "Bearer"}, "scopes": ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/drive.appdata"], "token_info_uri": "https://oauth2.googleapis.com/tokeninfo", "invalid": false, "_class": "OAuth2Credentials", "_module": "oauth2client.client"}
+          dvc init
+          dvc remote add -d gdrive://1T6v5zENAgNdIXQWZ01xRGpqVOvDNAo7w
           pip install .
           pytest --cov=./
       - name: Upload
