@@ -21,4 +21,4 @@ jobs:
       - name: Upload
         uses: codecov/codecov-action@v1
         with:
-          files: ./lib.c.gcov
+          files: .coverage
