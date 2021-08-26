@@ -16,7 +16,8 @@ jobs:
           pip install dvc
           pip install pydrive2
           pip install .
-          pytest --cov=./
+          pip install coverage
+          coverage run -m unittest
       - name: Upload
         uses: codecov/codecov-action@v1
         with:
