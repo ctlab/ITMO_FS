@@ -15,7 +15,6 @@ jobs:
           pip install pytest-cov
           pip install dvc
           pip install pydrive2
-          dvc remote add -d remote_storage gdrive://1T6v5zENAgNdIXQWZ01xRGpqVOvDNAo7w
           pip install .
           pytest --cov=./
       - name: Upload
