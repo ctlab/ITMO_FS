@@ -8,9 +8,17 @@ jobs:
         uses: actions/checkout@master
       - name: Test
         run: |
+          pip install -r requirements.txt
+          pip install pandas sphinx_rtd_theme
+          pip install pandas pandas
+          pip install pytest
           pip install pytest-cov
+          pip install dvc
+          pip install pydrive2
+          dvc remote add -d remote_storage gdrive://1T6v5zENAgNdIXQWZ01xRGpqVOvDNAo7w
+          pip install .
           pytest --cov=./
       - name: Upload
         uses: codecov/codecov-action@v1
         with:
-          files: .coverage
+          files: ./lib.c.gcov
