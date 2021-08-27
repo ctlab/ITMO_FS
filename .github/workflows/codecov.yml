@@ -17,7 +17,7 @@ jobs:
           pip install pydrive2
           pip install .
           pip install coverage
-          coverage report
+          pytest --cov=ITMO_FS test
       - name: Upload
         uses: codecov/codecov-action@v1
         with:
