@@ -17,7 +17,8 @@ jobs:
           pip install pydrive2
           pip install .
           pip install coverage
-          coverage run -m unittest
+          coverage run -m pytest
+          coverage report
       - name: Upload
         uses: codecov/codecov-action@v1
         with:
