@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch
-        uses: actions/checkout@master
+        uses: actions/checkout@develop
       - name: Test
         run: |
           pip install -r requirements.txt
@@ -17,7 +17,7 @@ jobs:
           pip install pydrive2
           pip install .
           pip install coverage
-          pytest --cov=ITMO_FS test
+          coverage run --source=ITMO_FS -m pytest
       - name: Upload
         uses: codecov/codecov-action@v1
         with:
