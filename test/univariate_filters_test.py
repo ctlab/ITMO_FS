@@ -15,7 +15,7 @@ from ITMO_FS import MIMAGA
 from ITMO_FS.filters.univariate import *
 from ITMO_FS.filters.univariate.measures import CR_NAMES
 from ITMO_FS.utils.information_theory import *
-from utils import load_dataset
+from .utils import load_dataset
 
 np.random.seed(42)
 

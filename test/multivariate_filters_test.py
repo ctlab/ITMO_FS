@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.utils.estimator_checks import check_estimator
 
 from ITMO_FS.filters.multivariate import *
-from utils import load_dataset
+from .utils import load_dataset
 
 np.random.seed(42)
 
