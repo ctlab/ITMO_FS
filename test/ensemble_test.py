@@ -36,7 +36,10 @@ class MyTestCase(unittest.TestCase):
                    spearman_corr,
                    pearson_corr]
         with self.assertRaises(ValueError):
-            ensemble = Mixed(filters, k=1000000, fusion_function=borda_fusion)
+            ensemble = Mixed(
+                filters,
+                n_features=1000000,
+                fusion_function=borda_fusion)
             ensemble.fit(data, target)
 
     def test_ranking_based_mixed_ensemble(self):
@@ -47,13 +50,14 @@ class MyTestCase(unittest.TestCase):
                    spearman_corr,
                    pearson_corr]
 
-        ensemble = Mixed(filters, k=100, fusion_function=borda_fusion)
+        ensemble = Mixed(filters, n_features=100, fusion_function=borda_fusion)
         ensemble.fit(data, target)
         ensemble.transform(data)
 
-        d = np.array([['f' + str(i) for i in range(100)]]* 5)
-        self.assertEqual(borda_fusion(d, 100),
-                         ['f' + str(i) for i in reversed(range(100))])
+        d = np.array([[i for i in range(100)]] * 5)
+        np.testing.assert_array_equal(borda_fusion(d, 100),
+                                      np.array([i for i in range(100)])
+                                      )
 
     def test_ranking_based_bgf_fusion_function(self):
         random.seed(42)
@@ -195,6 +199,8 @@ class MyTestCase(unittest.TestCase):
                            cv=2)
         ensemble.fit(x, y)
 
+    def test_borda(self): #todo
+        assert True==True
 
 if __name__ == '__main__':
     unittest.main()

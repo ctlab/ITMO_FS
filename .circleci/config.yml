@@ -44,17 +44,18 @@ jobs:
       # other common Python testing frameworks include pytest and nose
       # https://pytest.org
       # https://nose.readthedocs.io
-      - run:
-          name: run tests
-          paths:
-            - ./venv
-          command: |
-            pip install -r requirements.txt
-            pip install pandas sphinx_rtd_theme
-            pip install pandas pandas
-            pip install dvc
-            pip install pytest
-            pytest --cov=ITMO_FS test/
+#      - run:
+#          name: run tests
+#          paths:
+#            - ./venv
+#          command: |
+#            pip install -r requirements.txt
+#            pip install pandas sphinx_rtd_theme
+#            pip install pandas pandas
+#            pip install dvc
+#            pip install pytest
+#            pip install pytest-cov
+#            pytest --cov=ITMO_FS test/
 
       - store_artifacts:
           path: test-reports
