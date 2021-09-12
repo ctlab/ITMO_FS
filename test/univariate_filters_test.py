@@ -11,7 +11,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.utils.estimator_checks import check_estimator
 
-from ITMO_FS import MIMAGA
 from ITMO_FS.filters.univariate import *
 from ITMO_FS.filters.univariate.measures import CR_NAMES
 from ITMO_FS.utils.information_theory import *

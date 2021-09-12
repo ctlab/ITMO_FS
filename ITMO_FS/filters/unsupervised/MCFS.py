@@ -45,6 +45,12 @@ class MCFS(BaseTransformer):
     >>> model = MCFS(5).fit(X)
     >>> model.selected_features_
     array([0, 2, 4, 1, 3], dtype=int64)
+    >>> model = MCFS(5, scheme='heat').fit(X)
+    >>> model.selected_features_
+    array([50, 67, 62, 13, 27], dtype=int64)
+    >>> model = MCFS(5, scheme='0-1').fit(X)
+    >>> model.selected_features_
+    array([0, 2, 1, 4, 3], dtype=int64)
     """
     def __init__(self, n_features, k=2, p=3, scheme='dot', sigma=1,
                  full_graph=False):
