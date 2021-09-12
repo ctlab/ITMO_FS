@@ -7,7 +7,6 @@ from .measures import (MEASURE_NAMES, mutual_information,
                        matrix_mutual_information)
 from ...utils import BaseTransformer, generate_features
 
-
 class MultivariateFilter(BaseTransformer):
     """Provides basic functionality for multivariate filters.
 
@@ -68,6 +67,8 @@ class MultivariateFilter(BaseTransformer):
             except KeyError:
                 getLogger(__name__).error("No %r measure yet", self.measure)
                 raise KeyError("No %r measure yet" % self.measure)
+        else:
+            measure = self.measure
 
         getLogger(__name__).info(
             "Using MultivariateFilter with %s measure", measure)
