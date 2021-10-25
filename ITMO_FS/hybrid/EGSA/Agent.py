@@ -18,10 +18,11 @@ class Agent:
     seed: int
         Seed for random generator.
     """
-    def __init__(self, size, estimator, transfer_function, seed):
+    def __init__(self, size, estimator, transfer_function, seed, smooth_coefficient):
         self.estimator = estimator
         self.transfer_function = transfer_function
         self.size = size
+        self.smooth_coefficient = smooth_coefficient
 
         self.seed = seed
         self.random = np.random.default_rng(seed)
@@ -41,7 +42,7 @@ class Agent:
         self.fitness = alpha * fitness + (1 - alpha) * (1 - (self.count_selected() / self.size))
 
     def update_mass(self, worst, diff_sum):
-        diff_sum = diff_sum if diff_sum != 0 else 0.0001
+        diff_sum = diff_sum if diff_sum != 0 else self.smooth_coefficient
         self.mass = (self.fitness - worst) / diff_sum
 
     def update_acceleration(self, forces):
@@ -49,7 +50,7 @@ class Agent:
         if self.mass != 0:
             self.acceleration /= self.mass
         else:
-            self.acceleration /= 0.001
+            self.acceleration /= self.smooth_coefficient
 
     def update_velocity(self):
         self.velocity *= self.random.random()

@@ -35,6 +35,8 @@ class EGSA:
         alpha defines the trade-off between the quality of feature subset and its size.
         The bigger alpha is the more agents lean towards maximizing accuracy of the evaluated estimator.
         And the smaller alpha is the more agents tend to drop selected features.
+    smooth_coefficient : float
+        Minimal agent mass value.
     agent_distance_metric : np.array of int -> np.array of int -> float (by default np.linalg.norm)
         Function that will be used to calculate distance between agents.
     seed: int (by default 31)
@@ -62,7 +64,7 @@ class EGSA:
     def __init__(self, n_agents=20, iterations=200, stuck_iterations=8, stop_iterations=30, gravitational_factor=10,
                  gravitational_factor_min=0, gravitational_factor_scale=1,
                  transfer_function=lambda v: np.abs(np.tanh(v)), alpha=0.85, estimator=KNeighborsClassifier,
-                 agent_distance_metric=np.linalg.norm, seed=31):
+                 smooth_coefficient=0.0001, agent_distance_metric=np.linalg.norm, seed=31):
         self.n_agents = n_agents
         self.iterations = iterations
         self.stuck_iterations = stuck_iterations
@@ -76,6 +78,7 @@ class EGSA:
         self.alpha = alpha
         self.estimator = estimator
         self.transfer_function = transfer_function
+        self.smooth_coefficient = smooth_coefficient
         self.distance_metric = agent_distance_metric
 
         self.seed = seed
@@ -101,19 +104,16 @@ class EGSA:
         """
 
         n = len(X[0])
-
         agents = [self._make_agent(n) for _ in range(self.n_agents)]
-        for agent in agents:
-            agent.update_fitness(X, y, self.alpha)
 
+        self._update_fitness(agents)
         self._update_gbest(agents[0])
 
         for t in range(self.iterations):
             agents = self._crossover(agents, X, y)
 
             # Evaluate the fitness of all objects
-            for agent in agents:
-                agent.update_fitness(X, y, self.alpha)
+            self._update_fitness(agents)
 
             if self.iterations_since_last_update == self.stop_iterations:
                 return
@@ -197,6 +197,10 @@ class EGSA:
 
         return self.fit(X, y).transform(X)
 
+    def _update_fitness(self, agents):
+        for agent in agents:
+            agent.update_fitness(X, y, self.alpha)
+
     def _make_agent(self, size):
         """
         Make new agent of given size
@@ -212,7 +216,7 @@ class EGSA:
         """
 
         self.seed += 1
-        return Agent(size=size, transfer_function=self.transfer_function, estimator=self.estimator, seed=self.seed)
+        return Agent(size=size, transfer_function=self.transfer_function, estimator=self.estimator, seed=self.seed, smooth_coefficient=self.smooth_coefficient)
 
     def _update_gbest(self, candidate):
         """
