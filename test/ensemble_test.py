@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression, RidgeClassifier
 
 from ITMO_FS import BestSum
-from utils import load_dataset
+from .utils import load_dataset
 
 from sklearn.datasets import make_classification, make_regression
 from sklearn.metrics import f1_score
@@ -26,7 +26,7 @@ class MyTestCase(unittest.TestCase):
     tall_regression = make_regression(n_samples=50000, n_features=200,
                                       n_informative=50)
 
-    madelon = load_dataset("madelon.csv")
+    madelon = load_dataset("test/datasets/madelon.csv")
 
     def test_ranking_based_error_mixed_ensemble(self):
         data, target = self.madelon.drop(['target'], axis=1), self.madelon[

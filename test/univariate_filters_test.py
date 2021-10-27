@@ -14,7 +14,7 @@ from sklearn.utils.estimator_checks import check_estimator
 from ITMO_FS.filters.univariate import *
 from ITMO_FS.filters.univariate.measures import CR_NAMES
 from ITMO_FS.utils.information_theory import *
-from utils import load_dataset
+from .utils import load_dataset
 
 np.random.seed(42)
 
@@ -37,7 +37,7 @@ class TestCases(unittest.TestCase):
     tall_regression = make_regression(n_samples=50000, n_features=200,
                                       n_informative=50)
 
-    madelon = load_dataset("madelon.csv")
+    madelon = load_dataset("test/datasets/madelon.csv")
 
     def test_filters(self):
         data, target = load_iris(True)
@@ -74,7 +74,7 @@ class TestCases(unittest.TestCase):
         for f in [spearman_corr, pearson_corr, fechner_corr, kendall_corr]:
             # X.shape == 1 case
             np.testing.assert_array_almost_equal(
-                np.round(f(data[:, 0], data[:, 0]), 10), np.array([1.]))
+                np.round(f(data[:, 0].reshape((-1,1)), data[:, 0]), 10), np.array([1.]))
             # X.shape == 2 case
             res = f(data, target)
             assert (-1 <= res).all() and (1 >= res).all()
@@ -165,7 +165,7 @@ class TestCases(unittest.TestCase):
                                        cutting_rule=('K best', 2))
         univ_filter.fit(X, y)
 
-        assert univ_filter.selected_features_ == [0, 2]
+        np.testing.assert_array_equal(univ_filter.selected_features_, [0, 2])
 
     def test_modified_t_score_univariate_filter_wide(self):
         data, target = self.wide_classification[0], self.wide_classification[1]
@@ -174,7 +174,7 @@ class TestCases(unittest.TestCase):
             univ_filter = UnivariateFilter('ModifiedTScore', select_k_best(i))
 
             univ_filter.fit(data, target)
-            scores = univ_filter.feature_scores_.values()
+            scores = univ_filter.feature_scores_
             assert all(score >= 0 for score in scores) and all(
                 not np.isnan(score) for score in scores)
 
@@ -215,7 +215,7 @@ class TestCases(unittest.TestCase):
         univ_filter = UnivariateFilter('GiniIndex', cutting_rule=('K best', 2))
         univ_filter.fit(X, y)
         # print(univ_filter.feature_scores_)
-        scores = univ_filter.feature_scores_.values()
+        scores = univ_filter.feature_scores_
         assert all(score <= 1 for score in scores) and all(
             score >= 0 for score in scores)
 
@@ -246,7 +246,7 @@ class TestCases(unittest.TestCase):
         X = X.astype(int)
         univ_filter = UnivariateFilter('FechnerCorr', cutting_rule=('K best', 2))
         univ_filter.fit(X, y)
-        assert univ_filter.selected_features_ == [3, 2]
+        np.testing.assert_array_equal(univ_filter.selected_features_, [3, 2])
 
     def test_pipeline(self):
         iris_dataset = load_iris()

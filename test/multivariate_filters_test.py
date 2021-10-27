@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.utils.estimator_checks import check_estimator
 
 from ITMO_FS.filters.multivariate import *
-from utils import load_dataset
+from .utils import load_dataset
 
 np.random.seed(42)
 
@@ -17,7 +17,7 @@ class TestCases(unittest.TestCase):
     data, target = np.random.randint(10, size=(100, 20)), np.random.randint(10,
                                                                             size=(
                                                                                 100,))
-    madelon = load_dataset("madelon.csv")
+    madelon = load_dataset("test/datasets/madelon.csv")
 
     def test_FCBF(self):
         # FCBF
@@ -42,7 +42,7 @@ class TestCases(unittest.TestCase):
 
     def test_JMIM(self):
         # JMIM
-        res = JMIM(10).fit_transform(self.data, self.target)
+        res = MultivariateFilter('JMIM',10).fit_transform(self.data, self.target)
         assert self.data.shape[0] == res.shape[0]
         print("Joint Mutual Information Maximisation:", self.data.shape,
               '--->', res.shape)
@@ -128,8 +128,7 @@ class TestCases(unittest.TestCase):
 
     def test_df(self):
         for f in [FCBFDiscreteFilter(), DISRWithMassive(10), JMIM(10),
-                  MultivariateFilter(MIM, 10), \
-                  TraceRatioFisher(10), STIR(10)]:
+                  MultivariateFilter(MIM, 10), TraceRatioFisher(10), STIR(10)]:
             df = f.fit_transform(pd.DataFrame(self.data),
                                  pd.DataFrame(self.target))
             arr = f.fit_transform(self.data, self.target)

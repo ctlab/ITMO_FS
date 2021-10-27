@@ -1,6 +1,6 @@
 import dvc.api
 import pandas as pd
-
+import pathlib
 datasets = ["arcene.csv",
             "dexter.csv",
             "dorothea.csv",
@@ -16,7 +16,7 @@ datasets = ["arcene.csv",
 #         df.columns = features
 #         return df
 def load_dataset(name):
-    return pd.read_csv('test/datasets/' + name)
+    return pd.read_csv(name)
 
 
 def load_datasets():

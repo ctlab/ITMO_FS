@@ -1,19 +1,16 @@
 import unittest
 from ITMO_FS.filters.univariate.measures import *
-from utils import load_dataset
+from .utils import load_dataset
 
 
 class UnivariateMeasuresTest(unittest.TestCase):
-    madelon = load_dataset("madelon.csv")
+    madelon = load_dataset("test/datasets/madelon.csv")
 
     def test_measures(self):
         data = self.madelon.drop(['target'], axis=1).values
         for f, answer in zip(
-                [su_measure,
-                 laplacian_score],
-                [1,
-                 1,
-                 1]):
+                [su_measure, laplacian_score],
+                [1, 1]):
             np.testing.assert_allclose(
                 f(data[0].reshape((-1, 1)), data[0]),
                 answer, atol=1e-05)
@@ -33,7 +30,7 @@ class UnivariateMeasuresTest(unittest.TestCase):
     def test_pearson_correlation_1d(self):
         data = self.madelon.drop(['target'], axis=1).values
         np.testing.assert_allclose(
-            pearson_corr(data[0], data[0]),
+            pearson_corr(data[0].reshape((-1, 1)), data[0]),
             1, atol=1e-05)
 
     def test_spearman_measure(self):
@@ -45,7 +42,7 @@ class UnivariateMeasuresTest(unittest.TestCase):
     def test_spearman_measure_1d(self):
         data = self.madelon.drop(['target'], axis=1).values
         np.testing.assert_allclose(
-            spearman_corr(data[:, 0], data[:, 0]),
+            spearman_corr(data[:, 0].reshape((-1, 1)), data[:, 0]),
             1, atol=1e-05)
 
     def test_spearman_measure_error(self):
@@ -139,7 +136,7 @@ class UnivariateMeasuresTest(unittest.TestCase):
     def test_fechner(self):
         data, target = (self.madelon.drop(['target'], axis=1).values,
                         self.madelon["target"].values)
-        fechner_corr(data[:, 0], target)
+        fechner_corr(data[:, 0].reshape((-1,1)), target)
         fechner_corr(data, target)
 
 

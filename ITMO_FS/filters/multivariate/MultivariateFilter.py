@@ -40,11 +40,13 @@ class MultivariateFilter(BaseTransformer):
     >>> model.selected_features_
     array([4, 0, 1], dtype=int64)
     """
-    def __init__(self, measure, n_features, beta=None, gamma=None):
+
+    def __init__(self, measure, n_features, **kwargs):
+        super().__init__()
         self.measure = measure
         self.n_features = n_features
-        self.beta = beta
-        self.gamma = gamma
+        self.beta = kwargs.get('beta', None)
+        self.gamma = kwargs.get('gamma', None)
 
     def _fit(self, X, y, **kwargs):
         """Fit the filter.
