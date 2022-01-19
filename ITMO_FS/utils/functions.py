@@ -7,11 +7,14 @@ def cartesian(rw, cl):  # returns cartesian product for passed numpy arrays as t
     tmp = np.array(np.meshgrid(rw, cl)).T.reshape(len(rw) * len(cl), 2)
     return tmp.T[0], tmp.T[1]
 
+
 def weight_func(model):  # weight function used in MOS testing
     return model.coef_[0]
 
+
 def f1_scorer(y_true, y_pred):
     return f1_score(y_true, y_pred, average='micro')
+
 
 def augmented_rvalue(X, y, k=7, theta=3):
     """Calculate the augmented R-value for a dataset with two classes.
@@ -96,6 +99,7 @@ def knn_from_class(distances, y, index, k, cl, anyOtherClass=False,
 
     return class_indices[nearest[:k]]
 
+
 def matrix_norm(M):
     """Calculate the norm of all rows in the matrix.
 
@@ -109,6 +113,7 @@ def matrix_norm(M):
     array-like, shape (n,) : the norms for each row in the matrix
     """
     return np.sqrt((M * M).sum(axis=1))
+
 
 def l21_norm(M):
     """Calculate the L2,1 norm of a matrix.
@@ -124,6 +129,7 @@ def l21_norm(M):
     """
     return matrix_norm(M).sum()
 
+
 def power_neg_half(M):
     """Calculate M ^ (-1/2).
 
@@ -137,6 +143,7 @@ def power_neg_half(M):
     array-like, shape (n, m) : M ^ (-1/2)
     """
     return np.sqrt(np.linalg.inv(M))
+
 
 def apply_cr(cutting_rule):
     """Extract the cutting rule from a tuple or callable.

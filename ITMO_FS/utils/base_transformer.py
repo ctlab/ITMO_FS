@@ -37,7 +37,8 @@ class BaseTransformer(TransformerMixin, BaseEstimator):
             X = check_array(X, dtype='float64', accept_large_sparse=False)
 
         self.n_total_features_ = X.shape[1]
-        nonconst_features = VarianceThreshold().fit(X).get_support(indices=True)
+        nonconst_features = VarianceThreshold().fit(X).get_support(
+            indices=True)
         self.n_features_ = nonconst_features.shape[0]
 
         if self.n_features_ != self.n_total_features_:
@@ -59,7 +60,6 @@ class BaseTransformer(TransformerMixin, BaseEstimator):
                     "Epsilon should be positive, %d passed", self.epsilon)
                 raise ValueError(
                     "Epsilon should be positive, %d passed" % self.epsilon)
-
 
         self._fit(X[:, nonconst_features], y, **fit_params)
 

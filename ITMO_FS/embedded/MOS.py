@@ -109,6 +109,7 @@ class MOS(BaseTransformer):
                     "Couldn't perform SMOTE because k_neighbors is bigger "
                     "than amount of instances in one of the classes; MOSNS "
                     "would be performed instead")
+                raise ValueError
 
         min_rvalue = 1
         min_b = []
@@ -120,8 +121,14 @@ class MOS(BaseTransformer):
                 alpha=a, l1_ratio=self.l1_ratio, max_iter=self.epochs)
             model.fit(X, y)
             b = self.weight_func(model)
-            rvalue = augmented_rvalue(
+            try:
+                rvalue = augmented_rvalue(
                 X[:, np.flatnonzero(np.abs(b) > self.threshold)], y)
+            except ValueError:
+                getLogger(__name__).error(
+                    "Weight_func: b = %f, less than threshold = %s", b, self.threshold,
+                    b)
+                raise ValueError
             getLogger(__name__).info(
                 "For alpha %f: rvalue = %f, weight vector = %s", a, rvalue, b)
             if min_rvalue > rvalue:

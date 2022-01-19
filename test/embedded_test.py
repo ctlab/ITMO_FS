@@ -14,11 +14,8 @@ np.random.seed(42)
 
 
 class TestCases(unittest.TestCase):
-    data, target = np.random.randint(
-        10, size=(
-            100, 20)), np.random.randint(
-        10, size=(
-            100,))
+    data = np.random.randint(10, size=(100, 20))
+    target = np.random.randint(10, size=(100,))
 
     def test_MOS_err_loss(self):
         with self.assertRaises(KeyError):
