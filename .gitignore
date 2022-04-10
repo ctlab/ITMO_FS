@@ -3,3 +3,4 @@ ITMO_FS.egg-info
 dist
 build
 common
+*.DS_Store
