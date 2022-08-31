@@ -17,7 +17,9 @@ jobs:
           pip install pydrive2
           pip install .
           pip install coverage
-          pytest --cov-report xml --cov=ITMO_FS || true
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+                  chmod +x codecov
+          ./codecov -t 73ed7c02-ad0f-48df-afd0-8a68ff4ccf02
       - name: Upload
         uses: codecov/codecov-action@v1
         with:
