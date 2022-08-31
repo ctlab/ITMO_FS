@@ -1,6 +1,6 @@
 import unittest
 from ITMO_FS.filters.univariate.measures import *
-from .utils import load_dataset
+from test.utils import load_dataset
 
 
 class UnivariateMeasuresTest(unittest.TestCase):

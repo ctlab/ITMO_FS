@@ -1,14 +1,11 @@
-import time
 import unittest
 import numpy as np
 from sklearn.linear_model import LogisticRegression, RidgeClassifier
 
 from ITMO_FS import BestSum
-from .utils import load_dataset
+from test.utils import load_dataset
 
 from sklearn.datasets import make_classification, make_regression
-from sklearn.metrics import f1_score
-from sklearn.model_selection import KFold
 from sklearn.svm import SVC
 
 from ITMO_FS.ensembles.measure_based import *
