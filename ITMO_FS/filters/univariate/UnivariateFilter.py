@@ -3,8 +3,7 @@ from logging import getLogger
 import numpy as np
 
 from .measures import CR_NAMES, MEASURE_NAMES
-from ...utils import (BaseTransformer, generate_features, check_restrictions,
-                      apply_cr)
+from ...utils import BaseTransformer, generate_features, check_restrictions, apply_cr
 
 
 class UnivariateFilter(BaseTransformer):
@@ -45,6 +44,7 @@ class UnivariateFilter(BaseTransformer):
     >>> filter.feature_scores_
     array([0.6 , 0.2 , 1.  , 0.12, 5.4 ])
     """
+
     def __init__(self, measure, cutting_rule=("Best by percentage", 1.0)):
         self.measure = measure
         self.cutting_rule = cutting_rule
@@ -56,13 +56,13 @@ class UnivariateFilter(BaseTransformer):
             except KeyError:
                 getLogger(__name__).error("No %s measure yet", self.measure)
                 raise KeyError("No %s measure yet" % self.measure)
-        elif hasattr(self.measure, '__call__'):
+        elif hasattr(self.measure, "__call__"):
             measure = self.measure
         else:
             getLogger(__name__).error(
-                "%s isn't a measure function or string", self.measure)
-            raise KeyError(
-                "%s isn't a measure function or string" % self.measure)
+                "%s isn't a measure function or string", self.measure
+            )
+            raise KeyError("%s isn't a measure function or string" % self.measure)
         return measure
 
     def _fit(self, X, y, store_scores=True):
@@ -86,7 +86,9 @@ class UnivariateFilter(BaseTransformer):
         cutting_rule = apply_cr(self.cutting_rule)
         getLogger(__name__).info(
             "Using UnivariateFilter with measure %s and cutting rule %s",
-            measure, cutting_rule)
+            measure,
+            cutting_rule,
+        )
 
         check_restrictions(measure.__name__, cutting_rule.__name__)
 

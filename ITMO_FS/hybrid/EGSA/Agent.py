@@ -18,6 +18,7 @@ class Agent:
     seed: int
         Seed for random generator.
     """
+
     def __init__(self, size, estimator, transfer_function, seed, smooth_coefficient):
         self.estimator = estimator
         self.transfer_function = transfer_function
@@ -39,7 +40,9 @@ class Agent:
     def update_fitness(self, data, target, alpha):
         selected = data[:, self.to_bool()]
         fitness = self.estimator().fit(selected, target).score(selected, target)
-        self.fitness = alpha * fitness + (1 - alpha) * (1 - (self.count_selected() / self.size))
+        self.fitness = alpha * fitness + (1 - alpha) * (
+            1 - (self.count_selected() / self.size)
+        )
 
     def update_mass(self, worst, diff_sum):
         diff_sum = diff_sum if diff_sum != 0 else self.smooth_coefficient
@@ -65,8 +68,12 @@ class Agent:
             self.bits[0] = 1
 
     def copy(self):
-        new = Agent(self.size, transfer_function=self.transfer_function, estimator=self.estimator,
-                    seed=self.seed + self.random.integers(1000))
+        new = Agent(
+            self.size,
+            transfer_function=self.transfer_function,
+            estimator=self.estimator,
+            seed=self.seed + self.random.integers(1000),
+        )
         new.bits = self.bits.copy()
         new.fitness = self.fitness
         return new
@@ -82,7 +89,7 @@ class Agent:
         return new.bits
 
     def __str__(self):
-        return ' '.join([str(self.bits), str(self.fitness)])
+        return " ".join([str(self.bits), str(self.fitness)])
 
     def swap_mutation(self):
         i, j = self.random.integers(2, 2)

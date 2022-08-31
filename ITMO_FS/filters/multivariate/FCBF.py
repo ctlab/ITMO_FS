@@ -35,6 +35,7 @@ class FCBFDiscreteFilter(BaseTransformer):
     >>> fcbf.selected_features_
     array([4], dtype=int64)
     """
+
     def __init__(self, delta=0.1):
         self.delta = delta
 
@@ -52,20 +53,23 @@ class FCBFDiscreteFilter(BaseTransformer):
         -------
         None
         """
+
         def __SU(x, y, entropy_y):
             entropy_x = entropy(x)
-            return 2 * ((entropy_x - conditional_entropy(y, x))
-                        / (entropy_x + entropy_y))
+            return 2 * (
+                (entropy_x - conditional_entropy(y, x)) / (entropy_x + entropy_y)
+            )
 
         free_features = generate_features(x)
-        self.selected_features_ = np.array([], dtype='int')
+        self.selected_features_ = np.array([], dtype="int")
         entropy_y = entropy(y)
         getLogger(__name__).info("Entropy of y: %f", entropy_y)
 
         su_class = np.apply_along_axis(__SU, 0, x, y, entropy_y)
         getLogger(__name__).info("SU values against y: %s", su_class)
-        self.selected_features_ = np.argsort(su_class)[::-1][:
-            np.count_nonzero(su_class > self.delta)]
+        self.selected_features_ = np.argsort(su_class)[::-1][
+            : np.count_nonzero(su_class > self.delta)
+        ]
         getLogger(__name__).info("Selected set: %s", self.selected_features_)
 
         index = 1
@@ -73,22 +77,26 @@ class FCBFDiscreteFilter(BaseTransformer):
             feature = self.selected_features_[index - 1]
             getLogger(__name__).info("Leading feature: %d", feature)
             entropy_feature = entropy(x[:, feature])
-            getLogger(__name__).info(
-                "Leading feature entropy: %f", entropy_feature)
+            getLogger(__name__).info("Leading feature entropy: %f", entropy_feature)
             su_classes = su_class[self.selected_features_[index:]]
             getLogger(__name__).info(
-                "SU values against y for the remaining features: %s",
-                su_classes)
+                "SU values against y for the remaining features: %s", su_classes
+            )
             su_feature = np.apply_along_axis(
-                __SU, 0, x[:, self.selected_features_[index:]], x[:, feature],
-                entropy_feature)
+                __SU,
+                0,
+                x[:, self.selected_features_[index:]],
+                x[:, feature],
+                entropy_feature,
+            )
             getLogger(__name__).info(
-                "SU values against leading feature for the remaining features: "
-                "%s", su_feature)
+                "SU values against leading feature for the remaining features: " "%s",
+                su_feature,
+            )
             to_delete = np.flatnonzero(su_feature >= su_classes) + index
             getLogger(__name__).info(
                 "Deleting those features from the selected set: %s",
-                self.selected_features_[to_delete])
-            self.selected_features_ = np.delete(
-                self.selected_features_, to_delete)
+                self.selected_features_[to_delete],
+            )
+            self.selected_features_ = np.delete(self.selected_features_, to_delete)
             index += 1

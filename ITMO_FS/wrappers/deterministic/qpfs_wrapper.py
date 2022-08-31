@@ -2,6 +2,7 @@ from ITMO_FS.filters.univariate.measures import pearson_corr
 from ITMO_FS.utils.qpfs_body import qpfs_body
 from ...utils import BaseWrapper
 
+
 class QPFSWrapper(BaseWrapper):
     """
     #TODO rewrite to the proper notation
@@ -42,7 +43,8 @@ class QPFSWrapper(BaseWrapper):
     >>> print(ranks)
 
     """
-    def __init__(self, alpha, r=None, sigma=None, solv='quadprog', fn=pearson_corr):
+
+    def __init__(self, alpha, r=None, sigma=None, solv="quadprog", fn=pearson_corr):
         self.alpha = alpha
         self.r = r
         self.sigma = sigma
@@ -62,5 +64,5 @@ class QPFSWrapper(BaseWrapper):
             Returns
             ------
             None
-        """        
+        """
         return qpfs_body(X, y, fn, alpha=alpha, r=r, sigma=sigma, solv=solv)

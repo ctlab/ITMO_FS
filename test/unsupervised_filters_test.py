@@ -13,20 +13,25 @@ from ITMO_FS.filters.univariate import *
 np.random.seed(42)
 
 
-class TestCases(unittest.TestCase):  # TODO: add TraceRatioLaplacian tests and tests without target
-    data, target = np.random.randint(10, size=(100, 20)), np.random.randint(10, size=(100,))
+class TestCases(
+    unittest.TestCase
+):  # TODO: add TraceRatioLaplacian tests and tests without target
+    data, target = (
+        np.random.randint(10, size=(100, 20)),
+        np.random.randint(10, size=(100,)),
+    )
 
     def test_MCFS(self):
         # MCFS
         res = MCFS(10).fit_transform(self.data, self.target)
         assert self.data.shape[0] == res.shape[0]
-        print("MCFS:", self.data.shape, '--->', res.shape)
+        print("MCFS:", self.data.shape, "--->", res.shape)
 
     def test_UDFS(self):
         # UDFS
         res = UDFS(10).fit_transform(self.data, self.target)
         assert self.data.shape[0] == res.shape[0]
-        print("UDFS:", self.data.shape, '--->', res.shape)
+        print("UDFS:", self.data.shape, "--->", res.shape)
 
     def test_df(self):
         for f in [MCFS(10), UDFS(10)]:
@@ -36,24 +41,26 @@ class TestCases(unittest.TestCase):  # TODO: add TraceRatioLaplacian tests and t
 
     def test_pipeline(self):
         # FS
-        p = Pipeline([('FS1', MCFS(10))])
+        p = Pipeline([("FS1", MCFS(10))])
         p.fit(self.data, self.target)
         res = p.transform(self.data)
         assert self.data.shape[0] == res.shape[0] and res.shape[1] == 10
 
         # FS - estim
-        p = Pipeline([('FS1', UDFS(10)), ('E1', LogisticRegression())])
+        p = Pipeline([("FS1", UDFS(10)), ("E1", LogisticRegression())])
         p.fit(self.data, self.target)
         assert 0 <= p.score(self.data, self.target) <= 1
 
         # FS - FS
-        p = Pipeline([('FS1', MCFS(10)), ('FS2', UDFS(5))])
+        p = Pipeline([("FS1", MCFS(10)), ("FS2", UDFS(5))])
         p.fit(self.data, self.target)
         res = p.transform(self.data)
         assert self.data.shape[0] == res.shape[0] and res.shape[1] == 5
 
         # FS - FS - estim
-        p = Pipeline([('FS1', UDFS(10)), ('FS2', MCFS(5)), ('E1', LogisticRegression())])
+        p = Pipeline(
+            [("FS1", UDFS(10)), ("FS2", MCFS(5)), ("E1", LogisticRegression())]
+        )
         p.fit(self.data, self.target)
         assert 0 <= p.score(self.data, self.target) <= 1
 

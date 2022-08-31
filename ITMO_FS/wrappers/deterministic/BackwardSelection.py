@@ -43,6 +43,7 @@ class BackwardSelection(BaseWrapper):
     >>> model.selected_features_
     array([ 0,  1,  2,  3, 13], dtype=int64)
     """
+
     def __init__(self, estimator, n_features, measure, cv=3):
         self.estimator = estimator
         self.n_features = n_features
@@ -67,22 +68,29 @@ class BackwardSelection(BaseWrapper):
 
         while self.selected_features_.shape[0] != self.n_features:
             getLogger(__name__).info(
-                "Current selected set: %s", self.selected_features_)
+                "Current selected set: %s", self.selected_features_
+            )
             scores = np.vectorize(
                 lambda i: cross_val_score(
                     self._estimator,
-                    X[:, np.delete(self.selected_features_, i)], y, cv=self.cv,
-                    scoring=self.measure).mean())(
-            np.arange(0, self.selected_features_.shape[0]))
-            getLogger(__name__).info(
-                "Scores for all selected features: %s", scores)
+                    X[:, np.delete(self.selected_features_, i)],
+                    y,
+                    cv=self.cv,
+                    scoring=self.measure,
+                ).mean()
+            )(np.arange(0, self.selected_features_.shape[0]))
+            getLogger(__name__).info("Scores for all selected features: %s", scores)
             to_delete = np.argmax(scores)
             getLogger(__name__).info(
-                "Deleting feature %d", self.selected_features_[to_delete])
+                "Deleting feature %d", self.selected_features_[to_delete]
+            )
 
-            self.selected_features_ = np.delete(
-                self.selected_features_, to_delete)
+            self.selected_features_ = np.delete(self.selected_features_, to_delete)
         self.best_score_ = cross_val_score(
-            self._estimator, X[:, self.selected_features_], y, cv=self.cv,
-            scoring=self.measure).mean()
+            self._estimator,
+            X[:, self.selected_features_],
+            y,
+            cv=self.cv,
+            scoring=self.measure,
+        ).mean()
         self._estimator.fit(X[:, self.selected_features_], y)

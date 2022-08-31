@@ -40,8 +40,8 @@ class Mixed(BaseTransformer):
     >>> mixed.selected_features_
     array([2, 4], dtype=int64)
     """
-    def __init__(self, filters, n_features,
-                 fusion_function=best_goes_first_fusion):
+
+    def __init__(self, filters, n_features, fusion_function=best_goes_first_fusion):
         self.filters = filters
         self.n_features = n_features
         self.fusion_function = fusion_function
@@ -60,11 +60,12 @@ class Mixed(BaseTransformer):
         -------
         None
         """
-        #TODO: some measures are 'lower is better', a simple argsort would not
-        #work there - need to call a different ranking function
+        # TODO: some measures are 'lower is better', a simple argsort would not
+        # work there - need to call a different ranking function
         self.filter_ranks_ = np.vectorize(
-            lambda f: np.argsort(f(X, y))[::-1],
-            signature='()->(1)')(self.filters)
+            lambda f: np.argsort(f(X, y))[::-1], signature="()->(1)"
+        )(self.filters)
         getLogger(__name__).info("Filter ranks: %s", self.filter_ranks_)
         self.selected_features_ = self.fusion_function(
-            self.filter_ranks_, self.n_features)
+            self.filter_ranks_, self.n_features
+        )

@@ -30,40 +30,43 @@ class BaseTransformer(TransformerMixin, BaseEstimator):
         Self, i.e. the transformer object.
         """
         if y is not None:
-            X, y = check_X_y(X, y, dtype='numeric')
-            if y.dtype.kind == 'O':
-                y = y.astype('int')
+            X, y = check_X_y(X, y, dtype="numeric")
+            if y.dtype.kind == "O":
+                y = y.astype("int")
         else:
-            X = check_array(X, dtype='float64', accept_large_sparse=False)
+            X = check_array(X, dtype="float64", accept_large_sparse=False)
 
         self.n_total_features_ = X.shape[1]
-        nonconst_features = VarianceThreshold().fit(X).get_support(
-            indices=True)
+        nonconst_features = VarianceThreshold().fit(X).get_support(indices=True)
         self.n_features_ = nonconst_features.shape[0]
 
         if self.n_features_ != self.n_total_features_:
             getLogger(__name__).warning(
-                "Found %d constant features; they would not be used in fit")
+                "Found %d constant features; they would not be used in fit"
+            )
 
-        if hasattr(self, 'n_features'):
+        if hasattr(self, "n_features"):
             if self.n_features > self.n_features_:
                 getLogger(__name__).error(
                     "Cannot select %d features with n_features = %d",
-                    self.n_features, self.n_features_)
+                    self.n_features,
+                    self.n_features_,
+                )
                 raise ValueError(
                     "Cannot select %d features with n_features = %d"
-                    % (self.n_features, self.n_features_))
+                    % (self.n_features, self.n_features_)
+                )
 
-        if hasattr(self, 'epsilon'):
+        if hasattr(self, "epsilon"):
             if self.epsilon <= 0:
                 getLogger(__name__).error(
-                    "Epsilon should be positive, %d passed", self.epsilon)
-                raise ValueError(
-                    "Epsilon should be positive, %d passed" % self.epsilon)
+                    "Epsilon should be positive, %d passed", self.epsilon
+                )
+                raise ValueError("Epsilon should be positive, %d passed" % self.epsilon)
 
         self._fit(X[:, nonconst_features], y, **fit_params)
 
-        if hasattr(self, 'feature_scores_'):
+        if hasattr(self, "feature_scores_"):
             scores = np.empty(self.n_total_features_)
             scores.fill(np.nan)
             scores[nonconst_features] = self.feature_scores_
@@ -85,13 +88,13 @@ class BaseTransformer(TransformerMixin, BaseEstimator):
             ------
             Transformed 2D numpy array
         """
-        check_is_fitted(self, 'selected_features_')
-        X_ = check_array(X, dtype='numeric', accept_large_sparse=False)
+        check_is_fitted(self, "selected_features_")
+        X_ = check_array(X, dtype="numeric", accept_large_sparse=False)
         if X_.shape[1] != self.n_total_features_:
             getLogger(__name__).error(
-                "Shape of input is different from what was seen in 'fit'")
-            raise ValueError(
-                "Shape of input is different from what was seen in 'fit'")
+                "Shape of input is different from what was seen in 'fit'"
+            )
+            raise ValueError("Shape of input is different from what was seen in 'fit'")
         if isinstance(X, pd.DataFrame):
             return X[X.columns[self.selected_features_]]
         else:

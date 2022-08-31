@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 
-from Agent import Agent
+from .Agent import Agent
 
 
 class EGSA:
@@ -61,10 +61,22 @@ class EGSA:
     0.944
     """
 
-    def __init__(self, n_agents=20, iterations=200, stuck_iterations=8, stop_iterations=30, gravitational_factor=10,
-                 gravitational_factor_min=0, gravitational_factor_scale=1,
-                 transfer_function=lambda v: np.abs(np.tanh(v)), alpha=0.85, estimator=KNeighborsClassifier,
-                 smooth_coefficient=0.0001, agent_distance_metric=np.linalg.norm, seed=31):
+    def __init__(
+        self,
+        n_agents=20,
+        iterations=200,
+        stuck_iterations=8,
+        stop_iterations=30,
+        gravitational_factor=10,
+        gravitational_factor_min=0,
+        gravitational_factor_scale=1,
+        transfer_function=lambda v: np.abs(np.tanh(v)),
+        alpha=0.85,
+        estimator=KNeighborsClassifier,
+        smooth_coefficient=0.0001,
+        agent_distance_metric=np.linalg.norm,
+        seed=31,
+    ):
         self.n_agents = n_agents
         self.iterations = iterations
         self.stuck_iterations = stuck_iterations
@@ -136,17 +148,28 @@ class EGSA:
 
             # Calculate Mi
             worst_fitness = agents[-1].fitness
-            diff_sum = sum([a.fitness for a in agents]) - (self.n_agents * worst_fitness)
+            diff_sum = sum([a.fitness for a in agents]) - (
+                self.n_agents * worst_fitness
+            )
             for agent in agents:
                 agent.update_mass(worst=worst_fitness, diff_sum=diff_sum)
 
             # Update the gravitational factor
-            self.G *= self.G_max - (self.G_max - self.G_min) * np.log10(self.scale + 10 * t / self.iterations)
+            self.G *= self.G_max - (self.G_max - self.G_min) * np.log10(
+                self.scale + 10 * t / self.iterations
+            )
 
             # Calculate forces, update accelerations
             for agent in agents:
-                forces = [self.G * agent.mass * other.mass * (other - agent) / self.distance_metric(other - agent) ** 2
-                          for other in agents if (agent.bits != other.bits).all()]
+                forces = [
+                    self.G
+                    * agent.mass
+                    * other.mass
+                    * (other - agent)
+                    / self.distance_metric(other - agent) ** 2
+                    for other in agents
+                    if (agent.bits != other.bits).all()
+                ]
                 agent.update_acceleration(forces)
 
             # Update velocities
@@ -175,7 +198,9 @@ class EGSA:
         """
 
         if self.gbest is None:
-            raise Exception('transform is invoked on the instance that has not fitted yet')
+            raise Exception(
+                "transform is invoked on the instance that has not fitted yet"
+            )
         return X[:, self.gbest.to_bool()]
 
     def fit_transform(self, X, y):
@@ -216,7 +241,13 @@ class EGSA:
         """
 
         self.seed += 1
-        return Agent(size=size, transfer_function=self.transfer_function, estimator=self.estimator, seed=self.seed, smooth_coefficient=self.smooth_coefficient)
+        return Agent(
+            size=size,
+            transfer_function=self.transfer_function,
+            estimator=self.estimator,
+            seed=self.seed,
+            smooth_coefficient=self.smooth_coefficient,
+        )
 
     def _update_gbest(self, candidate):
         """
@@ -260,4 +291,4 @@ class EGSA:
             new.update_fitness(data, target, self.alpha)
             pool.append(new)
 
-        return sorted(pool, key=lambda a: a.fitness, reverse=True)[:self.n_agents]
+        return sorted(pool, key=lambda a: a.fitness, reverse=True)[: self.n_agents]

@@ -61,8 +61,19 @@ class TPhMGWO(BaseWrapper):
     >>> tphmgwo.selected_features_
     array([0, 1, 4, 6, 8], dtype=int64)
     """
-    def __init__(self, estimator, measure, wolf_number=10, seed=1, alpha=0.5,
-                 cv=5, iteration_number=30, mp=0.5, binarize='sigmoid'):
+
+    def __init__(
+        self,
+        estimator,
+        measure,
+        wolf_number=10,
+        seed=1,
+        alpha=0.5,
+        cv=5,
+        iteration_number=30,
+        mp=0.5,
+        binarize="sigmoid",
+    ):
         self.estimator = estimator
         self.measure = measure
         self.wolf_number = wolf_number
@@ -89,7 +100,7 @@ class TPhMGWO(BaseWrapper):
         rand1 = self._rng.random((3, self.n_features_))
         rand2 = self._rng.random((3, self.n_features_))
         A = abs(2 * a * rand1 - a)
-        C = (2 * rand2)
+        C = 2 * rand2
         return A, C
 
     def _fit(self, X, y):
@@ -106,28 +117,38 @@ class TPhMGWO(BaseWrapper):
         -------
         None
         """
+
         def __calcScore(wolf):
-            score = 1 - cross_val_score(
-                self._estimator, X[:, np.where(wolf, True, False)], y,
-                cv=self.cv, scoring=self.measure).mean()
-            return (self.alpha * score
-                    + self._beta * np.count_nonzero(wolf) / self.n_features_)
+            score = (
+                1
+                - cross_val_score(
+                    self._estimator,
+                    X[:, np.where(wolf, True, False)],
+                    y,
+                    cv=self.cv,
+                    scoring=self.measure,
+                ).mean()
+            )
+            return (
+                self.alpha * score
+                + self._beta * np.count_nonzero(wolf) / self.n_features_
+            )
 
         def __updateWolf(wolf):
             D = abs(C * best3Wolves - wolf)
             return binarize(np.mean(best3Wolves - A * D, axis=0))
 
-        if self.binarize == 'tanh':
+        if self.binarize == "tanh":
             binarize = self.__tanh
-        elif self.binarize == 'sigmoid':
+        elif self.binarize == "sigmoid":
             binarize = self.__sigmoid
         else:
             getLogger(__name__).error(
-                "binarize should be 'tanh' or 'sigmoid', %s was passed",
-                self.binarize)
+                "binarize should be 'tanh' or 'sigmoid', %s was passed", self.binarize
+            )
             raise ValueError(
-                "binarize should be 'tanh' or 'sigmoid', %s was passed"
-                % self.binarize)
+                "binarize should be 'tanh' or 'sigmoid', %s was passed" % self.binarize
+            )
 
         self._beta = 1 - self.alpha
         self._rng = np.random.default_rng(self.seed)
@@ -143,8 +164,9 @@ class TPhMGWO(BaseWrapper):
         getLogger(__name__).info("Initial values: A = %s, C = %s", A, C)
         classNumber = np.unique(y).shape[0]
 
-        scores = np.vectorize(
-            lambda wolf: __calcScore(wolf), signature='(1)->()')(wolves)
+        scores = np.vectorize(lambda wolf: __calcScore(wolf), signature="(1)->()")(
+            wolves
+        )
         getLogger(__name__).info("Scores for all wolves: %s", scores)
 
         alphaIndex, betaIndex, deltaIndex = np.argsort(scores)[:3]
@@ -152,17 +174,20 @@ class TPhMGWO(BaseWrapper):
 
         for t in range(self.iteration_number):
             wolves = np.vectorize(
-                lambda wolf: __updateWolf(wolf), signature='(1)->(1)')(wolves)
+                lambda wolf: __updateWolf(wolf), signature="(1)->(1)"
+            )(wolves)
             for wolf in wolves:
                 if wolf.sum() == 0:
                     wolf[0] = 1
             getLogger(__name__).info(
-                "Wolves population after iteration %d: %s", t, wolves)
+                "Wolves population after iteration %d: %s", t, wolves
+            )
 
             A, C = self.__genRandValues(t)
             getLogger(__name__).info("A = %s, C = %s", A, C)
-            scores = np.vectorize(
-                lambda wolf: __calcScore(wolf), signature='(1)->()')(wolves)
+            scores = np.vectorize(lambda wolf: __calcScore(wolf), signature="(1)->()")(
+                wolves
+            )
             getLogger(__name__).info("Scores for all wolves: %s", scores)
             alphaIndex, betaIndex, deltaIndex = np.argsort(scores)[:3]
             best3Wolves = wolves[[alphaIndex, betaIndex, deltaIndex]]
@@ -174,7 +199,8 @@ class TPhMGWO(BaseWrapper):
             getLogger(__name__).info("Base alpha wolf score: %d", alphaScore)
             for selected in self._rng.permuted(np.flatnonzero(alphaWolf)):
                 getLogger(__name__).info(
-                    "Trying to remove feature %d from the alpha wolf", selected)
+                    "Trying to remove feature %d from the alpha wolf", selected
+                )
                 r = self._rng.random()
                 if r < self.mp:
                     mutated[selected] = 0
@@ -182,7 +208,7 @@ class TPhMGWO(BaseWrapper):
                         break
                     mutatedScore = __calcScore(mutated)
                     getLogger(__name__).info("New score: %d", mutatedScore)
-                    if (mutatedScore < alphaScore):
+                    if mutatedScore < alphaScore:
                         alphaScore = mutatedScore
                         alphaWolf = mutated
                     else:
@@ -191,13 +217,14 @@ class TPhMGWO(BaseWrapper):
             mutated = np.copy(alphaWolf)
             for free in self._rng.permuted(np.flatnonzero(alphaWolf - 1)):
                 getLogger(__name__).info(
-                    "Trying to add feature %d to the alpha wolf", free)
+                    "Trying to add feature %d to the alpha wolf", free
+                )
                 r = self._rng.random()
                 if r < self.mp:
                     mutated[free] = 1
                     mutatedScore = __calcScore(mutated)
                     getLogger(__name__).info("New score: %d", mutatedScore)
-                    if (mutatedScore < alphaScore):
+                    if mutatedScore < alphaScore:
                         alphaScore = mutatedScore
                         alphaWolf = mutated
                     else:
@@ -209,6 +236,10 @@ class TPhMGWO(BaseWrapper):
             alphaWolf[0] = 1
         self.selected_features_ = np.flatnonzero(alphaWolf)
         self.best_score_ = cross_val_score(
-            self._estimator, X[:, self.selected_features_], y, cv=self.cv,
-            scoring=self.measure).mean()
+            self._estimator,
+            X[:, self.selected_features_],
+            y,
+            cv=self.cv,
+            scoring=self.measure,
+        ).mean()
         self._estimator.fit(X[:, self.selected_features_], y)

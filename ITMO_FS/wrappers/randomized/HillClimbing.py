@@ -6,6 +6,7 @@ from sklearn.model_selection import cross_val_score
 
 from ...utils import generate_features, BaseWrapper
 
+
 class HillClimbingWrapper(BaseWrapper):
     """Hill Climbing algorithm.
 
@@ -40,6 +41,7 @@ class HillClimbingWrapper(BaseWrapper):
     >>> model.selected_features_
     array([ 0,  1,  2,  3,  4,  6,  7,  9, 11, 13, 14, 15], dtype=int64)
     """
+
     def __init__(self, estimator, measure, seed=42, cv=3):
         self.estimator = estimator
         self.measure = measure
@@ -66,8 +68,8 @@ class HillClimbingWrapper(BaseWrapper):
         mask = rng.choice([True, False], self.n_features_)
         getLogger(__name__).info("Initial feature mask: %s", mask)
         score = cross_val_score(
-            self._estimator, X[:, features[mask]], y, cv=self.cv,
-            scoring=self.measure).mean()
+            self._estimator, X[:, features[mask]], y, cv=self.cv, scoring=self.measure
+        ).mean()
 
         while True:
             getLogger(__name__).info("Current best score: %d", score)
@@ -75,15 +77,19 @@ class HillClimbingWrapper(BaseWrapper):
             order = rng.permutation(self.n_features_)
             for feature in order:
                 getLogger(__name__).info("Trying to change feature %d", feature)
-                mask[feature] = not(mask[feature])
-                new_score = cross_val_score(self._estimator,
-                    X[:, features[mask]], y, cv=self.cv,
-                    scoring=self.measure).mean()
+                mask[feature] = not (mask[feature])
+                new_score = cross_val_score(
+                    self._estimator,
+                    X[:, features[mask]],
+                    y,
+                    cv=self.cv,
+                    scoring=self.measure,
+                ).mean()
                 getLogger(__name__).info("New score: %d", new_score)
                 if new_score > score:
                     score = new_score
                     break
-                mask[feature] = not(mask[feature])
+                mask[feature] = not (mask[feature])
             if old_score == score:
                 break
 

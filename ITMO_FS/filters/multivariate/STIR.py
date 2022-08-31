@@ -37,7 +37,8 @@ class STIR(BaseTransformer):
     >>> model.selected_features_
     array([2, 0], dtype=int64)
     """
-    def __init__(self, n_features, metric='manhattan', k=1):
+
+    def __init__(self, n_features, metric="manhattan", k=1):
         self.n_features = n_features
         self.metric = metric
         self.k = k
@@ -62,10 +63,14 @@ class STIR(BaseTransformer):
         if np.any(counts <= self.k):
             getLogger(__name__).error(
                 "Cannot select %d nearest neighbors because one of the classes "
-                "has less than %d samples", self.k, self.k + 1)
+                "has less than %d samples",
+                self.k,
+                self.k + 1,
+            )
             raise ValueError(
                 "Cannot select %d nearest neighbors because one of the classes "
-                "has less than %d samples" % (self.k, self.k + 1))
+                "has less than %d samples" % (self.k, self.k + 1)
+            )
 
         x_normalized = MinMaxScaler().fit_transform(X)
         dm = pairwise_distances(x_normalized, x_normalized, self.metric)
@@ -76,31 +81,41 @@ class STIR(BaseTransformer):
             np.vectorize(
                 lambda index: (
                     x_normalized[index]
-                    - x_normalized[knn_from_class(
-                        dm, y, index, self.k, y[index])]),
-                signature='()->(n,m)')(indices))
+                    - x_normalized[knn_from_class(dm, y, index, self.k, y[index])]
+                ),
+                signature="()->(n,m)",
+            )(indices)
+        )
         getLogger(__name__).info("Hit differences matrix: %s", hits_diffs)
         misses_diffs = np.abs(
             np.vectorize(
                 lambda index: (
                     x_normalized[index]
-                    - x_normalized[knn_from_class(
-                        dm, y, index, self.k, y[index], anyOtherClass=True)]),
-                signature='()->(n,m)')(indices))
+                    - x_normalized[
+                        knn_from_class(
+                            dm, y, index, self.k, y[index], anyOtherClass=True
+                        )
+                    ]
+                ),
+                signature="()->(n,m)",
+            )(indices)
+        )
         getLogger(__name__).info("Miss differences matrix: %s", misses_diffs)
 
-        H = np.mean(hits_diffs, axis=(0,1))
+        H = np.mean(hits_diffs, axis=(0, 1))
         getLogger(__name__).info("H: %s", H)
-        M = np.mean(misses_diffs, axis=(0,1))
+        M = np.mean(misses_diffs, axis=(0, 1))
         getLogger(__name__).info("M: %s", M)
-        var_H = np.var(hits_diffs, axis=(0,1))
-        var_M = np.var(misses_diffs, axis=(0,1))
+        var_H = np.var(hits_diffs, axis=(0, 1))
+        var_M = np.var(misses_diffs, axis=(0, 1))
 
         # the 1 / (1 / |M| + 1 / |H|) ^ (1/2) multiplier is constant, we omit it
         self.feature_scores_ = (
-            (M - H) * np.sqrt(2 * self.k * n_samples - 2)
-            / (np.sqrt((self.k * n_samples - 1) * (var_H + var_M)) + 1e-15))
+            (M - H)
+            * np.sqrt(2 * self.k * n_samples - 2)
+            / (np.sqrt((self.k * n_samples - 1) * (var_H + var_M)) + 1e-15)
+        )
         getLogger(__name__).info("Feature scores: %s", self.feature_scores_)
         self.selected_features_ = np.argsort(self.feature_scores_)[::-1][
-            :self.n_features]
-
+            : self.n_features
+        ]

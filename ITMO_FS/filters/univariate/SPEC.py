@@ -48,8 +48,10 @@ class SPEC(BaseTransformer):
     >>> model.selected_features_
     array([3, 4, 1], dtype=int64)
     """
-    def __init__(self, n_features, k=2, gamma=(lambda x: x ** 2), sigma=0.5,
-                 phi_type=3):
+
+    def __init__(
+        self, n_features, k=2, gamma=(lambda x: x ** 2), sigma=0.5, phi_type=3
+    ):
         self.n_features = n_features
         self.k = k
         self.gamma = gamma
@@ -63,12 +65,14 @@ class SPEC(BaseTransformer):
         return np.sum(cosines * cosines * self.gamma(eigvals))
 
     def __phi2(self, cosines, eigvals, k):
-        return (np.sum(cosines[1:] * cosines[1:] * self.gamma(eigvals[1:]))
-                / np.sum(cosines[1:] * cosines[1:]))
+        return np.sum(cosines[1:] * cosines[1:] * self.gamma(eigvals[1:])) / np.sum(
+            cosines[1:] * cosines[1:]
+        )
 
     def __phi3(self, cosines, eigvals, k):
-        return np.sum(cosines[1:k] * cosines[1:k]
-                      * (self.gamma(2) - self.gamma(eigvals[1:k])))
+        return np.sum(
+            cosines[1:k] * cosines[1:k] * (self.gamma(2) - self.gamma(eigvals[1:k]))
+        )
 
     def _fit(self, X, y):
         """Fit the filter.
@@ -86,13 +90,14 @@ class SPEC(BaseTransformer):
         -------
         None
         """
+
         def calc_weight(f):
             f_norm = np.sqrt(D).dot(f)
             f_norm /= np.linalg.norm(f_norm)
 
             cosines = np.apply_along_axis(
-                lambda vec: np.dot(vec / np.linalg.norm(vec), f_norm), 0,
-                eigvectors)
+                lambda vec: np.dot(vec / np.linalg.norm(vec), f_norm), 0, eigvectors
+            )
             return phi(cosines, eigvals, k)
 
         if self.phi_type == 1:
@@ -103,31 +108,30 @@ class SPEC(BaseTransformer):
             phi = self.__phi3
         else:
             getLogger(__name__).error(
-                "phi_type should be 1, 2 or 3, %d passed", self.phi_type)
-            raise ValueError(
-                "phi_type should be 1, 2 or 3, %d passed" % self.phi_type)
+                "phi_type should be 1, 2 or 3, %d passed", self.phi_type
+            )
+            raise ValueError("phi_type should be 1, 2 or 3, %d passed" % self.phi_type)
 
         n_samples = X.shape[0]
 
         if y is None:
             if self.k > n_samples:
                 getLogger(__name__).error(
-                    "Cannot find %d clusters with n_samples = %d",
-                    self.k, n_samples)
+                    "Cannot find %d clusters with n_samples = %d", self.k, n_samples
+                )
                 raise ValueError(
-                    "Cannot find %d clusters with n_samples = %d"
-                    % (self.k, n_samples))
+                    "Cannot find %d clusters with n_samples = %d" % (self.k, n_samples)
+                )
             k = self.k
             graph = np.ones((n_samples, n_samples))
-            W = graph * pairwise_distances(
-                X, metric=lambda x, y: self.__scheme(x, y))
+            W = graph * pairwise_distances(X, metric=lambda x, y: self.__scheme(x, y))
         else:
             values, counts = np.unique(y, return_counts=True)
             values_dict = dict(zip(values, counts))
             k = len(values)
             W = pairwise_distances(
-                y.reshape(-1, 1),
-                metric=lambda x, y: (x[0] == y[0]) / values_dict[x[0]])
+                y.reshape(-1, 1), metric=lambda x, y: (x[0] == y[0]) / values_dict[x[0]]
+            )
 
         getLogger(__name__).info("W: %s", W)
 
@@ -139,13 +143,12 @@ class SPEC(BaseTransformer):
         getLogger(__name__).info("Normalized L: %s", L_norm)
         eigvals, eigvectors = eigh(a=L_norm)
         getLogger(__name__).info(
-            "Eigenvalues for normalized L: %s, eigenvectors: %s",
-            eigvals, eigvectors)
+            "Eigenvalues for normalized L: %s, eigenvectors: %s", eigvals, eigvectors
+        )
 
-        self.feature_scores_ = np.apply_along_axis(
-            lambda f: calc_weight(f), 0, X)
+        self.feature_scores_ = np.apply_along_axis(lambda f: calc_weight(f), 0, X)
         getLogger(__name__).info("Feature scores: %s", self.feature_scores_)
         ranking = np.argsort(self.feature_scores_)
         if self.phi_type == 3:
             ranking = ranking[::-1]
-        self.selected_features_ = ranking[:self.n_features]
+        self.selected_features_ = ranking[: self.n_features]

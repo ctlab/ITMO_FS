@@ -3,9 +3,9 @@ from logging import getLogger
 import numpy as np
 from sklearn.base import TransformerMixin
 
-from .measures import (MEASURE_NAMES, mutual_information,
-                       matrix_mutual_information)
+from .measures import MEASURE_NAMES, mutual_information, matrix_mutual_information
 from ...utils import BaseTransformer, generate_features
+
 
 class MultivariateFilter(BaseTransformer):
     """Provides basic functionality for multivariate filters.
@@ -45,8 +45,8 @@ class MultivariateFilter(BaseTransformer):
         super().__init__()
         self.measure = measure
         self.n_features = n_features
-        self.beta = kwargs.get('beta', None)
-        self.gamma = kwargs.get('gamma', None)
+        self.beta = kwargs.get("beta", None)
+        self.gamma = kwargs.get("gamma", None)
 
     def _fit(self, X, y, **kwargs):
         """Fit the filter.
@@ -72,50 +72,67 @@ class MultivariateFilter(BaseTransformer):
         else:
             measure = self.measure
 
-        getLogger(__name__).info(
-            "Using MultivariateFilter with %s measure", measure)
+        getLogger(__name__).info("Using MultivariateFilter with %s measure", measure)
         free_features = generate_features(X)
-        self.selected_features_ = np.array([], dtype='int')
+        self.selected_features_ = np.array([], dtype="int")
 
-        relevance = np.apply_along_axis(
-            mutual_information, 0, X[:, free_features], y)
+        relevance = np.apply_along_axis(mutual_information, 0, X[:, free_features], y)
         getLogger(__name__).info("Relevance vector: %s", relevance)
 
         redundancy = np.vectorize(
             lambda free_feature: matrix_mutual_information(
-                X[:, free_features], X[:, free_feature]),
-            signature='()->(1)')(free_features)
+                X[:, free_features], X[:, free_feature]
+            ),
+            signature="()->(1)",
+        )(free_features)
         getLogger(__name__).info("Redundancy vector: %s", redundancy)
 
         while len(self.selected_features_) != self.n_features:
             if self.beta is None:
                 values = measure(
-                    self.selected_features_, free_features, X, y,
+                    self.selected_features_,
+                    free_features,
+                    X,
+                    y,
                     relevance=relevance[free_features],
-                    redundancy=np.sum(
-                        redundancy[self.selected_features_],
-                        axis=0)[free_features])
+                    redundancy=np.sum(redundancy[self.selected_features_], axis=0)[
+                        free_features
+                    ],
+                )
             else:
                 if self.gamma is not None:
                     values = measure(
-                        self.selected_features_, free_features, X, y, self.beta,
-                        self.gamma, relevance=relevance[free_features],
-                        redundancy=np.sum(
-                            redundancy[self.selected_features_],
-                            axis=0)[free_features])
+                        self.selected_features_,
+                        free_features,
+                        X,
+                        y,
+                        self.beta,
+                        self.gamma,
+                        relevance=relevance[free_features],
+                        redundancy=np.sum(redundancy[self.selected_features_], axis=0)[
+                            free_features
+                        ],
+                    )
                 else:
                     values = measure(
-                        self.selected_features_,free_features, X, y, self.beta,
+                        self.selected_features_,
+                        free_features,
+                        X,
+                        y,
+                        self.beta,
                         relevance=relevance[free_features],
-                        redundancy=np.sum(
-                            redundancy[self.selected_features_],
-                            axis=0)[free_features])
+                        redundancy=np.sum(redundancy[self.selected_features_], axis=0)[
+                            free_features
+                        ],
+                    )
 
             getLogger(__name__).info("Free features: %s", free_features)
             getLogger(__name__).info("Measure values: %s", values)
             to_add = np.argmax(values)
             getLogger(__name__).info(
-                "Adding feature %d to the selected set", free_features[to_add])
+                "Adding feature %d to the selected set", free_features[to_add]
+            )
             self.selected_features_ = np.append(
-                self.selected_features_, free_features[to_add])
+                self.selected_features_, free_features[to_add]
+            )
             free_features = np.delete(free_features, to_add)

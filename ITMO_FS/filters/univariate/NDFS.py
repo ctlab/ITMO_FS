@@ -54,8 +54,19 @@ class NDFS(BaseTransformer):
     >>> model.selected_features_
     array([3, 4, 1], dtype=int64)
     """
-    def __init__(self, n_features, c=2, k=3, alpha=1, beta=1, gamma=10e8,
-                 sigma=1, max_iterations=1000, epsilon=1e-5):
+
+    def __init__(
+        self,
+        n_features,
+        c=2,
+        k=3,
+        alpha=1,
+        beta=1,
+        gamma=10e8,
+        sigma=1,
+        max_iterations=1000,
+        epsilon=1e-5,
+    ):
         self.n_features = n_features
         self.c = c
         self.k = k
@@ -90,19 +101,24 @@ class NDFS(BaseTransformer):
         if self.k >= n_samples:
             getLogger(__name__).error(
                 "Cannot select %d nearest neighbors with n_samples = %d",
-                self.k, n_samples)
+                self.k,
+                n_samples,
+            )
             raise ValueError(
                 "Cannot select %d nearest neighbors with n_samples = %d"
-                % (self.k, n_samples))
+                % (self.k, n_samples)
+            )
 
-        graph = NearestNeighbors(
-            n_neighbors=self.k,
-            algorithm='ball_tree').fit(X).kneighbors_graph().toarray()
+        graph = (
+            NearestNeighbors(n_neighbors=self.k, algorithm="ball_tree")
+            .fit(X)
+            .kneighbors_graph()
+            .toarray()
+        )
         graph = np.minimum(1, graph + graph.T)
         getLogger(__name__).info("Nearest neighbors graph: %s", graph)
 
-        S = graph * pairwise_distances(
-            X, metric=lambda x, y: self.__scheme(x, y))
+        S = graph * pairwise_distances(X, metric=lambda x, y: self.__scheme(x, y))
         getLogger(__name__).info("S: %s", S)
         A = np.diag(S.sum(axis=0))
         getLogger(__name__).info("A: %s", A)
@@ -117,11 +133,11 @@ class NDFS(BaseTransformer):
         else:
             if self.c > n_samples:
                 getLogger(__name__).error(
-                    "Cannot find %d clusters with n_samples = %d", self.c,
-                    n_samples)
+                    "Cannot find %d clusters with n_samples = %d", self.c, n_samples
+                )
                 raise ValueError(
-                    "Cannot find %d clusters with n_samples = %d"
-                    % (self.c, n_samples))
+                    "Cannot find %d clusters with n_samples = %d" % (self.c, n_samples)
+                )
             Y = self.__run_kmeans(X)
         getLogger(__name__).info("Transformed Y: %s", Y)
         F = Y.dot(power_neg_half(Y.T.dot(Y)))
@@ -132,12 +148,11 @@ class NDFS(BaseTransformer):
 
         previous_target = -1
         for _ in range(self.max_iterations):
-            M = (L + self.alpha
-                * (In - X.dot(
-                    np.linalg.inv(X.T.dot(X) + self.beta * D)).dot(X.T)))
+            M = L + self.alpha * (
+                In - X.dot(np.linalg.inv(X.T.dot(X) + self.beta * D)).dot(X.T)
+            )
             getLogger(__name__).info("M: %s", M)
-            F = (F * ((self.gamma * F)
-                       / (M.dot(F) + self.gamma * F.dot(F.T).dot(F))))
+            F = F * ((self.gamma * F) / (M.dot(F) + self.gamma * F.dot(F.T).dot(F)))
             getLogger(__name__).info("F: %s", F)
             W = np.linalg.inv(X.T.dot(X) + self.beta * D).dot(X.T.dot(F))
             getLogger(__name__).info("W: %s", W)
@@ -146,10 +161,12 @@ class NDFS(BaseTransformer):
             D = np.diag(1 / diag)
             getLogger(__name__).info("D: %s", D)
 
-            target = (np.trace(F.T.dot(L).dot(F))
-                + self.alpha * (np.linalg.norm(X.dot(W) - F) ** 2
-                    + self.beta * l21_norm(W))
-                + self.gamma * (np.linalg.norm(F.T.dot(F) - Ic) ** 2) / 2)
+            target = (
+                np.trace(F.T.dot(L).dot(F))
+                + self.alpha
+                * (np.linalg.norm(X.dot(W) - F) ** 2 + self.beta * l21_norm(W))
+                + self.gamma * (np.linalg.norm(F.T.dot(F) - Ic) ** 2) / 2
+            )
             getLogger(__name__).info("New target value: %d", target)
             if abs(target - previous_target) < self.epsilon:
                 break
@@ -159,7 +176,7 @@ class NDFS(BaseTransformer):
         self.feature_scores_ = matrix_norm(W)
         getLogger(__name__).info("Feature scores: %s", self.feature_scores_)
         ranking = np.argsort(self.feature_scores_)[::-1]
-        self.selected_features_ = ranking[:self.n_features]
+        self.selected_features_ = ranking[: self.n_features]
 
     def __run_kmeans(self, X):
         kmeans = KMeans(n_clusters=self.c, copy_x=True)

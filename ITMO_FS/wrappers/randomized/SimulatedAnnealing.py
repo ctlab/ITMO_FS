@@ -47,8 +47,17 @@ class SimulatedAnnealing(BaseWrapper):
     >>> sa.selected_features_
     array([ 1,  4,  3, 17, 10, 16, 11, 14,  5], dtype=int64)
     """
-    def __init__(self, estimator, measure, seed=42, iteration_number=100, c=1,
-                 init_number_of_features=None, cv=3):
+
+    def __init__(
+        self,
+        estimator,
+        measure,
+        seed=42,
+        iteration_number=100,
+        c=1,
+        init_number_of_features=None,
+        cv=3,
+    ):
         self.estimator = estimator
         self.measure = measure
         self.seed = seed
@@ -79,22 +88,22 @@ class SimulatedAnnealing(BaseWrapper):
 
         if self.init_number_of_features is None:
             percentage = rng.integers(5, 11)
-            init_number_of_features = int(
-                self.n_features_ * percentage / 100) + 1
+            init_number_of_features = int(self.n_features_ * percentage / 100) + 1
         elif self.init_number_of_features == 0:
             getLogger(__name__).warning(
-                "Initial number of features was set to zero; would use one "
-                "instead")
+                "Initial number of features was set to zero; would use one " "instead"
+            )
             init_number_of_features = 1
         else:
             init_number_of_features = self.init_number_of_features
 
         feature_subset = np.unique(
-            rng.integers(0, self.n_features_, init_number_of_features))
+            rng.integers(0, self.n_features_, init_number_of_features)
+        )
         getLogger(__name__).info("Initial selected set: %s", feature_subset)
         prev_score = cross_val_score(
-            self._estimator, X[:, feature_subset], y, cv=self.cv,
-            scoring=self.measure).mean()
+            self._estimator, X[:, feature_subset], y, cv=self.cv, scoring=self.measure
+        ).mean()
         getLogger(__name__).info("Initial score: %d", prev_score)
 
         for i in range(self.iteration_number):
@@ -106,39 +115,47 @@ class SimulatedAnnealing(BaseWrapper):
                 not_included_features = np.setdiff1d(features, feature_subset)
                 include_number = min(
                     not_included_features.shape[0],
-                    int(self.n_features_ * (percentage / 100)) + 1)
+                    int(self.n_features_ * (percentage / 100)) + 1,
+                )
                 to_add = rng.choice(
-                    not_included_features, size=include_number, replace=False)
+                    not_included_features, size=include_number, replace=False
+                )
                 getLogger(__name__).info(
-                    "Trying to add features %s into the selected set", to_add)
+                    "Trying to add features %s into the selected set", to_add
+                )
                 cur_subset = np.append(feature_subset, to_add)
             else:
                 # exc
                 exclude_number = min(
                     feature_subset.shape[0] - 1,
-                    int(self.n_features_ * (percentage / 100)) + 1)
+                    int(self.n_features_ * (percentage / 100)) + 1,
+                )
                 to_delete = rng.choice(
-                    np.arange(feature_subset.shape[0]), size=exclude_number,
-                    replace=False)
+                    np.arange(feature_subset.shape[0]),
+                    size=exclude_number,
+                    replace=False,
+                )
                 getLogger(__name__).info(
                     "Trying to delete features %s from the selected set",
-                    feature_subset[to_delete])
+                    feature_subset[to_delete],
+                )
                 cur_subset = np.delete(feature_subset, to_delete)
             cur_score = cross_val_score(
-                self._estimator, X[:, cur_subset], y, cv=self.cv,
-                scoring=self.measure).mean()
+                self._estimator, X[:, cur_subset], y, cv=self.cv, scoring=self.measure
+            ).mean()
             getLogger(__name__).info("New score: %d", cur_score)
             if cur_score > prev_score:
                 feature_subset = cur_subset
                 prev_score = cur_score
             else:
                 getLogger(__name__).info(
-                    "Score has not improved; trying to accept the new subset "
-                    "anyway")
+                    "Score has not improved; trying to accept the new subset " "anyway"
+                )
                 ruv = rng.random()
                 acceptance = self.__acceptance(i, prev_score, cur_score)
                 getLogger(__name__).info(
-                    "Random value = %d, acceptance = %d", ruv, acceptance)
+                    "Random value = %d, acceptance = %d", ruv, acceptance
+                )
                 if ruv < acceptance:
                     getLogger(__name__).info("Accepting the new subset")
                     feature_subset = cur_subset

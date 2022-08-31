@@ -47,8 +47,10 @@ class UDFS(BaseTransformer):
     >>> model.selected_features_
     array([ 2,  3, 19, 90, 92], dtype=int64)
     """
-    def __init__(self, n_features, c=2, k=3, gamma=1, l=1e-6,
-                 max_iterations=1000, epsilon=1e-5):
+
+    def __init__(
+        self, n_features, c=2, k=3, gamma=1, l=1e-6, max_iterations=1000, epsilon=1e-5
+    ):
         self.n_features = n_features
         self.c = c
         self.k = k
@@ -71,6 +73,7 @@ class UDFS(BaseTransformer):
         -------
         None
         """
+
         def construct_S(arr):
             S = np.zeros((n_samples, self.k + 1))
             for idx in range(self.k + 1):
@@ -81,41 +84,48 @@ class UDFS(BaseTransformer):
 
         if self.c > n_samples:
             getLogger(__name__).error(
-                "Cannot find %d clusters with n_samples = %d",
-                self.c, n_samples)
+                "Cannot find %d clusters with n_samples = %d", self.c, n_samples
+            )
             raise ValueError(
-                "Cannot find %d clusters with n_samples = %d"
-                % (self.c, n_samples))
+                "Cannot find %d clusters with n_samples = %d" % (self.c, n_samples)
+            )
 
         if self.k >= n_samples:
             getLogger(__name__).error(
                 "Cannot select %d nearest neighbors with n_samples = %d",
-                self.k, n_samples)
+                self.k,
+                n_samples,
+            )
             raise ValueError(
                 "Cannot select %d nearest neighbors with n_samples = %d"
-                % (self.k, n_samples))
+                % (self.k, n_samples)
+            )
 
         indices = list(range(n_samples))
         I = np.eye(self.k + 1)
         H = I - np.ones((self.k + 1, self.k + 1)) / (self.k + 1)
 
-        neighbors = NearestNeighbors(
-            n_neighbors=self.k + 1,
-            algorithm='ball_tree').fit(X).kneighbors(X, return_distance=False)
+        neighbors = (
+            NearestNeighbors(n_neighbors=self.k + 1, algorithm="ball_tree")
+            .fit(X)
+            .kneighbors(X, return_distance=False)
+        )
         getLogger(__name__).info("Neighbors graph: %s", neighbors)
-        X_centered = np.apply_along_axis(
-            lambda arr: X[arr].T.dot(H), 1, neighbors)
+        X_centered = np.apply_along_axis(lambda arr: X[arr].T.dot(H), 1, neighbors)
 
         S = np.apply_along_axis(lambda arr: construct_S(arr), 1, neighbors)
         getLogger(__name__).info("S: %s", S)
         B = np.vectorize(
-            lambda idx: np.linalg.inv(X_centered[idx].T.dot(X_centered[idx])
-                        + self.l * I),
-            signature='()->(1,1)')(indices)
+            lambda idx: np.linalg.inv(
+                X_centered[idx].T.dot(X_centered[idx]) + self.l * I
+            ),
+            signature="()->(1,1)",
+        )(indices)
         getLogger(__name__).info("B: %s", B)
         Mi = np.vectorize(
             lambda idx: S[idx].dot(H).dot(B[idx]).dot(H).dot(S[idx].T),
-            signature='()->(1,1)')(indices)
+            signature="()->(1,1)",
+        )(indices)
         M = X.T.dot(Mi.sum(axis=0)).dot(X)
         getLogger(__name__).info("M: %s", M)
 
@@ -141,4 +151,4 @@ class UDFS(BaseTransformer):
         self.feature_scores_ = matrix_norm(W)
         getLogger(__name__).info("Feature scores: %s", self.feature_scores_)
         ranking = np.argsort(self.feature_scores_)[::-1]
-        self.selected_features_ = ranking[:self.n_features]
+        self.selected_features_ = ranking[: self.n_features]

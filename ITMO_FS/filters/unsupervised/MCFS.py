@@ -52,8 +52,8 @@ class MCFS(BaseTransformer):
     >>> model.selected_features_
     array([0, 2, 1, 4, 3], dtype=int64)
     """
-    def __init__(self, n_features, k=2, p=3, scheme='dot', sigma=1,
-                 full_graph=False):
+
+    def __init__(self, n_features, k=2, p=3, scheme="dot", sigma=1, full_graph=False):
         self.n_features = n_features
         self.k = k
         self.p = p
@@ -68,8 +68,7 @@ class MCFS(BaseTransformer):
         return np.exp(-np.linalg.norm(x1 - x2) ** 2 / self.sigma)
 
     def __scheme_dot(self, x1, x2):
-        return (x1 / np.linalg.norm(x1 + 1e-10)).dot(
-            x2 / np.linalg.norm(x2 + 1e-10))
+        return (x1 / np.linalg.norm(x1 + 1e-10)).dot(x2 / np.linalg.norm(x2 + 1e-10))
 
     def _fit(self, X, y):
         """
@@ -86,44 +85,51 @@ class MCFS(BaseTransformer):
             ----------
             None
         """
-        if self.scheme == '0-1':
+        if self.scheme == "0-1":
             scheme = self.__scheme_01
-        elif self.scheme == 'heat':
+        elif self.scheme == "heat":
             scheme = self.__scheme_heat
-        elif self.scheme == 'dot':
+        elif self.scheme == "dot":
             scheme = self.__scheme_dot
         else:
             getLogger(__name__).error(
-                "scheme should be either '0-1', 'heat' or 'dot'; %s passed",
-                self.scheme)
+                "scheme should be either '0-1', 'heat' or 'dot'; %s passed", self.scheme
+            )
             raise KeyError(
                 "scheme should be either '0-1', 'heat' or 'dot'; %s passed"
-                % self.scheme)
+                % self.scheme
+            )
 
         n_samples = X.shape[0]
 
-
         if self.k > n_samples:
             getLogger(__name__).error(
-                "Cannot find %d clusters with n_samples = %d",
-                self.k, n_samples)
+                "Cannot find %d clusters with n_samples = %d", self.k, n_samples
+            )
             raise ValueError(
-                "Cannot find %d clusters with n_samples = %d"
-                % (self.k, n_samples))
+                "Cannot find %d clusters with n_samples = %d" % (self.k, n_samples)
+            )
 
         if self.p >= n_samples:
             getLogger(__name__).error(
                 "Cannot select %d nearest neighbors with n_samples = %d",
-                self.p, n_samples)
+                self.p,
+                n_samples,
+            )
             raise ValueError(
                 "Cannot select %d nearest neighbors with n_samples = %d"
-                % (self.p, n_samples))
+                % (self.p, n_samples)
+            )
 
         if self.full_graph:
             graph = np.ones((n_samples, n_samples))
         else:
-            graph = NearestNeighbors(n_neighbors=self.p,
-                algorithm='ball_tree').fit(X).kneighbors_graph().toarray()
+            graph = (
+                NearestNeighbors(n_neighbors=self.p, algorithm="ball_tree")
+                .fit(X)
+                .kneighbors_graph()
+                .toarray()
+            )
             graph = np.minimum(1, graph + graph.T)
 
         getLogger(__name__).info("Nearest neighbors graph: %s", graph)
@@ -142,10 +148,9 @@ class MCFS(BaseTransformer):
             clf = Lars(n_nonzero_coefs=self.n_features)
             clf.fit(X, Y[:, i])
             weights[:, i] = np.abs(clf.coef_)
-            getLogger(__name__).info(
-                "Weights for eigenvalue %d: %s", i, weights[:, i])
+            getLogger(__name__).info("Weights for eigenvalue %d: %s", i, weights[:, i])
 
         self.feature_scores_ = weights.max(axis=1)
         getLogger(__name__).info("Feature scores: %s", self.feature_scores_)
         ranking = np.argsort(self.feature_scores_)[::-1]
-        self.selected_features_ = ranking[:self.n_features]
+        self.selected_features_ = ranking[: self.n_features]

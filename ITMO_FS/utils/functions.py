@@ -3,7 +3,9 @@ from sklearn.metrics import f1_score
 from sklearn.metrics.pairwise import euclidean_distances
 
 
-def cartesian(rw, cl):  # returns cartesian product for passed numpy arrays as two paired numpy array
+def cartesian(
+    rw, cl
+):  # returns cartesian product for passed numpy arrays as two paired numpy array
     tmp = np.array(np.meshgrid(rw, cl)).T.reshape(len(rw) * len(cl), 2)
     return tmp.T[0], tmp.T[1]
 
@@ -13,7 +15,7 @@ def weight_func(model):  # weight function used in MOS testing
 
 
 def f1_scorer(y_true, y_pred):
-    return f1_score(y_true, y_pred, average='micro')
+    return f1_score(y_true, y_pred, average="micro")
 
 
 def augmented_rvalue(X, y, k=7, theta=3):
@@ -53,16 +55,14 @@ def augmented_rvalue(X, y, k=7, theta=3):
         for elem in [i for i, x in enumerate(y) if x == label]:
             nearest = knn_from_class(dm, y, elem, k, 1, anyClass=True)
             count += np.sign(
-                k
-                - list(map(lambda x: y[x], nearest)).count(label)
-                - theta)
+                k - list(map(lambda x: y[x], nearest)).count(label) - theta
+            )
         Rs.append(count / frequency)
     Cs = Cs[::-1]
     return np.dot(Rs, Cs) / len(X)
 
 
-def knn_from_class(distances, y, index, k, cl, anyOtherClass=False,
-                   anyClass=False):
+def knn_from_class(distances, y, index, k, cl, anyOtherClass=False, anyClass=False):
     """Return the indices of k nearest neighbors of X[index] from the selected
     class.
 
@@ -160,6 +160,7 @@ def apply_cr(cutting_rule):
     callable : a cutting rule callable
     """
     from ..filters.univariate.measures import CR_NAMES, MEASURE_NAMES
+
     if type(cutting_rule) is tuple:
         cutting_rule_name = cutting_rule[0]
         cutting_rule_value = cutting_rule[1]
@@ -167,9 +168,8 @@ def apply_cr(cutting_rule):
             cr = CR_NAMES[cutting_rule_name](cutting_rule_value)
         except KeyError:
             raise KeyError("No %s cutting rule yet" % cutting_rule_name)
-    elif hasattr(cutting_rule, '__call__'):
+    elif hasattr(cutting_rule, "__call__"):
         cr = cutting_rule
     else:
-        raise KeyError(
-            "%s isn't a cutting rule function or string" % cutting_rule)
+        raise KeyError("%s isn't a cutting rule function or string" % cutting_rule)
     return cr

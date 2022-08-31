@@ -10,18 +10,14 @@ from ITMO_FS.hybrid import FilterWrapperHybrid
 
 
 class MyTestCase(unittest.TestCase):
-
     def test_est(self):
         classifier = LogisticRegression(max_iter=1000)
-        back_selection = BackwardSelection(
-            classifier, 2, make_scorer(f1_scorer))
+        back_selection = BackwardSelection(classifier, 2, make_scorer(f1_scorer))
         fw = FilterWrapperHybrid(
-            UnivariateFilter(
-                spearman_corr,
-                cutting_rule=('K best', 2)),
-            back_selection)
+            UnivariateFilter(spearman_corr, cutting_rule=("K best", 2)), back_selection
+        )
         check_estimator(fw)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

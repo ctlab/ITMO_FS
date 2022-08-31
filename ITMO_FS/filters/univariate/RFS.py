@@ -38,6 +38,7 @@ class RFS(BaseTransformer):
     >>> model.selected_features_
     array([0, 3], dtype=int64)
     """
+
     def __init__(self, n_features, gamma=1, max_iterations=1000, epsilon=1e-5):
         self.n_features = n_features
         self.gamma = gamma
@@ -86,7 +87,7 @@ class RFS(BaseTransformer):
             previous_target = target
 
         getLogger(__name__).info("Ended up with U: %s", U)
-        self.feature_scores_ = matrix_norm(U[:self.n_features_])
+        self.feature_scores_ = matrix_norm(U[: self.n_features_])
         getLogger(__name__).info("Feature scores: %s", self.feature_scores_)
         ranking = np.argsort(self.feature_scores_)[::-1]
-        self.selected_features_ = ranking[:self.n_features]
+        self.selected_features_ = ranking[: self.n_features]

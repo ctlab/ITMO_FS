@@ -47,8 +47,14 @@ class WeightBased(BaseTransformer):
     >>> wb.selected_features_
     array([4, 1], dtype=int64)
     """
-    def __init__(self, filters, cutting_rule=("K best", 2),
-                 fusion_function=weight_fusion, weights=None):
+
+    def __init__(
+        self,
+        filters,
+        cutting_rule=("K best", 2),
+        fusion_function=weight_fusion,
+        weights=None,
+    ):
         self.filters = filters
         self.cutting_rule = cutting_rule
         self.fusion_function = fusion_function
@@ -69,8 +75,8 @@ class WeightBased(BaseTransformer):
         array-like, shape (n_filters, n_features) : feature scores
         """
         scores = np.vectorize(
-            lambda f: clone(f).fit(X, y).feature_scores_,
-            signature='()->(1)')(self.filters)
+            lambda f: clone(f).fit(X, y).feature_scores_, signature="()->(1)"
+        )(self.filters)
         getLogger(__name__).info("Scores for all filters: %s", scores)
         mins = np.min(scores, axis=1).reshape(-1, 1)
         maxs = np.max(scores, axis=1).reshape(-1, 1)
@@ -103,11 +109,9 @@ class WeightBased(BaseTransformer):
         None
         """
         check_filters(self.filters)
-        getLogger(__name__).info(
-            "Running WeightBased with filters: %s", self.filters)
+        getLogger(__name__).info("Running WeightBased with filters: %s", self.filters)
         filter_scores = self.get_scores(X, y)
-        getLogger(__name__).info(
-            "Normalized scores for all filters: %s", filter_scores)
+        getLogger(__name__).info("Normalized scores for all filters: %s", filter_scores)
         if self.weights is None:
             weights = np.ones(len(self.filters)) / len(self.filters)
         else:
@@ -115,5 +119,4 @@ class WeightBased(BaseTransformer):
         getLogger(__name__).info("Weights vector: %s", weights)
         self.feature_scores_ = self.fusion_function(filter_scores, weights)
         getLogger(__name__).info("Feature scores: %s", self.feature_scores_)
-        self.selected_features_ = apply_cr(self.cutting_rule)(
-            self.feature_scores_)
+        self.selected_features_ = apply_cr(self.cutting_rule)(self.feature_scores_)

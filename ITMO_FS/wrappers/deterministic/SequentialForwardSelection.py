@@ -42,6 +42,7 @@ class SequentialForwardSelection(BaseWrapper):
     >>> model.selected_features_
     array([ 1,  4,  3,  5, 19], dtype=int64)
     """
+
     def __init__(self, estimator, n_features, measure, cv=3):
         self.estimator = estimator
         self.n_features = n_features
@@ -67,20 +68,30 @@ class SequentialForwardSelection(BaseWrapper):
 
         while self.selected_features_.shape[0] != self.n_features:
             getLogger(__name__).info(
-                "Current selected set: %s", self.selected_features_)
+                "Current selected set: %s", self.selected_features_
+            )
             scores = np.vectorize(
                 lambda f: cross_val_score(
                     self._estimator,
-                    X[:, np.append(self.selected_features_, f)], y, cv=self.cv,
-                    scoring=self.measure).mean())(free_features)
+                    X[:, np.append(self.selected_features_, f)],
+                    y,
+                    cv=self.cv,
+                    scoring=self.measure,
+                ).mean()
+            )(free_features)
             getLogger(__name__).info("Scores for all free features: %s", scores)
             to_add = np.argmax(scores)
             getLogger(__name__).info("Adding feature %d", free_features[to_add])
-            self.selected_features_ = np.append(self.selected_features_,
-                free_features[to_add])
+            self.selected_features_ = np.append(
+                self.selected_features_, free_features[to_add]
+            )
             free_features = np.delete(free_features, to_add)
 
-        self.best_score_ = cross_val_score(self._estimator,
-            X[:, self.selected_features_], y, cv=self.cv,
-            scoring=self.measure).mean()
+        self.best_score_ = cross_val_score(
+            self._estimator,
+            X[:, self.selected_features_],
+            y,
+            cv=self.cv,
+            scoring=self.measure,
+        ).mean()
         self._estimator.fit(X[:, self.selected_features_], y)

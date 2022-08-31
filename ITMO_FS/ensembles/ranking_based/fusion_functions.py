@@ -18,7 +18,7 @@ def best_goes_first_fusion(filter_ranks, k):
     -------
     array-like, shape (k,) : selected features
     """
-    result = np.array([], dtype='int')
+    result = np.array([], dtype="int")
     place = 0
     while len(result) < k:
         placed_features = np.setdiff1d(filter_ranks[:, place], result)

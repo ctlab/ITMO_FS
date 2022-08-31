@@ -4,6 +4,7 @@ from sklearn.base import clone
 
 from ..utils import BaseTransformer
 
+
 class FilterWrapperHybrid(BaseTransformer):
     """Perform the filter + wrapper hybrid algorithm by first running the
     filter algorithm on the full dataset, leaving the selected features and
@@ -44,6 +45,7 @@ class FilterWrapperHybrid(BaseTransformer):
     >>> model.selected_features_
     array([ 1,  3,  4, 10,  7], dtype=int64)
     """
+
     def __init__(self, filter_, wrapper):
         self.filter_ = filter_
         self.wrapper = wrapper
@@ -66,13 +68,15 @@ class FilterWrapperHybrid(BaseTransformer):
         self._wrapper = clone(self.wrapper)
         getLogger(__name__).info(
             "Running FilterWrapper with filter = %s, wrapper = %s",
-            self._filter, self._wrapper)
+            self._filter,
+            self._wrapper,
+        )
 
         selected_filter = self._filter.fit(X, y).selected_features_
-        getLogger(__name__).info(
-            "Features selected by filter: %s", selected_filter)
-        self.selected_features_ = selected_filter[self._wrapper.fit(
-            X[:, selected_filter], y).selected_features_]
+        getLogger(__name__).info("Features selected by filter: %s", selected_filter)
+        self.selected_features_ = selected_filter[
+            self._wrapper.fit(X[:, selected_filter], y).selected_features_
+        ]
         self.best_score_ = self._wrapper.best_score_
 
     def predict(self, X):

@@ -55,8 +55,7 @@ class BestSum(BaseTransformer):
         array([0, 2], dtype=int64)
     """
 
-    def __init__(self, models, cutting_rule, weight_func, metric='f1_micro',
-                 cv=3):
+    def __init__(self, models, cutting_rule, weight_func, metric="f1_micro", cv=3):
         super().__init__()
         self.models = models
         self.cutting_rule = cutting_rule
@@ -83,8 +82,7 @@ class BestSum(BaseTransformer):
         def __get_weights(model):
             _model = clone(model).fit(X, y)
             weights = self.weight_func(_model)
-            perf = cross_val_score(_model, X, y, cv=self.cv,
-                                   scoring=self.metric).mean()
+            perf = cross_val_score(_model, X, y, cv=self.cv, scoring=self.metric).mean()
             return weights * perf
 
         if len(self.models) == 0:
@@ -92,10 +90,9 @@ class BestSum(BaseTransformer):
             raise ValueError("No models are set")
 
         model_scores = np.vectorize(
-            lambda model: __get_weights(model),
-            signature='()->(1)')(self.models)
+            lambda model: __get_weights(model), signature="()->(1)"
+        )(self.models)
         getLogger(__name__).info("Weighted model scores: %s", model_scores)
         self.feature_scores_ = model_scores.sum(axis=0)
         getLogger(__name__).info("Feature scores: %s", self.feature_scores_)
-        self.selected_features_ = apply_cr(self.cutting_rule)(
-            self.feature_scores_)
+        self.selected_features_ = apply_cr(self.cutting_rule)(self.feature_scores_)

@@ -47,6 +47,7 @@ class RecursiveElimination(BaseWrapper):
     >>> rfe.selected_features_
     array([ 0,  1,  2, 11, 19], dtype=int64)
     """
+
     def __init__(self, estimator, n_features, measure, weight_func, cv=3):
         self.estimator = estimator
         self.n_features = n_features
@@ -72,19 +73,25 @@ class RecursiveElimination(BaseWrapper):
 
         while self.selected_features_.shape[0] != self.n_features:
             getLogger(__name__).info(
-                "Current selected set: %s", self.selected_features_)
+                "Current selected set: %s", self.selected_features_
+            )
             self._estimator.fit(X[:, self.selected_features_], y)
             weights = self.weight_func(self._estimator)
-            getLogger(__name__).info(
-                "Weights for all selected features: %s", weights)
+            getLogger(__name__).info("Weights for all selected features: %s", weights)
             least_important = np.argmin(weights)
             getLogger(__name__).info(
                 "Deleting the least important feature %d",
-                self.selected_features_[least_important])
-            self.selected_features_ = np.delete(self.selected_features_,
-                least_important)
+                self.selected_features_[least_important],
+            )
+            self.selected_features_ = np.delete(
+                self.selected_features_, least_important
+            )
 
-        self.best_score_ = cross_val_score(self._estimator,
-            X[:, self.selected_features_], y, cv=self.cv,
-            scoring=self.measure).mean()
+        self.best_score_ = cross_val_score(
+            self._estimator,
+            X[:, self.selected_features_],
+            y,
+            cv=self.cv,
+            scoring=self.measure,
+        ).mean()
         self._estimator.fit(X[:, self.selected_features_], y)

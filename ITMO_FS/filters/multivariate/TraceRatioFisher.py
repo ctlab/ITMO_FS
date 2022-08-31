@@ -5,6 +5,7 @@ from sklearn.metrics.pairwise import pairwise_distances
 
 from ...utils import BaseTransformer, generate_features
 
+
 class TraceRatioFisher(BaseTransformer):
     """Creates TraceRatio(similarity based) feature selection filter
     performed in supervised way, i.e. fisher version
@@ -31,6 +32,7 @@ class TraceRatioFisher(BaseTransformer):
     >>> tracer.selected_features_
     array([0, 1, 3], dtype=int64)
     """
+
     def __init__(self, n_features, epsilon=1e-3):
         self.n_features = n_features
         self.epsilon = epsilon
@@ -55,8 +57,8 @@ class TraceRatioFisher(BaseTransformer):
         getLogger(__name__).info("Class counts: %s", counts_d)
 
         A_within = pairwise_distances(
-            y.reshape(-1, 1), metric=lambda x, y: (
-                (x[0] == y[0]) / counts_d[x[0]]))
+            y.reshape(-1, 1), metric=lambda x, y: ((x[0] == y[0]) / counts_d[x[0]])
+        )
         L_within = np.eye(n_samples) - A_within
         getLogger(__name__).info("A_w: %s", A_within)
         getLogger(__name__).info("L_w: %s", L_within)
@@ -74,15 +76,15 @@ class TraceRatioFisher(BaseTransformer):
         getLogger(__name__).info("B: %s", b)
         lam = 0
         prev_lam = -1
-        while (lam - prev_lam >= self.epsilon):  # TODO: optimize
+        while lam - prev_lam >= self.epsilon:  # TODO: optimize
             score = b - lam * e
             getLogger(__name__).info("Score: %s", score)
-            self.selected_features_ = np.argsort(score)[::-1][:self.n_features]
-            getLogger(__name__).info(
-                "New selected set: %s", self.selected_features_)
+            self.selected_features_ = np.argsort(score)[::-1][: self.n_features]
+            getLogger(__name__).info("New selected set: %s", self.selected_features_)
             prev_lam = lam
-            lam = (np.sum(b[self.selected_features_])
-                   / np.sum(e[self.selected_features_]))
+            lam = np.sum(b[self.selected_features_]) / np.sum(
+                e[self.selected_features_]
+            )
             getLogger(__name__).info("New lambda: %d", lam)
         self.score_ = score
         self.lam_ = lam

@@ -1,0 +1,7 @@
+pandas
+sphinx_rtd_theme
+dvc
+sphinx-gallery
+pydrive2
+pytest
+pytest-cov

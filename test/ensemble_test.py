@@ -17,67 +17,60 @@ from ITMO_FS.filters.univariate import *
 
 
 class MyTestCase(unittest.TestCase):
-    wide_classification = make_classification(n_features=2000,
-                                              n_informative=100,
-                                              n_redundant=500)
-    tall_classification = make_classification(n_samples=50000, n_features=100,
-                                              n_informative=23, n_redundant=30)
+    wide_classification = make_classification(
+        n_features=2000, n_informative=100, n_redundant=500
+    )
+    tall_classification = make_classification(
+        n_samples=50000, n_features=100, n_informative=23, n_redundant=30
+    )
     wide_regression = make_regression(n_features=2000, n_informative=100)
-    tall_regression = make_regression(n_samples=50000, n_features=200,
-                                      n_informative=50)
+    tall_regression = make_regression(n_samples=50000, n_features=200, n_informative=50)
 
     madelon = load_dataset("test/datasets/madelon.csv")
 
     def test_ranking_based_error_mixed_ensemble(self):
-        data, target = self.madelon.drop(['target'], axis=1), self.madelon[
-            "target"]
-        filters = [gini_index,
-                   fechner_corr,
-                   spearman_corr,
-                   pearson_corr]
+        data, target = self.madelon.drop(["target"], axis=1), self.madelon["target"]
+        filters = [gini_index, fechner_corr, spearman_corr, pearson_corr]
         with self.assertRaises(ValueError):
-            ensemble = Mixed(
-                filters,
-                n_features=1000000,
-                fusion_function=borda_fusion)
+            ensemble = Mixed(filters, n_features=1000000, fusion_function=borda_fusion)
             ensemble.fit(data, target)
 
     def test_ranking_based_mixed_ensemble(self):
-        data, target = self.madelon.drop(['target'], axis=1), self.madelon[
-            "target"]
-        filters = [gini_index,
-                   fechner_corr,
-                   spearman_corr,
-                   pearson_corr]
+        data, target = self.madelon.drop(["target"], axis=1), self.madelon["target"]
+        filters = [gini_index, fechner_corr, spearman_corr, pearson_corr]
 
         ensemble = Mixed(filters, n_features=100, fusion_function=borda_fusion)
         ensemble.fit(data, target)
         ensemble.transform(data)
 
         d = np.array([[i for i in range(100)]] * 5)
-        np.testing.assert_array_equal(borda_fusion(d, 100),
-                                      np.array([i for i in range(100)])
-                                      )
+        np.testing.assert_array_equal(
+            borda_fusion(d, 100), np.array([i for i in range(100)])
+        )
 
     def test_ranking_based_bgf_fusion_function(self):
         random.seed(42)
-        filter_results = np.array([
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            [3, 2, 10, 5, 7, 9, 6, 4, 8, 1],
-            [10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
-            [1, 10, 9, 2, 8, 3, 7, 4, 6, 5],
-            [5, 4, 6, 3, 7, 2, 8, 10, 9, 1]
-        ])
+        filter_results = np.array(
+            [
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                [3, 2, 10, 5, 7, 9, 6, 4, 8, 1],
+                [10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+                [1, 10, 9, 2, 8, 3, 7, 4, 6, 5],
+                [5, 4, 6, 3, 7, 2, 8, 10, 9, 1],
+            ]
+        )
         np.testing.assert_array_equal(
-            best_goes_first_fusion(filter_results, 10),
-            [5, 3, 10, 1, 4, 9, 2, 8, 6, 7])
+            best_goes_first_fusion(filter_results, 10), [5, 3, 10, 1, 4, 9, 2, 8, 6, 7]
+        )
 
     def test_measure_based_weight_based_ensemble(self):
         data, target = self.wide_classification[0], self.wide_classification[1]
-        filters = [UnivariateFilter(gini_index),
-                   UnivariateFilter(fechner_corr),
-                   UnivariateFilter(spearman_corr),
-                   UnivariateFilter(pearson_corr)]
+        filters = [
+            UnivariateFilter(gini_index),
+            UnivariateFilter(fechner_corr),
+            UnivariateFilter(spearman_corr),
+            UnivariateFilter(pearson_corr),
+        ]
         weights = [0.5, 0.5, 0.5, 0.5]
         ensemble = WeightBased(filters, select_k_best(100), weights=weights)
         ensemble.fit(data, target)
@@ -86,10 +79,12 @@ class MyTestCase(unittest.TestCase):
 
     def test_measure_based_weight_based_no_weights_ensemble(self):
         data, target = self.wide_classification[0], self.wide_classification[1]
-        filters = [UnivariateFilter(gini_index),
-                   UnivariateFilter(fechner_corr),
-                   UnivariateFilter(spearman_corr),
-                   UnivariateFilter(pearson_corr)]
+        filters = [
+            UnivariateFilter(gini_index),
+            UnivariateFilter(fechner_corr),
+            UnivariateFilter(spearman_corr),
+            UnivariateFilter(pearson_corr),
+        ]
         ensemble = WeightBased(filters, select_k_best(100))
 
         ensemble.fit(data, target)
@@ -179,28 +174,34 @@ class MyTestCase(unittest.TestCase):
 
     def test_model_based_best_sum_no_models(self):
         models = []
-        data, target = self.madelon.drop(['target'], axis=1), self.madelon[
-            "target"]
+        data, target = self.madelon.drop(["target"], axis=1), self.madelon["target"]
         with self.assertRaises(ValueError):
             m = BestSum(models, select_k_best(100), lambda x: x)
             m.fit(data, target)
 
     def test_model_based_best_sum(self):
-        x = np.array([[3, 3, 3, 2, 2],
-                      [3, 3, 1, 2, 3],
-                      [1, 3, 5, 1, 1],
-                      [3, 1, 4, 3, 1],
-                      [3, 1, 2, 3, 1]])
+        x = np.array(
+            [
+                [3, 3, 3, 2, 2],
+                [3, 3, 1, 2, 3],
+                [1, 3, 5, 1, 1],
+                [3, 1, 4, 3, 1],
+                [3, 1, 2, 3, 1],
+            ]
+        )
         y = np.array([1, 2, 2, 1, 2])
-        models = [SVC(kernel='linear'), LogisticRegression(),
-                  RidgeClassifier()]
-        ensemble = BestSum(models, select_k_best(2),
-                           lambda model: np.square(model.coef_).sum(axis=0),
-                           cv=2)
+        models = [SVC(kernel="linear"), LogisticRegression(), RidgeClassifier()]
+        ensemble = BestSum(
+            models,
+            select_k_best(2),
+            lambda model: np.square(model.coef_).sum(axis=0),
+            cv=2,
+        )
         ensemble.fit(x, y)
 
-    def test_borda(self): #todo
-        assert True==True
+    def test_borda(self):  # todo
+        assert True == True
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

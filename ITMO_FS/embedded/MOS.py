@@ -65,9 +65,21 @@ class MOS(BaseTransformer):
     >>> m.selected_features_
     array([1, 3, 4, 6], dtype=int64)
     """
-    def __init__(self, model, weight_func, loss='log', seed=42, l1_ratio=0.5,
-                 threshold=1e-3, epochs=1000, alphas=np.arange(0.01, 0.2, 0.01),
-                 sampling=False, k_neighbors=2):
+
+    def __init__(
+        self,
+        model,
+        weight_func,
+        loss="log",
+        seed=42,
+        l1_ratio=0.5,
+        threshold=1e-3,
+        epochs=1000,
+        alphas=np.arange(0.01, 0.2, 0.01),
+        sampling=False,
+        k_neighbors=2,
+    ):
+        super().__init__()
         self.model = model
         self.weight_func = weight_func
         self.loss = loss
@@ -93,22 +105,23 @@ class MOS(BaseTransformer):
         -------
         None
         """
-        if self.loss not in ['hinge', 'log']:
+        if self.loss not in ["hinge", "log"]:
             getLogger(__name__).error(
-                "Loss should be 'hinge' or 'log', %s was passed", self.loss)
-            raise KeyError(
-                "Loss should be 'hinge' or 'log', %s was passed" % self.loss)
+                "Loss should be 'hinge' or 'log', %s was passed", self.loss
+            )
+            raise KeyError("Loss should be 'hinge' or 'log', %s was passed" % self.loss)
 
         if self.sampling:
             try:
                 X, y = SMOTE(
-                    random_state=self.seed,
-                    k_neighbors=self.k_neighbors).fit_resample(X, y)
+                    random_state=self.seed, k_neighbors=self.k_neighbors
+                ).fit_resample(X, y)
             except ValueError:
                 getLogger(__name__).warning(
                     "Couldn't perform SMOTE because k_neighbors is bigger "
                     "than amount of instances in one of the classes; MOSNS "
-                    "would be performed instead")
+                    "would be performed instead"
+                )
                 raise ValueError
 
         min_rvalue = 1
@@ -117,20 +130,30 @@ class MOS(BaseTransformer):
         for a in self.alphas:  # TODO: do a little more
             # research on the range of lambdas
             model = model.set_params(
-                loss=self.loss, random_state=self.seed, penalty='elasticnet',
-                alpha=a, l1_ratio=self.l1_ratio, max_iter=self.epochs)
+                loss=self.loss,
+                random_state=self.seed,
+                penalty="elasticnet",
+                alpha=a,
+                l1_ratio=self.l1_ratio,
+                max_iter=self.epochs,
+            )
             model.fit(X, y)
             b = self.weight_func(model)
             try:
                 rvalue = augmented_rvalue(
-                X[:, np.flatnonzero(np.abs(b) > self.threshold)], y)
+                    X[:, np.flatnonzero(np.abs(b) > self.threshold)], y
+                )
             except ValueError:
                 getLogger(__name__).error(
-                    "Weight_func: b = %f, less than threshold = %s", b, self.threshold,
-                    b)
+                    "Weight_func: b = %f, less than threshold = %s",
+                    b,
+                    self.threshold,
+                    b,
+                )
                 raise ValueError
             getLogger(__name__).info(
-                "For alpha %f: rvalue = %f, weight vector = %s", a, rvalue, b)
+                "For alpha %f: rvalue = %f, weight vector = %s", a, rvalue, b
+            )
             if min_rvalue > rvalue:
                 min_rvalue = rvalue
                 min_b = b

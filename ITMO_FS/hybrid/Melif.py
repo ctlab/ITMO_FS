@@ -62,8 +62,18 @@ class Melif(BaseWrapper):
     >>> algo.selected_features_
     array([ 3,  4,  1, 13, 16], dtype=int64)
     """
-    def __init__(self, estimator, measure, cutting_rule, filter_ensemble,
-                 delta=0.5, points=None, seed=42, cv=3):
+
+    def __init__(
+        self,
+        estimator,
+        measure,
+        cutting_rule,
+        filter_ensemble,
+        delta=0.5,
+        points=None,
+        seed=42,
+        cv=3,
+    ):
         self.estimator = estimator
         self.measure = measure
         self.cutting_rule = cutting_rule
@@ -100,7 +110,9 @@ class Melif(BaseWrapper):
         cutting_rule = apply_cr(self.cutting_rule)
         getLogger(__name__).info(
             "Using MeLiF with ensemble: %s and cutting rule: %s",
-            self.__ensemble, cutting_rule)
+            self.__ensemble,
+            cutting_rule,
+        )
         scores = self.__ensemble.get_scores(X, y)
 
         if self.points is None:
@@ -111,20 +123,18 @@ class Melif(BaseWrapper):
 
         self.best_score_ = 0
         for point in points:
+            getLogger(__name__).info("Running coordinate descent from point %s", point)
+            new_point, new_score = self.__search(X, y, point, scores, cutting_rule)
             getLogger(__name__).info(
-                "Running coordinate descent from point %s", point)
-            new_point, new_score = self.__search(
-                X, y, point, scores, cutting_rule)
-            getLogger(__name__).info(
-                "Ended up in point %s with score %d", new_point, new_score)
+                "Ended up in point %s with score %d", new_point, new_score
+            )
             if new_score > self.best_score_:
                 self.best_score_ = new_score
                 self.best_point_ = new_point
         getLogger(__name__).info(
-            "Final best point: %s with score %d",
-            best_point_, self.best_score_)
-        self.selected_features_ = cutting_rule(
-            np.dot(scores.T, self.best_point_))
+            "Final best point: %s with score %d", best_point_, self.best_score_
+        )
+        self.selected_features_ = cutting_rule(np.dot(scores.T, self.best_point_))
         self._estimator.fit(X[:, self.selected_features_], y)
 
     def __search(self, X, y, point, scores, cutting_rule):
@@ -150,28 +160,37 @@ class Melif(BaseWrapper):
         best_point = point
         selected_features = cutting_rule(np.dot(scores.T, point))
         best_score = cross_val_score(
-            self._estimator, X[:, selected_features], y, cv=self.cv,
-            scoring=self.measure).mean()
+            self._estimator,
+            X[:, selected_features],
+            y,
+            cv=self.cv,
+            scoring=self.measure,
+        ).mean()
         delta = np.eye(self.n_filters) * self.delta
         changed = True
         while changed:
-            #the original paper descends starting from the first filter;
-            #we randomize the order instead to avoid local maximas
+            # the original paper descends starting from the first filter;
+            # we randomize the order instead to avoid local maximas
             getLogger(__name__).info(
-                "Current optimal point: %s with score = %d",
-                best_point, best_score)
+                "Current optimal point: %s with score = %d", best_point, best_score
+            )
             order = self._rng.permutation(self.n_filters)
             changed = False
             for f in order:
                 iteration_point_plus = best_point + delta[f]
-                selected_features = cutting_rule(
-                    np.dot(scores.T, iteration_point_plus))
+                selected_features = cutting_rule(np.dot(scores.T, iteration_point_plus))
                 score = cross_val_score(
-                    self._estimator, X[:, selected_features], y, cv=self.cv,
-                    scoring=self.measure).mean()
+                    self._estimator,
+                    X[:, selected_features],
+                    y,
+                    cv=self.cv,
+                    scoring=self.measure,
+                ).mean()
                 getLogger(__name__).info(
                     "Trying to move to point %s: score = %d",
-                    iteration_point_plus, score)
+                    iteration_point_plus,
+                    score,
+                )
                 if score > best_score:
                     best_score = score
                     best_point = iteration_point_plus
@@ -180,13 +199,20 @@ class Melif(BaseWrapper):
 
                 iteration_point_minus = best_point - delta[f]
                 selected_features = cutting_rule(
-                    np.dot(scores.T, iteration_point_minus))
+                    np.dot(scores.T, iteration_point_minus)
+                )
                 score = cross_val_score(
-                    self._estimator, X[:, selected_features], y, cv=self.cv,
-                    scoring=self.measure).mean()
+                    self._estimator,
+                    X[:, selected_features],
+                    y,
+                    cv=self.cv,
+                    scoring=self.measure,
+                ).mean()
                 getLogger(__name__).info(
                     "Trying to move to point %s: score = %d",
-                    iteration_point_minus, score)
+                    iteration_point_minus,
+                    score,
+                )
                 if score > best_score:
                     best_score = score
                     best_point = iteration_point_minus

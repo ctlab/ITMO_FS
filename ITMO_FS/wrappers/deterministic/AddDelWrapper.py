@@ -44,6 +44,7 @@ class AddDelWrapper(BaseWrapper):
     >>> add_del.selected_features_
     array([1, 4, 3], dtype=int64)
     """
+
     def __init__(self, estimator, measure, cv=3, seed=42, d=1):
         self.estimator = estimator
         self.measure = measure
@@ -76,27 +77,39 @@ class AddDelWrapper(BaseWrapper):
         selected_features = self.selected_features_
         getLogger(__name__).info(
             "Trying to add features from free set %s to selected set %s",
-            free_features, selected_features)
+            free_features,
+            selected_features,
+        )
 
-        while (iteration_features.shape[0] - selected_features.shape[0] <=
-                   self.d) & (iteration_free_features.shape[0] != 0):
+        while (iteration_features.shape[0] - selected_features.shape[0] <= self.d) & (
+            iteration_free_features.shape[0] != 0
+        ):
             getLogger(__name__).info(
                 "Current selected set: %s, best score: %d",
-                selected_features, best_score)
+                selected_features,
+                best_score,
+            )
             scores = np.vectorize(
                 lambda f: cross_val_score(
-                    self._estimator, X[:, np.append(iteration_features, f)], y,
-                    cv=self.cv, scoring=self.measure).mean())(
-            iteration_free_features)
+                    self._estimator,
+                    X[:, np.append(iteration_features, f)],
+                    y,
+                    cv=self.cv,
+                    scoring=self.measure,
+                ).mean()
+            )(iteration_free_features)
             getLogger(__name__).info("Scores for all free features: %s", scores)
 
             to_add = np.argmax(scores)
             iteration_score = scores[to_add]
             getLogger(__name__).info(
                 "Adding feature %d, new score: %d",
-                iteration_free_features[to_add], iteration_score)
+                iteration_free_features[to_add],
+                iteration_score,
+            )
             iteration_features = np.append(
-                iteration_features, iteration_free_features[to_add])
+                iteration_features, iteration_free_features[to_add]
+            )
             iteration_free_features = np.delete(iteration_free_features, to_add)
 
             if iteration_score > best_score:
@@ -129,33 +142,47 @@ class AddDelWrapper(BaseWrapper):
         float : score for the selected feature set
         """
         best_score = cross_val_score(
-            self._estimator, X[:, selected_features], y, scoring=self.measure,
-            cv=self.cv).mean()
+            self._estimator,
+            X[:, selected_features],
+            y,
+            scoring=self.measure,
+            cv=self.cv,
+        ).mean()
         iteration_features = selected_features
         iteration_free_features = free_features
         getLogger(__name__).info(
-            "Trying to delete features from selected set %s", selected_features)
+            "Trying to delete features from selected set %s", selected_features
+        )
 
-        while (selected_features.shape[0] - iteration_features.shape[0] <=
-                   self.d) & (iteration_features.shape[0] != 1):
+        while (selected_features.shape[0] - iteration_features.shape[0] <= self.d) & (
+            iteration_features.shape[0] != 1
+        ):
             getLogger(__name__).info(
                 "Current selected set: %s, best score: %d",
-                selected_features, best_score)
+                selected_features,
+                best_score,
+            )
             scores = np.vectorize(
                 lambda i: cross_val_score(
-                    self._estimator, X[:, np.delete(iteration_features, i)], y,
-                    cv=self.cv, scoring=self.measure).mean())(
-            np.arange(0, iteration_features.shape[0]))
-            getLogger(__name__).info(
-                "Scores for all selected features: %s", scores)
+                    self._estimator,
+                    X[:, np.delete(iteration_features, i)],
+                    y,
+                    cv=self.cv,
+                    scoring=self.measure,
+                ).mean()
+            )(np.arange(0, iteration_features.shape[0]))
+            getLogger(__name__).info("Scores for all selected features: %s", scores)
 
             to_delete = np.argmax(scores)
             iteration_score = scores[to_delete]
             getLogger(__name__).info(
                 "Deleting feature %d, new score: %d",
-                iteration_features[to_delete], iteration_score)
+                iteration_features[to_delete],
+                iteration_score,
+            )
             iteration_free_features = np.append(
-                iteration_free_features, iteration_features[to_delete])
+                iteration_free_features, iteration_features[to_delete]
+            )
             iteration_features = np.delete(iteration_features, to_delete)
 
             if iteration_score > best_score:
@@ -179,19 +206,25 @@ class AddDelWrapper(BaseWrapper):
         -------
         None
         """
-        self.selected_features_ = np.array([], dtype='int')
+        self.selected_features_ = np.array([], dtype="int")
         free_features = generate_features(X)
         self.best_score_ = 0
         while True:
             selected_features, free_features = self.__add(X, y, free_features)
             getLogger(__name__).info(
                 "After add: selected set = %s, free set = %s",
-                selected_features, free_features)
+                selected_features,
+                free_features,
+            )
             selected_features, free_features, iteration_score = self.__del(
-                X, y, selected_features, free_features)
+                X, y, selected_features, free_features
+            )
             getLogger(__name__).info(
                 "After del: selected set = %s, free set = %s, score = %d",
-                selected_features, free_features, iteration_score)
+                selected_features,
+                free_features,
+                iteration_score,
+            )
 
             if iteration_score > self.best_score_:
                 self.best_score_ = iteration_score

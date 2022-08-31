@@ -99,8 +99,8 @@ def MRMR(selected_features, free_features, x, y, **kwargs):
     if selected_features.size == 0:
         return matrix_mutual_information(x, y)
     return generalizedCriteria(
-        selected_features, free_features, x, y, 1 / selected_features.size, 0,
-        **kwargs)
+        selected_features, free_features, x, y, 1 / selected_features.size, 0, **kwargs
+    )
 
 
 def JMI(selected_features, free_features, x, y, **kwargs):
@@ -154,8 +154,15 @@ def JMI(selected_features, free_features, x, y, **kwargs):
     if selected_features.size == 0:
         return matrix_mutual_information(x, y)
     return generalizedCriteria(
-        selected_features, free_features, x, y, 1 / selected_features.size,
-        1 / selected_features.size, **kwargs)
+        selected_features,
+        free_features,
+        x,
+        y,
+        1 / selected_features.size,
+        1 / selected_features.size,
+        **kwargs
+    )
+
 
 def JMIM(selected_features, free_features, x, y, **kwargs):
     """Joint Mutual Information Maximization feature scoring criterion. Given
@@ -210,10 +217,16 @@ def JMIM(selected_features, free_features, x, y, **kwargs):
         return relevance
     cond_information = np.vectorize(
         lambda free_feature: np.apply_along_axis(
-            conditional_mutual_information, 0, x[:, selected_features],
-            y, x[:, free_feature]),
-        signature='()->(1)')(free_features)
+            conditional_mutual_information,
+            0,
+            x[:, selected_features],
+            y,
+            x[:, free_feature],
+        ),
+        signature="()->(1)",
+    )(free_features)
     return np.min(cond_information.T + relevance, axis=0)
+
 
 def NJMIM(selected_features, free_features, x, y, **kwargs):
     """Normalized Joint Mutual Information Maximization feature scoring
@@ -267,9 +280,10 @@ def NJMIM(selected_features, free_features, x, y, **kwargs):
         return matrix_mutual_information(x, y)
     sym_relevance = np.vectorize(
         lambda selected_feature: np.apply_along_axis(
-            symmetrical_relevance, 0, x[:, free_features],
-            x[:, selected_feature], y),
-        signature='()->(1)')(selected_features)
+            symmetrical_relevance, 0, x[:, free_features], x[:, selected_feature], y
+        ),
+        signature="()->(1)",
+    )(selected_features)
     return np.min(sym_relevance, axis=0)
 
 
@@ -321,8 +335,7 @@ def CIFE(selected_features, free_features, x, y, **kwargs):
     >>> CIFE(np.array(selected_features), np.array(other_features), x, y)
     array([0.27725887, 0.        , 0.27725887])
     """
-    return generalizedCriteria(
-        selected_features, free_features, x, y, 1, 1, **kwargs)
+    return generalizedCriteria(selected_features, free_features, x, y, 1, 1, **kwargs)
 
 
 def MIFS(selected_features, free_features, x, y, beta, **kwargs):
@@ -378,7 +391,8 @@ def MIFS(selected_features, free_features, x, y, beta, **kwargs):
     array([0.91021097, 0.403807  , 1.0765663 ])
     """
     return generalizedCriteria(
-        selected_features, free_features, x, y, beta, 0, **kwargs)
+        selected_features, free_features, x, y, beta, 0, **kwargs
+    )
 
 
 def CMIM(selected_features, free_features, x, y, **kwargs):
@@ -434,8 +448,10 @@ def CMIM(selected_features, free_features, x, y, **kwargs):
     vectorized_function = lambda free_feature: min(
         np.vectorize(
             lambda selected_feature: conditional_mutual_information(
-                x[:, free_feature], y,
-                x[:, selected_feature]))(selected_features))
+                x[:, free_feature], y, x[:, selected_feature]
+            )
+        )(selected_features)
+    )
     return np.vectorize(vectorized_function)(free_features)
 
 
@@ -497,17 +513,21 @@ def ICAP(selected_features, free_features, x, y, **kwargs):
 
     redundancy = np.vectorize(
         lambda free_feature: matrix_mutual_information(
-            x[:, selected_features], 
-            x[:, free_feature]),
-        signature='()->(1)')(free_features)
+            x[:, selected_features], x[:, free_feature]
+        ),
+        signature="()->(1)",
+    )(free_features)
     cond_dependency = np.vectorize(
         lambda free_feature: np.apply_along_axis(
-            conditional_mutual_information, 0,
+            conditional_mutual_information,
+            0,
             x[:, selected_features],
-            x[:, free_feature], y),
-        signature='()->(1)')(free_features)
-    return relevance - np.sum(
-        np.maximum(redundancy - cond_dependency, 0.), axis=1)
+            x[:, free_feature],
+            y,
+        ),
+        signature="()->(1)",
+    )(free_features)
+    return relevance - np.sum(np.maximum(redundancy - cond_dependency, 0.0), axis=1)
 
 
 def DCSF(selected_features, free_features, x, y, **kwargs):
@@ -564,14 +584,21 @@ def DCSF(selected_features, free_features, x, y, **kwargs):
         return np.zeros(len(free_features))
     vectorized_function = lambda free_feature: np.sum(
         np.apply_along_axis(
-            lambda z, a, b: conditional_mutual_information(a, b, z), 0,
+            lambda z, a, b: conditional_mutual_information(a, b, z),
+            0,
             x[:, selected_features],
-            x[:, free_feature], y)
+            x[:, free_feature],
+            y,
+        )
         + np.apply_along_axis(
-            conditional_mutual_information, 0, x[:, selected_features], y,
-            x[:, free_feature])
-        - matrix_mutual_information(
-            x[:, selected_features], x[:, free_feature]))
+            conditional_mutual_information,
+            0,
+            x[:, selected_features],
+            y,
+            x[:, free_feature],
+        )
+        - matrix_mutual_information(x[:, selected_features], x[:, free_feature])
+    )
     return np.vectorize(vectorized_function)(free_features)
 
 
@@ -627,14 +654,21 @@ def CFR(selected_features, free_features, x, y, **kwargs):
         return np.zeros(len(free_features))
     vectorized_function = lambda free_feature: np.sum(
         np.apply_along_axis(
-            lambda z, a, b: conditional_mutual_information(a, b, z), 0,
+            lambda z, a, b: conditional_mutual_information(a, b, z),
+            0,
             x[:, selected_features],
-            x[:, free_feature], y)
+            x[:, free_feature],
+            y,
+        )
         + np.apply_along_axis(
-            conditional_mutual_information, 0, x[:, selected_features],
-            x[:, free_feature], y)
-        - matrix_mutual_information(
-            x[:, selected_features], x[:, free_feature]))
+            conditional_mutual_information,
+            0,
+            x[:, selected_features],
+            x[:, free_feature],
+            y,
+        )
+        - matrix_mutual_information(x[:, selected_features], x[:, free_feature])
+    )
     return np.vectorize(vectorized_function)(free_features)
 
 
@@ -687,15 +721,22 @@ def MRI(selected_features, free_features, x, y, **kwargs):
     array([0.62889893, 0.22433722, 0.72131855])
     """
     return generalizedCriteria(
-        selected_features, free_features, x, y,
-        2 / (selected_features.size + 1), 2 / (selected_features.size + 1),
-        **kwargs)
+        selected_features,
+        free_features,
+        x,
+        y,
+        2 / (selected_features.size + 1),
+        2 / (selected_features.size + 1),
+        **kwargs
+    )
 
 
 def __information_weight(xk, xj, y):
-    return 1 + (joint_mutual_information(xk, xj, y)
-                - mutual_information(xk, y)
-                - mutual_information(xj, y)) / (entropy(xk) + entropy(xj))
+    return 1 + (
+        joint_mutual_information(xk, xj, y)
+        - mutual_information(xk, y)
+        - mutual_information(xj, y)
+    ) / (entropy(xk) + entropy(xj))
 
 
 def __SU(xk, xj):
@@ -755,16 +796,22 @@ def IWFS(selected_features, free_features, x, y, **kwargs):
     vectorized_function = lambda free_feature: np.prod(
         np.apply_along_axis(
             lambda Xj, Xk, y: __information_weight(Xk, Xj, y),
-            0, x[:, selected_features], x[:, free_feature], y)
-        * (np.apply_along_axis(
-            __SU, 0, x[:, selected_features], x[:, free_feature]) + 1))
+            0,
+            x[:, selected_features],
+            x[:, free_feature],
+            y,
+        )
+        * (
+            np.apply_along_axis(__SU, 0, x[:, selected_features], x[:, free_feature])
+            + 1
+        )
+    )
     return np.vectorize(vectorized_function)(free_features)
 
 
 # Ask question what should happen if number of features user want is less
 # than useful number of features
-def generalizedCriteria(selected_features, free_features, x, y, beta, gamma,
-                        **kwargs):
+def generalizedCriteria(selected_features, free_features, x, y, beta, gamma, **kwargs):
     """This feature scoring criteria is a linear combination of all relevance,
     redundancy, conditional dependency Given set of already selected
     features and set of remaining features on dataset X with labels y
@@ -837,8 +884,10 @@ def generalizedCriteria(selected_features, free_features, x, y, beta, gamma,
             redundancy = np.vectorize(
                 lambda free_feature: np.sum(
                     matrix_mutual_information(
-                        x[:, selected_features],
-                        x[:, free_feature])))(free_features)
+                        x[:, selected_features], x[:, free_feature]
+                    )
+                )
+            )(free_features)
     else:
         redundancy = 0
 
@@ -846,24 +895,32 @@ def generalizedCriteria(selected_features, free_features, x, y, beta, gamma,
         cond_dependency = np.vectorize(
             lambda free_feature: np.sum(
                 np.apply_along_axis(
-                    conditional_mutual_information, 0, x[:, selected_features],
-                    x[:, free_feature], y)))(free_features)
+                    conditional_mutual_information,
+                    0,
+                    x[:, selected_features],
+                    x[:, free_feature],
+                    y,
+                )
+            )
+        )(free_features)
     else:
         cond_dependency = 0
-    return relevance - beta*redundancy + gamma*cond_dependency
+    return relevance - beta * redundancy + gamma * cond_dependency
 
 
-MEASURE_NAMES = {"MIM": MIM,
-                 "MRMR": MRMR,
-                 "JMI": JMI,
-                 "JMIM": JMIM,
-                 "NJMIM": NJMIM,
-                 "CIFE": CIFE,
-                 "MIFS": MIFS,
-                 "CMIM": CMIM,
-                 "ICAP": ICAP,
-                 "DCSF": DCSF,
-                 "CFR": CFR,
-                 "MRI": MRI,
-                 "IWFS": IWFS,
-                 "generalizedCriteria": generalizedCriteria}
+MEASURE_NAMES = {
+    "MIM": MIM,
+    "MRMR": MRMR,
+    "JMI": JMI,
+    "JMIM": JMIM,
+    "NJMIM": NJMIM,
+    "CIFE": CIFE,
+    "MIFS": MIFS,
+    "CMIM": CMIM,
+    "ICAP": ICAP,
+    "DCSF": DCSF,
+    "CFR": CFR,
+    "MRI": MRI,
+    "IWFS": IWFS,
+    "generalizedCriteria": generalizedCriteria,
+}

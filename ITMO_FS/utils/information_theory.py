@@ -32,8 +32,7 @@ def conditional_entropy(x_j, y):
     >>> conditional_entropy([1,2,3,1,3,2,3,4,1], [1,2,1,3,1,4,4,1,5])
     0.7324081924454064
     """
-    buf = [[e[1] for e in g] for _, g in 
-           groupby(sorted(zip(x_j, y)), itemgetter(0))]
+    buf = [[e[1] for e in g] for _, g in groupby(sorted(zip(x_j, y)), itemgetter(0))]
     return fsum(entropy(group) * len(group) for group in buf) / len(x_j)
 
 
@@ -153,10 +152,12 @@ def conditional_mutual_information(x, y, z):
     ... [1,3,2,4,5,4,3,2,1,2], [2,1,4,3,2,6,5,2,1,3])
     0.27725887222397816
     """
-    return (entropy(list(zip(x, z)))
-            + entropy(list(zip(y, z)))
-            - entropy(list(zip(x, y, z)))
-            - entropy(z))
+    return (
+        entropy(list(zip(x, z)))
+        + entropy(list(zip(y, z)))
+        - entropy(list(zip(x, y, z)))
+        - entropy(z)
+    )
 
 
 def joint_mutual_information(x, y, z):
@@ -262,6 +263,7 @@ def symmetrical_relevance(x, y, z):
     0.6762456261857126
     """
     return joint_mutual_information(x, y, z) / joint_entropy(x, y, z)
+
 
 def entropy(x):
     """Calculate the entropy (H(X)) of an array.
