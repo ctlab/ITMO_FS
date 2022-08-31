@@ -3,24 +3,17 @@ on: [push, pull_request]
 jobs:
   run:
     runs-on: ubuntu-latest
+    name: Test python API
     steps:
-      - name: Fetch
-        uses: actions/checkout@master
-      - name: Test
-        run: |
-          pip install -r requirements.txt
-          pip install pandas sphinx_rtd_theme
-          pip install pandas pandas
-          pip install pytest
-          pip install pytest-cov
-          pip install dvc
-          pip install pydrive2
-          pip install .
-          pip install coverage
-          curl -Os https://uploader.codecov.io/latest/linux/codecov
-                  chmod +x codecov
-          ./codecov -t 73ed7c02-ad0f-48df-afd0-8a68ff4ccf02
-      - name: Upload
-        uses: codecov/codecov-action@v1
-        with:
-          files: .coverage
+    - uses: actions/checkout@v1
+    - name: Install requirements
+      run: pip install -r requirements.txt
+    - name: Run tests and collect coverage
+      run: pytest --cov .
+    - name: Upload coverage reports to Codecov
+      run: |
+        # Replace `linux` below with the appropriate OS
+        # Options are `alpine`, `linux`, `macos`, `windows`
+        curl -Os https://uploader.codecov.io/latest/linux/codecov
+        chmod +x codecov
+        ./codecov -t 73ed7c02-ad0f-48df-afd0-8a68ff4ccf02
