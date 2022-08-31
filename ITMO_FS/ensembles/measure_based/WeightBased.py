@@ -3,8 +3,10 @@ from logging import getLogger
 import numpy as np
 from sklearn.base import clone
 
-from .fusion_functions import *
+from .fusion_functions import weight_fusion
 from ...utils import BaseTransformer, apply_cr, check_filters
+
+logger = getLogger(__name__)
 
 
 class WeightBased(BaseTransformer):
@@ -109,14 +111,15 @@ class WeightBased(BaseTransformer):
         None
         """
         check_filters(self.filters)
-        getLogger(__name__).info("Running WeightBased with filters: %s", self.filters)
+        logger.info("Running WeightBased with filters: %s", self.filters)
         filter_scores = self.get_scores(X, y)
-        getLogger(__name__).info("Normalized scores for all filters: %s", filter_scores)
+        logger.info("Normalized scores for all filters: %s", filter_scores)
         if self.weights is None:
             weights = np.ones(len(self.filters)) / len(self.filters)
         else:
             weights = self.weights
-        getLogger(__name__).info("Weights vector: %s", weights)
+        logger.info("Weights vector: %s", weights)
         self.feature_scores_ = self.fusion_function(filter_scores, weights)
-        getLogger(__name__).info("Feature scores: %s", self.feature_scores_)
-        self.selected_features_ = apply_cr(self.cutting_rule)(self.feature_scores_)
+        logger.info("Feature scores: %s", self.feature_scores_)
+        selected_features = apply_cr(self.cutting_rule)(self.feature_scores_)
+        self.selected_features_ = selected_features
