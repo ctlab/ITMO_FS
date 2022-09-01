@@ -3,8 +3,8 @@ from logging import getLogger
 import numpy as np
 from sklearn.base import TransformerMixin
 
-from .measures import MEASURE_NAMES, mutual_information, matrix_mutual_information
-from ...utils import BaseTransformer, generate_features
+from ITMO_FS.filters.multivariate.measures import MEASURE_NAMES, mutual_information, matrix_mutual_information
+from ITMO_FS.utils import BaseTransformer, generate_features
 
 
 class MultivariateFilter(BaseTransformer):

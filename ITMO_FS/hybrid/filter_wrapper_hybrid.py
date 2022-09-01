@@ -2,7 +2,9 @@ from logging import getLogger
 
 from sklearn.base import clone
 
-from ..utils import BaseTransformer
+from ITMO_FS.utils import BaseTransformer
+
+logger = getLogger(__name__)
 
 
 class FilterWrapperHybrid(BaseTransformer):
@@ -40,7 +42,8 @@ class FilterWrapperHybrid(BaseTransformer):
     ... n_informative=5, n_redundant=0, shuffle=False, random_state=42)
     >>> x, y = np.array(dataset[0]), np.array(dataset[1])
     >>> filter_ = UnivariateFilter('FRatio', ("K best", 10))
-    >>> wrapper = BackwardSelection(LogisticRegression(), 5, measure='f1_macro')
+    >>> wrapper = BackwardSelection(LogisticRegression(),
+    >>>                             5, measure='f1_macro')
     >>> model = FilterWrapperHybrid(filter_, wrapper).fit(x, y)
     >>> model.selected_features_
     array([ 1,  3,  4, 10,  7], dtype=int64)
@@ -66,14 +69,14 @@ class FilterWrapperHybrid(BaseTransformer):
         """
         self._filter = clone(self.filter_)
         self._wrapper = clone(self.wrapper)
-        getLogger(__name__).info(
+        logger.info(
             "Running FilterWrapper with filter = %s, wrapper = %s",
             self._filter,
             self._wrapper,
         )
 
         selected_filter = self._filter.fit(X, y).selected_features_
-        getLogger(__name__).info("Features selected by filter: %s", selected_filter)
+        logger.info("Features selected by filter: %s", selected_filter)
         self.selected_features_ = selected_filter[
             self._wrapper.fit(X[:, selected_filter], y).selected_features_
         ]

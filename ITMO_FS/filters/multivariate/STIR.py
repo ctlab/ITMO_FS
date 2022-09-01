@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import MinMaxScaler
 
-from ...utils import knn_from_class, BaseTransformer
+from ITMO_FS.utils import knn_from_class, BaseTransformer
 
 
 class STIR(BaseTransformer):

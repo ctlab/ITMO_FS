@@ -1,17 +1,20 @@
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 
-from .Agent import Agent
+from ITMO_FS.hybrid.EGSA.Agent import Agent
 
 
 class EGSA:
     """
     Performs an Evolutionary Gravitational Search-based Feature Selection
-    For more details see "An Evolutionary Gravitational Search-based Feature Selection" by Mohammad Taradeh et al.
+    For more details see
+    "An Evolutionary Gravitational Search-based Feature Selection"
+    by Mohammad Taradeh et al.
 
     Parameters
     ----------
-    estimator : Estimator class (by default sklearn.neighbors.KNeighborsClassifier)
+    estimator :
+    Estimator class (by default sklearn.neighbors.KNeighborsClassifier)
         The class of estimator that will be used as evaluator.
     n_agents : int (by default 20)
         Amount of search agents.
@@ -21,23 +24,32 @@ class EGSA:
         If the current best feature subset have not changed for stuck_iterations
         genetic algorithm mutation will be involved.
     stop_iterations : int (by default 30)
-        If current best feature subset have not changed for stop_iterations algorithm will terminate.
+        If current best feature subset have not changed for
+        stop_iterations algorithm will terminate.
     gravitational_factor : float (by default 10)
-        gravitational_factor defines how fast agents are moving towards each other.
+        gravitational_factor defines how fast agents are moving
+        towards each other.
     gravitational_factor_min : float (by default 0)
         gravitational_factor scales towards gravitational_factor_min over time.
     gravitational_factor_scale : float (by default 1)
-        gravitational_factor_scale defines how fast gravitational_factor scales over time.
-    transfer_function : float -> float (by default lambda v: np.abs(np.tanh(v)))
-        Function that defines probability of including/dropping a feature based on agent's velocity.
+        gravitational_factor_scale defines how fast
+        gravitational_factor scales over time.
+    transfer_function :
+    float -> float (by default lambda v: np.abs(np.tanh(v)))
+        Function that defines probability of including/dropping a feature based
+        on agent's velocity.
         Since it is probability, the domain of function should be [0, 1].
     alpha : float (by default 0.85)
-        alpha defines the trade-off between the quality of feature subset and its size.
-        The bigger alpha is the more agents lean towards maximizing accuracy of the evaluated estimator.
-        And the smaller alpha is the more agents tend to drop selected features.
+        alpha defines the trade-off between the quality of feature subset and
+        its size.
+        The bigger alpha is the more agents lean towards maximizing accuracy of
+         the evaluated estimator.
+        And the smaller alpha is the more agents
+        tend to drop selected features.
     smooth_coefficient : float
         Minimal agent mass value.
-    agent_distance_metric : np.array of int -> np.array of int -> float (by default np.linalg.norm)
+    agent_distance_metric :
+    np.array of int -> np.array of int -> float (by default np.linalg.norm)
         Function that will be used to calculate distance between agents.
     seed: int (by default 31)
         Seed for random generator.
@@ -48,7 +60,9 @@ class EGSA:
     >>> from sklearn.neighbors import KNeighborsClassifier
     >>> from EGSA import EGSA
 
-    >>> X, y = make_classification(n_samples=250, n_features=10, random_state=0, n_informative=2, n_redundant=0)
+    >>> X, y = make_classification(n_samples=250, n_features=10,
+    >>>                            random_state=0, n_informative=2,
+    >>>                            n_redundant=0)
     >>> trX = EGSA(alpha=0.8, iterations=10).fit_transform(X, y)
 
     >>> X.shape, trX.shape
@@ -269,7 +283,8 @@ class EGSA:
 
     def _crossover(self, agents, data, target):
         """
-        Applies crossover on gbest and top half of agents to increase exploration.
+        Applies crossover on gbest and top half of
+        agents to increase exploration.
 
         Parameters
         ----------
@@ -291,4 +306,6 @@ class EGSA:
             new.update_fitness(data, target, self.alpha)
             pool.append(new)
 
-        return sorted(pool, key=lambda a: a.fitness, reverse=True)[: self.n_agents]
+        return sorted(pool,
+                      key=lambda a: a.fitness,
+                      reverse=True)[: self.n_agents]

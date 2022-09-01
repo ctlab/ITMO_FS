@@ -4,7 +4,7 @@ from sklearn.base import clone
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted
 
-from . import BaseTransformer
+from ITMO_FS.utils import BaseTransformer
 
 
 class BaseWrapper(BaseTransformer):
@@ -69,6 +69,7 @@ class BaseWrapper(BaseTransformer):
             getLogger(__name__).error(
                 "Shape of input is different from what was seen in 'fit'"
             )
-            raise ValueError("Shape of input is different from what was seen in 'fit'")
+            raise ValueError("Shape of input is "
+                             "different from what was seen in 'fit'")
 
         return self._estimator.predict(X_[:, self.selected_features_])

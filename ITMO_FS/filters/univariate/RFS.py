@@ -3,7 +3,7 @@ from logging import getLogger
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 
-from ...utils import l21_norm, matrix_norm, BaseTransformer
+from ITMO_FS.utils import l21_norm, matrix_norm, BaseTransformer
 
 
 class RFS(BaseTransformer):

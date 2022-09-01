@@ -4,7 +4,7 @@ import numpy as np
 from scipy.linalg import eigh
 from sklearn.metrics.pairwise import pairwise_distances
 
-from ...utils import l21_norm, matrix_norm, power_neg_half, BaseTransformer
+from ITMO_FS.utils import l21_norm, matrix_norm, power_neg_half, BaseTransformer
 
 
 class SPEC(BaseTransformer):

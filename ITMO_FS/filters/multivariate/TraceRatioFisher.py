@@ -3,7 +3,7 @@ from logging import getLogger
 import numpy as np
 from sklearn.metrics.pairwise import pairwise_distances
 
-from ...utils import BaseTransformer, generate_features
+from ITMO_FS.utils import BaseTransformer, generate_features
 
 
 class TraceRatioFisher(BaseTransformer):

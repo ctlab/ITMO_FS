@@ -2,8 +2,8 @@ from logging import getLogger
 
 import numpy as np
 
-from .measures import CR_NAMES, MEASURE_NAMES
-from ...utils import BaseTransformer, generate_features, check_restrictions, apply_cr
+from ITMO_FS.filters.univariate.measures import CR_NAMES, MEASURE_NAMES
+from ITMO_FS.utils import BaseTransformer, generate_features, check_restrictions, apply_cr
 
 
 class UnivariateFilter(BaseTransformer):

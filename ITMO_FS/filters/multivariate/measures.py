@@ -1,4 +1,5 @@
-from ...utils.information_theory import *
+import numpy as np
+from ITMO_FS.utils.information_theory import *
 
 
 def MIM(selected_features, free_features, x, y, **kwargs):

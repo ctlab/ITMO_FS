@@ -2,8 +2,8 @@ from logging import getLogger
 
 import numpy as np
 
-from ...utils import BaseTransformer, generate_features
-from ...utils.information_theory import entropy, conditional_entropy
+from ITMO_FS.utils import BaseTransformer, generate_features
+from ITMO_FS.utils.information_theory import entropy, conditional_entropy
 
 
 class FCBFDiscreteFilter(BaseTransformer):

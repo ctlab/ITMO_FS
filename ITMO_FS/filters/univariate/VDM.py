@@ -1,7 +1,7 @@
 import numpy as np
 
 from ITMO_FS.utils.functions import cartesian
-from ...utils import BaseTransformer
+from ITMO_FS.utils import BaseTransformer
 
 
 #  TODO some optimization and sklearn-like API
