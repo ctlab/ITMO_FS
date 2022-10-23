@@ -3,7 +3,7 @@ from logging import getLogger
 import numpy as np
 from sklearn.model_selection import cross_val_score
 
-from ITMO_FS.filters.univariate.measures import su_measure, relief_measure
+from ITMO_FS.utils.measures import su_measure, relief_measure
 from ITMO_FS.utils import BaseWrapper
 
 
@@ -81,6 +81,7 @@ class IWSSr_SFLA(BaseWrapper):
         iterations_leaps=10,
         seed=42,
     ):
+        super().__init__()
         self.estimator = estimator
         self.measure_iwssr = measure_iwssr
         self.measure_frogs = measure_frogs

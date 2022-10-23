@@ -1,7 +1,7 @@
 import numpy as np
 
-from ITMO_FS.utils.functions import cartesian
 from ITMO_FS.utils import BaseTransformer
+from ITMO_FS.utils.functions import cartesian
 
 
 #  TODO some optimization and sklearn-like API
@@ -31,9 +31,7 @@ class VDM(BaseTransformer):
         >>> x = np.array([[0, 0, 0, 0],
         ...               [1, 0, 1, 1],
         ...               [1, 0, 0, 2]])
-        >>> y = np.array([0,
-        ...               1,
-        ...               1])
+        >>> y = np.array([0,1,1])
         >>> vdm = VDM()
         >>> vdm.fit(x, y)
         array([[0.         4.35355339 4.        ]
@@ -94,7 +92,7 @@ class VDM(BaseTransformer):
 
             for i, value in enumerate(feature):  # For each sample:
                 entries_x[value].append(i)  # Adding sample index to entries list
-                entries_c_x[y[i]][value] = entries_c_x[y[i]].get(value, 0) + 1  #
+                entries_c_x[y[i]][value] = entries_c_x[y[i]].get(value, 0) + 1
                 # Adding entry for corresponding
                 # class label
 

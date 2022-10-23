@@ -4,12 +4,12 @@ from sklearn.base import clone
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted
 
-from ITMO_FS.utils import BaseTransformer
+from .base_transformer import BaseTransformer
 
 
 class BaseWrapper(BaseTransformer):
     def __init__(self):
-        pass
+        super().__init__()
 
     def fit(self, X, y=None, **fit_params):
         """Fit the algorithm.

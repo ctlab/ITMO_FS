@@ -1,7 +1,6 @@
 import unittest
 from math import sqrt
 
-import numpy as np
 import pandas as pd
 from scipy import stats
 from sklearn.datasets import load_iris
@@ -12,7 +11,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.utils.estimator_checks import check_estimator
 
 from ITMO_FS.filters.univariate import *
-from ITMO_FS.filters.univariate.measures import CR_NAMES
+from ITMO_FS.utils.cutting_rules import CR_NAMES
 from ITMO_FS.utils.information_theory import *
 from test.utils import load_dataset
 

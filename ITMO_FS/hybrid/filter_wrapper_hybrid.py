@@ -50,6 +50,7 @@ class FilterWrapperHybrid(BaseTransformer):
     """
 
     def __init__(self, filter_, wrapper):
+        super().__init__()
         self.filter_ = filter_
         self.wrapper = wrapper
 

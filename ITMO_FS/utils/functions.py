@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.metrics import f1_score
 from sklearn.metrics.pairwise import euclidean_distances
-from ITMO_FS.filters.univariate.cutting_rules import CR_NAMES
+from .cutting_rules import CR_NAMES
 
 
 # returns cartesian product for passed numpy arrays as two paired numpy array

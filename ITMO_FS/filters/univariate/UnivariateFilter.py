@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from ITMO_FS.filters.univariate.measures import MEASURE_NAMES
+from ITMO_FS.utils.measures import MEASURE_NAMES
 from ITMO_FS.utils import apply_cr
 from ITMO_FS.utils import BaseTransformer
 from ITMO_FS.utils import check_restrictions

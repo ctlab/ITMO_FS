@@ -11,7 +11,10 @@ from sklearn.utils.validation import check_is_fitted
 
 class BaseTransformer(TransformerMixin, BaseEstimator):
     def __init__(self):
-        pass
+        self.n_total_features_ = None
+        self.n_features_ = None
+        self.selected_features_ = None
+        self.feature_scores_ = None
 
     def fit(self, X, y=None, **fit_params):
         """Fit the algorithm.
@@ -37,7 +40,8 @@ class BaseTransformer(TransformerMixin, BaseEstimator):
             X = check_array(X, dtype="float64", accept_large_sparse=False)
 
         self.n_total_features_ = X.shape[1]
-        nonconst_features = VarianceThreshold().fit(X).get_support(indices=True)
+        nonconst_features = VarianceThreshold().fit(X).get_support(
+            indices=True)
         self.n_features_ = nonconst_features.shape[0]
 
         if self.n_features_ != self.n_total_features_:
@@ -62,7 +66,8 @@ class BaseTransformer(TransformerMixin, BaseEstimator):
                 getLogger(__name__).error(
                     "Epsilon should be positive, %d passed", self.epsilon
                 )
-                raise ValueError("Epsilon should be positive, %d passed" % self.epsilon)
+                raise ValueError(
+                    "Epsilon should be positive, %d passed" % self.epsilon)
 
         self._fit(X[:, nonconst_features], y, **fit_params)
 
@@ -94,7 +99,8 @@ class BaseTransformer(TransformerMixin, BaseEstimator):
             getLogger(__name__).error(
                 "Shape of input is different from what was seen in 'fit'"
             )
-            raise ValueError("Shape of input is different from what was seen in 'fit'")
+            raise ValueError(
+                "Shape of input is different from what was seen in 'fit'")
         if isinstance(X, pd.DataFrame):
             return X[X.columns[self.selected_features_]]
         else:
