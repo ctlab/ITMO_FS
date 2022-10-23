@@ -4,7 +4,10 @@ import numpy as np
 from imblearn.over_sampling import SMOTE
 from sklearn.base import clone
 
-from ..utils import augmented_rvalue, BaseTransformer
+from ITMO_FS.utils import augmented_rvalue
+from ITMO_FS.utils import BaseTransformer
+
+logger = getLogger(__name__)
 
 
 class MOS(BaseTransformer):
@@ -35,7 +38,7 @@ class MOS(BaseTransformer):
     alphas : array-like, shape (n_alphas,), optional
         The range of lambdas that should form the regularization path.
     sampling : bool
-        Bool value that control whether MOSS (True) or MOSNS (False) should be
+        Value that control whether MOSS (True) or MOSNS (False) should be
         executed.
     k_neighbors : int
         Amount of nearest neighbors to use in SMOTE if MOSS is used.
@@ -106,10 +109,11 @@ class MOS(BaseTransformer):
         None
         """
         if self.loss not in ["hinge", "log"]:
-            getLogger(__name__).error(
-                "Loss should be 'hinge' or 'log', %s was passed", self.loss
+            logger.error("Loss should be 'hinge' or 'log', %s was passed",
+                         self.loss)
+            raise KeyError(
+                "Loss should be 'hinge' or 'log', " "%s was passed" % self.loss
             )
-            raise KeyError("Loss should be 'hinge' or 'log', %s was passed" % self.loss)
 
         if self.sampling:
             try:
@@ -117,7 +121,7 @@ class MOS(BaseTransformer):
                     random_state=self.seed, k_neighbors=self.k_neighbors
                 ).fit_resample(X, y)
             except ValueError:
-                getLogger(__name__).warning(
+                logger.warning(
                     "Couldn't perform SMOTE because k_neighbors is bigger "
                     "than amount of instances in one of the classes; MOSNS "
                     "would be performed instead"
@@ -144,19 +148,19 @@ class MOS(BaseTransformer):
                     X[:, np.flatnonzero(np.abs(b) > self.threshold)], y
                 )
             except ValueError:
-                getLogger(__name__).error(
+                logger.error(
                     "Weight_func: b = %f, less than threshold = %s",
                     b,
                     self.threshold,
                     b,
                 )
                 raise ValueError
-            getLogger(__name__).info(
-                "For alpha %f: rvalue = %f, weight vector = %s", a, rvalue, b
-            )
+            logger.info("For alpha %f: rvalue = %f, weight vector = %s", a,
+                        rvalue, b)
             if min_rvalue > rvalue:
                 min_rvalue = rvalue
                 min_b = b
-                getLogger(__name__).info("New minimum rvalue: %f", rvalue)
-                getLogger(__name__).info("New weight vector: %s", b)
-        self.selected_features_ = np.flatnonzero(np.abs(min_b) > self.threshold)
+                logger.info("New minimum rvalue: %f", rvalue)
+                logger.info("New weight vector: %s", b)
+        self.selected_features_ = np.flatnonzero(np.abs(min_b) >
+                                                 self.threshold)

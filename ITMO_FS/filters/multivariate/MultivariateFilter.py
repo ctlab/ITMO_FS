@@ -1,10 +1,12 @@
+import numpy as np
 from logging import getLogger
 
-import numpy as np
-from sklearn.base import TransformerMixin
-
-from ITMO_FS.filters.multivariate.measures import MEASURE_NAMES, mutual_information, matrix_mutual_information
+from ITMO_FS.filters.multivariate.measures import MEASURE_NAMES
+from ITMO_FS.filters.multivariate.measures import mutual_information
+from ITMO_FS.filters.multivariate.measures import matrix_mutual_information
 from ITMO_FS.utils import BaseTransformer, generate_features
+
+logger = getLogger(__name__)
 
 
 class MultivariateFilter(BaseTransformer):
@@ -67,17 +69,20 @@ class MultivariateFilter(BaseTransformer):
             try:
                 measure = MEASURE_NAMES[self.measure]
             except KeyError:
-                getLogger(__name__).error("No %r measure yet", self.measure)
+                logger.error("No %r measure yet", self.measure)
                 raise KeyError("No %r measure yet" % self.measure)
         else:
             measure = self.measure
 
-        getLogger(__name__).info("Using MultivariateFilter with %s measure", measure)
+        logger.info("Using MultivariateFilter with %s measure", measure)
         free_features = generate_features(X)
         self.selected_features_ = np.array([], dtype="int")
 
-        relevance = np.apply_along_axis(mutual_information, 0, X[:, free_features], y)
-        getLogger(__name__).info("Relevance vector: %s", relevance)
+        relevance = np.apply_along_axis(mutual_information,
+                                        0,
+                                        X[:, free_features],
+                                        y)
+        logger.info("Relevance vector: %s", relevance)
 
         redundancy = np.vectorize(
             lambda free_feature: matrix_mutual_information(
@@ -85,7 +90,7 @@ class MultivariateFilter(BaseTransformer):
             ),
             signature="()->(1)",
         )(free_features)
-        getLogger(__name__).info("Redundancy vector: %s", redundancy)
+        logger.info("Redundancy vector: %s", redundancy)
 
         while len(self.selected_features_) != self.n_features:
             if self.beta is None:
@@ -95,7 +100,8 @@ class MultivariateFilter(BaseTransformer):
                     X,
                     y,
                     relevance=relevance[free_features],
-                    redundancy=np.sum(redundancy[self.selected_features_], axis=0)[
+                    redundancy=np.sum(redundancy[self.selected_features_],
+                                      axis=0)[
                         free_features
                     ],
                 )
@@ -109,7 +115,8 @@ class MultivariateFilter(BaseTransformer):
                         self.beta,
                         self.gamma,
                         relevance=relevance[free_features],
-                        redundancy=np.sum(redundancy[self.selected_features_], axis=0)[
+                        redundancy=np.sum(redundancy[self.selected_features_],
+                                          axis=0)[
                             free_features
                         ],
                     )
@@ -121,17 +128,17 @@ class MultivariateFilter(BaseTransformer):
                         y,
                         self.beta,
                         relevance=relevance[free_features],
-                        redundancy=np.sum(redundancy[self.selected_features_], axis=0)[
+                        redundancy=np.sum(redundancy[self.selected_features_],
+                                          axis=0)[
                             free_features
                         ],
                     )
 
-            getLogger(__name__).info("Free features: %s", free_features)
-            getLogger(__name__).info("Measure values: %s", values)
+            logger.info("Free features: %s", free_features)
+            logger.info("Measure values: %s", values)
             to_add = np.argmax(values)
-            getLogger(__name__).info(
-                "Adding feature %d to the selected set", free_features[to_add]
-            )
+            logger.info("Adding feature %d to the selected set",
+                        free_features[to_add])
             self.selected_features_ = np.append(
                 self.selected_features_, free_features[to_add]
             )

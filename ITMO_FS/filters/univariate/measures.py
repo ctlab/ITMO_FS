@@ -1,23 +1,17 @@
-from functools import partial, update_wrapper
 from math import exp
 
 import numpy as np
 from scipy.sparse import lil_matrix
 from scipy.stats import rankdata
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics.pairwise import pairwise_distances, euclidean_distances
+from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.neighbors import NearestNeighbors
+from sklearn.preprocessing import MinMaxScaler
 
-from ...utils.information_theory import conditional_entropy
-from ...utils.information_theory import entropy
-from ...utils.qpfs_body import qpfs_body
-from ...utils.functions import knn_from_class
-
-
-def _wrapped_partial(func, *args, **kwargs):
-    partial_func = partial(func, *args, **kwargs)
-    update_wrapper(partial_func, func)
-    return partial_func
+from ITMO_FS.utils.functions import knn_from_class
+from ITMO_FS.utils.information_theory import conditional_entropy
+from ITMO_FS.utils.information_theory import entropy
+from ITMO_FS.utils.qpfs_body import qpfs_body
 
 
 def fit_criterion_measure(x, y):
@@ -56,10 +50,12 @@ def fit_criterion_measure(x, y):
         devs = {cl: np.var(splits[cl]) for cl in classes}
         distances = np.vectorize(
             lambda x_val: {
-                cl: (abs(x_val - means[cl]) / (devs[cl] + 1e-10)) for cl in classes
+                cl: (abs(x_val - means[cl]) / (devs[cl] + 1e-10)) for cl in
+                classes
             }
         )(feature)
-        return np.sum(np.vectorize(lambda d: min(d, key=d.get))(distances) == y)
+        return np.sum(
+            np.vectorize(lambda d: min(d, key=d.get))(distances) == y)
 
     classes = np.unique(y)
     return np.apply_along_axis(count_hits, 0, x) / x.shape[0]
@@ -101,12 +97,14 @@ def f_ratio_measure(x, y):
         inter_class = np.sum(
             np.vectorize(
                 lambda cl: (
-                    counts_d[cl] * np.power(mean_feature - np.mean(splits[cl]), 2)
+                        counts_d[cl] *
+                        np.power(mean_feature - np.mean(splits[cl]), 2)
                 )
             )(classes)
         )
         intra_class = np.sum(
-            np.vectorize(lambda cl: (counts_d[cl] * np.var(splits[cl])))(classes)
+            np.vectorize(lambda cl: (counts_d[cl] * np.var(splits[cl])))(
+                classes)
         )
         return inter_class / (intra_class + 1e-10)
 
@@ -154,10 +152,11 @@ def gini_index(x, y):
         total_sum = np.sum(
             np.vectorize(
                 lambda val: (
-                    np.sum(
-                        np.square(np.unique(y[feature == val], return_counts=True)[1])
-                    )
-                    / counts_d[val]
+                        np.sum(
+                            np.square(np.unique(y[feature == val],
+                                                return_counts=True)[1])
+                        )
+                        / counts_d[val]
                 )
             )(values)
         )
@@ -207,7 +206,8 @@ def su_measure(x, y):
     def __SU(feature):
         entropy_x = entropy(feature)
         return (
-            2 * (entropy_x - conditional_entropy(y, feature)) / (entropy_x + entropy_y)
+                2 * (entropy_x - conditional_entropy(y, feature)) /
+                (entropy_x + entropy_y)
         )
 
     entropy_y = entropy(y)
@@ -251,7 +251,8 @@ def kendall_corr(x, y):
         k_corr = 0.0
         for i in range(len(feature)):
             k_corr += np.sum(
-                np.sign(feature[i] - feature[i + 1 :]) * np.sign(y[i] - y[i + 1 :])
+                np.sign(feature[i] - feature[i + 1:]) * np.sign(
+                    y[i] - y[i + 1:])
             )
         return 2 * k_corr / (feature.shape[0] * (feature.shape[0] - 1))
 
@@ -317,7 +318,8 @@ def reliefF_measure(x, y, k_neighbors=1):
         The number of neighbors to consider when assigning feature importance
         scores. More neighbors results in more accurate scores but takes
         longer. Selection of k hits and misses is the basic difference to
-        Relief and ensures greater robustness of the algorithm concerning noise.
+        Relief and ensures greater robustness of the algorithm concerning
+        noise.
 
     Returns
     -------
@@ -344,24 +346,24 @@ def reliefF_measure(x, y, k_neighbors=1):
     def __calc_misses(index):
         misses_diffs_classes = np.abs(
             np.vectorize(
-                lambda cl: (x[index] - x[knn_from_class(dm, y, index, k_neighbors, cl)])
-                * prior_prob[cl],
+                lambda cl: (x[index] - x[
+                    knn_from_class(dm, y, index, k_neighbors, cl)])
+                           * prior_prob[cl],  # noqa: E131
                 signature="()->(n,m)",
             )(classes[classes != y[index]])
         )
         return np.sum(np.sum(misses_diffs_classes, axis=1), axis=0) / (
-            1 - prior_prob[y[index]]
+                1 - prior_prob[y[index]]
         )
 
     classes, counts = np.unique(y, return_counts=True)
     if np.any(counts <= k_neighbors):
         raise ValueError(
-            "Cannot calculate relieff measure because one of theclasses has "
+            "Cannot calculate relieff measure because one of the classes has "
             "less than %d samples" % (k_neighbors + 1)
         )
     prior_prob = dict(zip(classes, np.array(counts) / len(y)))
     n_samples = x.shape[0]
-    n_features = x.shape[1]
     # use manhattan distance instead of euclidean
     dm = pairwise_distances(x, x, "manhattan")
 
@@ -370,19 +372,20 @@ def reliefF_measure(x, y, k_neighbors=1):
     hits_diffs = np.abs(
         np.vectorize(
             lambda index: (
-                x[index] - x[knn_from_class(dm, y, index, k_neighbors, y[index])]
+                    x[index] -
+                    x[knn_from_class(dm, y, index, k_neighbors, y[index])]
             ),
             signature="()->(n,m)",
         )(indices)
     )
-    H = np.sum(hits_diffs, axis=(0, 1))
+    hits = np.sum(hits_diffs, axis=(0, 1))
 
     misses_sum_diffs = np.vectorize(
         lambda index: __calc_misses(index), signature="()->(n)"
     )(indices)
-    M = np.sum(misses_sum_diffs, axis=0)
+    misses = np.sum(misses_sum_diffs, axis=0)
 
-    weights = M - H
+    weights = misses - hits
     # dividing by m * k guarantees that all final weights
     # will be normalized within the interval [ − 1, 1].
     weights /= n_samples * k_neighbors
@@ -441,7 +444,6 @@ def relief_measure(x, y, m=None, random_state=42):
         )
 
     n_samples = x.shape[0]
-    n_features = x.shape[1]
     if m is None:
         m = n_samples
 
@@ -450,12 +452,11 @@ def relief_measure(x, y, m=None, random_state=42):
     indices = np.random.default_rng(random_state).integers(
         low=0, high=n_samples, size=m
     )
-    objects = x_normalized[indices]
     hits_diffs = np.square(
         np.vectorize(
             lambda index: (
-                x_normalized[index]
-                - x_normalized[knn_from_class(dm, y, index, 1, y[index])]
+                    x_normalized[index]
+                    - x_normalized[knn_from_class(dm, y, index, 1, y[index])]
             ),
             signature="()->(n,m)",
         )(indices)
@@ -463,19 +464,20 @@ def relief_measure(x, y, m=None, random_state=42):
     misses_diffs = np.square(
         np.vectorize(
             lambda index: (
-                x_normalized[index]
-                - x_normalized[
-                    knn_from_class(dm, y, index, 1, y[index], anyOtherClass=True)
-                ]
+                    x_normalized[index]
+                    - x_normalized[
+                        knn_from_class(dm, y, index, 1, y[index],
+                                       anyOtherClass=True)
+                    ]
             ),
             signature="()->(n,m)",
         )(indices)
     )
 
-    H = np.sum(hits_diffs, axis=(0, 1))
-    M = np.sum(misses_diffs, axis=(0, 1))
+    hits = np.sum(hits_diffs, axis=(0, 1))
+    misses = np.sum(misses_diffs, axis=(0, 1))
 
-    weights = M - H
+    weights = misses - hits
 
     return weights / m
 
@@ -521,7 +523,8 @@ def chi2_measure(x, y):
             cl: np.array([values_map[val] for val in feature[y == cl]])
             for cl in classes
         }
-        e = np.vectorize(lambda cl: prior_probs[cl] * counts, signature="()->(1)")(
+        e = np.vectorize(lambda cl: prior_probs[cl] * counts,
+                         signature="()->(1)")(
             classes
         )
         n = np.vectorize(
@@ -531,7 +534,8 @@ def chi2_measure(x, y):
         return np.sum(np.square(e - n) / e)
 
     classes, counts = np.unique(y, return_counts=True)
-    prior_probs = {cl: counts[idx] / x.shape[0] for idx, cl in enumerate(classes)}
+    prior_probs = {cl: counts[idx] / x.shape[0] for idx, cl in
+                   enumerate(classes)}
 
     return np.apply_along_axis(__chi2, 0, x)
 
@@ -547,11 +551,12 @@ def chi2_measure(x, y):
 #             Cluster labels to evaluate
 #         Returns
 #         -------
-#         contingency : {array-like, sparse}, shape=[n_classes_true, n_classes_pred]
-#             Matrix :math:`C` such that :math:`C_{i, j}` is the number of samples in
-#             true class :math:`i` and in predicted class :math:`j`. If
-#             ``eps is None``, the dtype of this array will be integer. If ``eps`` is
-#             given, the dtype will be float.
+#         contingency : {array-like, sparse},
+#         shape=[n_classes_true, n_classes_pred]
+#         Matrix :math:`C` such that :math:`C_{i, j}` is the number of
+#         samples in true class :math:`i` and in predicted class :math:`j`. If
+#         ``eps is None``, the dtype of this array will be integer.
+#         If ``eps`` is given, the dtype will be float.
 #         """
 #     classes, class_idx = np.unique(labels_true, return_inverse=True)
 #     clusters, cluster_idx = np.unique(labels_pred, return_inverse=True)
@@ -702,7 +707,7 @@ def laplacian_score(x, y, k_neighbors=5, t=1, metric="euclidean", **kwargs):
         metric is euclidean.
     weights : array-like, shape (n_samples, n_samples)
         The weight matrix of the graph that models the local structure of
-        the data space. By default it is constructed using KNN algorithm.
+        the data space. By default, it is constructed using KNN algorithm.
 
     Returns
     -------
@@ -804,7 +809,7 @@ def anova(x, y):
     See Also
     --------
     Lowry, Richard.  "Concepts and Applications of Inferential Statistics".
-    Chapter 14. http://vassarstats.net/textbook/
+    Chapter 14. https://vassarstats.net/textbook/
 
     Note:
     The Anova score is counted for checking hypothesis if variances of two
@@ -866,7 +871,8 @@ def modified_t_score(x, y):
 
     See Also
     --------
-    For more details see paper <https://dergipark.org.tr/en/download/article-file/261247>.
+    For more details see paper
+    <https://dergipark.org.tr/en/download/article-file/261247>.
 
     Examples
     --------
@@ -901,13 +907,14 @@ def modified_t_score(x, y):
     corr_with_others = abs(np.corrcoef(x, rowvar=False))
     corr_with_others = np.nan_to_num(corr_with_others)
 
-    mean_of_corr_with_others = (
-        corr_with_others.sum(axis=1) - corr_with_others.diagonal()
-    ) / (len(corr_with_others) - 1)
+    mean_of_corr_with_others = (corr_with_others.sum(axis=1) -
+                                corr_with_others.diagonal()
+                                ) / (len(corr_with_others) - 1)
 
     t_score_numerator = abs(mean_class0 - mean_class1)
     t_score_denominator = np.sqrt(
-        (size_class0 * np.square(std_class0) + size_class1 * np.square(std_class1))
+        (size_class0 * np.square(std_class0) +
+         size_class1 * np.square(std_class1))
         / (size_class0 + size_class1)
     )
     modificator = corr_with_y / mean_of_corr_with_others
@@ -934,68 +941,6 @@ MEASURE_NAMES = {
     "InformationGain": information_gain,
     "ModifiedTScore": modified_t_score,
     "Relief": relief_measure,
-}
-
-
-def select_best_by_value(value):
-    return _wrapped_partial(__select_by_value, value=value, more=True)
-
-
-def select_worst_by_value(value):
-    return _wrapped_partial(__select_by_value, value=value, more=False)
-
-
-def __select_by_value(scores, value, more=True):
-    if more:
-        return np.flatnonzero(scores >= value)
-    else:
-        return np.flatnonzero(scores <= value)
-
-
-def select_k_best(k):
-    return _wrapped_partial(__select_k, k=k, reverse=True)
-
-
-def select_k_worst(k):
-    return _wrapped_partial(__select_k, k=k)
-
-
-def __select_k(scores, k, reverse=False):
-    if not isinstance(k, int):
-        raise TypeError("Number of features should be integer")
-    if k > scores.shape[0]:
-        raise ValueError(
-            "Cannot select %d features with n_features = %d" % (k, len(scores))
-        )
-    order = np.argsort(scores)
-    if reverse:
-        order = order[::-1]
-    return order[:k]
-
-
-def __select_percentage_best(scores, percent):
-    return __select_k(scores, k=(int)(scores.shape[0] * percent), reverse=True)
-
-
-def select_best_percentage(percent):
-    return _wrapped_partial(__select_percentage_best, percent=percent)
-
-
-def __select_percentage_worst(scores, percent):
-    return __select_k(scores, k=(int)(scores.shape[0] * percent), reverse=False)
-
-
-def select_worst_percentage(percent):
-    return _wrapped_partial(__select_percentage_worst, percent=percent)
-
-
-CR_NAMES = {
-    "Best by value": select_best_by_value,
-    "Worst by value": select_worst_by_value,
-    "K best": select_k_best,
-    "K worst": select_k_worst,
-    "Worst by percentage": select_worst_percentage,
-    "Best by percentage": select_best_percentage,
 }
 
 

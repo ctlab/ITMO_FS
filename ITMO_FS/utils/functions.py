@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.metrics import f1_score
 from sklearn.metrics.pairwise import euclidean_distances
-from ITMO_FS.filters.univariate.measures import CR_NAMES
+from ITMO_FS.filters.univariate.cutting_rules import CR_NAMES
 
 
 # returns cartesian product for passed numpy arrays as two paired numpy array
@@ -63,12 +63,7 @@ def augmented_rvalue(X, y, k=7, theta=3):
     return np.dot(Rs, Cs) / len(X)
 
 
-def knn_from_class(distances,
-                   y,
-                   index,
-                   k,
-                   cl,
-                   anyOtherClass=False,
+def knn_from_class(distances, y, index, k, cl, anyOtherClass=False,
                    anyClass=False):
     """Return the indices of k nearest neighbors of X[index] from the selected
     class.
@@ -177,6 +172,6 @@ def apply_cr(cutting_rule):
     elif hasattr(cutting_rule, "__call__"):
         cr = cutting_rule
     else:
-        raise KeyError("%s isn't a cutting rule function or string" %
-                       cutting_rule)
+        raise KeyError(
+            "%s isn't a cutting rule function or string" % cutting_rule)
     return cr

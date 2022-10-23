@@ -69,7 +69,8 @@ class BaseWrapper(BaseTransformer):
             getLogger(__name__).error(
                 "Shape of input is different from what was seen in 'fit'"
             )
-            raise ValueError("Shape of input is "
-                             "different from what was seen in 'fit'")
+            raise ValueError(
+                "Shape of input is " "different from what was seen in 'fit'"
+            )
 
         return self._estimator.predict(X_[:, self.selected_features_])

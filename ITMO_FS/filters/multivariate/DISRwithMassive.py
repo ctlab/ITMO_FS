@@ -4,9 +4,8 @@ import numpy as np
 from sklearn.metrics import pairwise_distances
 
 from ITMO_FS.utils import BaseTransformer, generate_features
-from ITMO_FS.utils.information_theory import (entropy,
-                                              joint_entropy,
-                                              mutual_information)
+from ITMO_FS.utils.information_theory import entropy, joint_entropy, \
+    mutual_information
 
 logger = getLogger(__name__)
 
@@ -115,14 +114,14 @@ class DISRWithMassive(BaseTransformer):
                                                 min_index)
 
         logger.info(
-            "Selected set: %s, free set: %s",
-            self.selected_features_, free_features
+            "Selected set: %s, free set: %s", self.selected_features_,
+            free_features
         )
 
         while True:
             selected_weights = np.sum(
-                self._edges[np.ix_(self.selected_features_,
-                                   self.selected_features_)],
+                self._edges[
+                    np.ix_(self.selected_features_, self.selected_features_)],
                 axis=0,
             )
             logger.info("Graph of selected set: %s", selected_weights)
@@ -131,9 +130,7 @@ class DISRWithMassive(BaseTransformer):
                 self._edges[np.ix_(self.selected_features_, free_features)],
                 axis=0
             )
-            logger.info(
-                "Free weights that would be added: %s", free_weights
-            )
+            logger.info("Free weights that would be added: %s", free_weights)
 
             difference = (
                     free_weights.reshape(-1, 1)
@@ -144,9 +141,7 @@ class DISRWithMassive(BaseTransformer):
             logger.info("Difference matrix: %s", difference)
 
             if np.all(difference <= 0):
-                logger.info(
-                    "All differences are non-positive, terminating"
-                )
+                logger.info("All differences are non-positive, terminating")
                 break
             index_add, index_del = np.unravel_index(
                 np.argmax(difference), difference.shape

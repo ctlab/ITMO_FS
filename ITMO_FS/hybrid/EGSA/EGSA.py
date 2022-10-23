@@ -21,8 +21,8 @@ class EGSA:
     iterations : int (by default 200)
         Amount of iterations to be performed if end condition is never met.
     stuck_iterations : int (by default 8)
-        If the current best feature subset have not changed for stuck_iterations
-        genetic algorithm mutation will be involved.
+        If the current best feature subset have not changed for
+        stuck_iterations genetic algorithm mutation will be involved.
     stop_iterations : int (by default 30)
         If current best feature subset have not changed for
         stop_iterations algorithm will terminate.
@@ -233,12 +233,13 @@ class EGSA:
         X_new : array-like, shape (n_samples, n_selected_features)
             Transformed array.
         """
-
+        self.X = X
+        self.y = y
         return self.fit(X, y).transform(X)
 
     def _update_fitness(self, agents):
         for agent in agents:
-            agent.update_fitness(X, y, self.alpha)
+            agent.update_fitness(self.X, self.y, self.alpha)
 
     def _make_agent(self, size):
         """
@@ -306,6 +307,5 @@ class EGSA:
             new.update_fitness(data, target, self.alpha)
             pool.append(new)
 
-        return sorted(pool,
-                      key=lambda a: a.fitness,
-                      reverse=True)[: self.n_agents]
+        return sorted(pool, key=lambda a: a.fitness, reverse=True)[
+               : self.n_agents]
