@@ -18,7 +18,7 @@ URL = 'https://github.com/ctlab/ITMO_FS'
 LICENSE = 'new BSD'
 DOWNLOAD_URL = 'https://github.com/ctlab/ITMO_FS'
 VERSION = about["__version__"],
-INSTALL_REQUIRES = ['numpy', 'scipy', 'scikit-learn', 'imblearn', 'qpsolvers']
+INSTALL_REQUIRES = ['numpy', 'scipy', 'scikit-learn', 'imbalanced-learn', 'qpsolvers']
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Intended Audience :: Developers',
                'License :: OSI Approved',
