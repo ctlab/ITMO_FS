@@ -63,5 +63,6 @@ jobs:
 
 workflows:
   main:
-#    jobs:
-#      - build-and-test
+    jobs:
+      - build-and-test:
+          when: false
