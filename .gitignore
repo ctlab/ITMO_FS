@@ -4,3 +4,5 @@ ITMO_FS.egg-info
 dist
 build
 common
+.coverage
+coverage.xml
