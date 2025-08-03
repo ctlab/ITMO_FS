@@ -26,7 +26,10 @@ jobs:
       - name: Run tests
         run: |
           source .venv/bin/activate
-          pytest -n auto --cov=ITMO_FS --cov-report=xml
+          pytest -n auto tests --continue-on-collection-errors --cov=ITMO_FS --cov-report=xml
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
