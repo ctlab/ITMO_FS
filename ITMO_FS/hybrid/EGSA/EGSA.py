@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 
-from Agent import Agent
+from .agent import Agent
 
 
 class EGSA:

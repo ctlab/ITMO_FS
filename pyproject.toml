@@ -1,0 +1,71 @@
+[build-system]
+requires = [
+"setuptools>=68",
+"wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "itmo-fs"            # PyPI canonical (lowercase, dash)
+description = "Python Feature‑Selection toolbox from ITMO University."
+readme = {file = "README.rst", content-type = "text/x-rst"}
+requires-python = ">=3.8"
+license = {text = "BSD-3-Clause"}
+version = "0.3.3"
+
+authors = [
+{name = "Nikita Pilnensky", email = "somacruz@bk.ru"},
+{name = "Ivan Smetannikov"}
+]
+
+keywords = ["feature selection", "machine learning", "dimensionality reduction"]
+classifiers = [
+"Intended Audience :: Science/Research",
+"License :: OSI Approved :: BSD License",
+"Programming Language :: Python :: 3",
+"Topic :: Scientific/Engineering :: Artificial Intelligence",
+"Operating System :: OS Independent"
+]
+
+dependencies = [
+  "numpy >=1.22",
+  "scipy >=1.8",
+  "scikit-learn <1.7",
+  "imbalanced-learn >=0.11",
+  "qpsolvers",
+]
+
+
+[project.optional-dependencies]
+sci = ["scipy >=1.11"]
+imb = ["imbalanced-learn >=0.11"]
+qp  = ["qpsolvers"]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "pytest-xdist",
+  "ruff",
+  "mypy",
+  "pandas >=2.2",
+  "dvc[ssh] >=3.61",
+  "dvc-gdrive",
+]
+docs = [
+  "sphinx",
+  "sphinx-gallery",
+  "sphinx_rtd_theme",
+  "numpydoc",
+  "matplotlib",
+]
+
+[project.urls]
+Homepage = "https://github.com/ctlab/ITMO_FS"
+Source   = "https://github.com/ctlab/ITMO_FS"
+Changelog = "https://github.com/ctlab/ITMO_FS/releases"
+
+[tool.setuptools]
+
+
+packages = {find = {}}
+include-package-data = true
+

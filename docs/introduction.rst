@@ -24,11 +24,11 @@ and selector mixin:
 
     To learn from data and select features from the same data set at once, each selector implements::
 
-      data_selected = selector.fir_transform(data, targets)
+      data_selected = selector.fit_transform(data, targets)
 
     To reverse the selection operation, each selector implements::
 
-      data_reversed = selector.fir_transform(data)
+      data_reversed = selector.fit_transform(data)
 
 Feature selectors accept the same inputs that in scikit-learn:
 
