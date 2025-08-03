@@ -1,4 +1,5 @@
 .idea
+.venv
 ITMO_FS.egg-info
 dist
 build
