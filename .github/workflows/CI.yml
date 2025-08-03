@@ -24,7 +24,9 @@ jobs:
           uv pip install -e '.[dev,sci,imb,qp]'
 
       - name: Run tests
-        run: pytest -n auto --cov=ITMO_FS --cov-report=xml
+        run: |
+          source .venv/bin/activate
+          pytest -n auto --cov=ITMO_FS --cov-report=xml
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
