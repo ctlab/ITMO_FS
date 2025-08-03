@@ -43,6 +43,7 @@ qp  = ["qpsolvers"]
 dev = [
   "pytest",
   "pytest-cov",
+  "pytest-xdist",
   "ruff",
   "mypy",
   "pandas >=2.2",
