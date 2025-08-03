@@ -8,8 +8,7 @@ datasets = ["arcene.csv",
 
 
 def load_dataset(name):  # todo fails to hold header
-    with dvc.api.open(
-            'test/datasets/' + name) as fd:
+    with dvc.api.open( name) as fd:
         df = pd.read_csv(fd, header=None)
         features = ['v' + str(i) for i in range(df.shape[1] - 1)] + ["target"]
         df.columns = features
