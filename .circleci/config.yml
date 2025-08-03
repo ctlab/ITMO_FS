@@ -55,7 +55,7 @@ jobs:
             pip install dvc
             pip install pytest
             pip install pytest-cov
-            pytest --cov=ITMO_FS test/
+            pytest --cov=ITMO_FS tests/
 
       - store_artifacts:
           path: test-reports
