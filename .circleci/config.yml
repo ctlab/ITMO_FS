@@ -1,68 +1,37 @@
 version: 2.1
 
-orbs:
-  python: circleci/python@1.2.0
-
 jobs:
   build-and-test:
-    executor: python/default
+    docker:
+      - image: cimg/python:3.12
     steps:
       - checkout
 
-      # Download and cache dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "requirements.txt" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+            - v2-python-3.12-{{ checksum "pyproject.toml" }}
+            - v2-python-3.12-
 
       - run:
-          name: install dependencies
+          name: Install dependencies
           command: |
-            wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-            chmod +x miniconda.sh && ./miniconda.sh -b -p ~/miniconda
-            export PATH="~/miniconda/bin:$PATH"
-            conda update --yes --quiet conda
-            conda create -n testenv --yes --quiet python=3
-            source activate testenv
-            pip install -r requirements.txt
-            pip install pandas sphinx_rtd_theme dvc
-            pip install sphinx-gallery
-            pip install dvc
-            pip install pydrive2
-            pip install .
-            cd docs
-            make html
+            python -m venv .venv
+            . .venv/bin/activate
+            python -m pip install --upgrade pip
+            pip install -e '.[dev,sci,imb,qp]'
 
       - save_cache:
+          key: v2-python-3.12-{{ checksum "pyproject.toml" }}
           paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+            - .venv
 
-      # run tests!
-      # this example uses Django's built-in test-runner
-      # other common Python testing frameworks include pytest and nose
-      # https://pytest.org
-      # https://nose.readthedocs.io
       - run:
-          name: run tests
-          paths:
-            - ./venv
+          name: Run tests
           command: |
-            pip install -r requirements.txt
-            pip install pandas sphinx_rtd_theme
-            pip install pandas pandas
-            pip install dvc
-            pip install pytest
-            pip install pytest-cov
-            pytest --cov=ITMO_FS tests/
-
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
+            . .venv/bin/activate
+            pytest -q
 
 workflows:
   main:
     jobs:
-      - build-and-test:
-          when: false
+      - build-and-test
