@@ -1,0 +1,97 @@
+[build-system]
+requires = [
+"setuptools>=68",
+"wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "itmo-fs"            # PyPI canonical (lowercase, dash)
+description = "Python Feature‑Selection toolbox from ITMO University."
+readme = {file = "README.md", content-type = "text/markdown"}
+requires-python = ">=3.10"
+license = "BSD-3-Clause"
+dynamic = ["version"]
+
+authors = [
+{name = "Nikita Pilnensky", email = "somacruz@bk.ru"},
+{name = "Ivan Smetannikov"}
+]
+
+keywords = ["feature selection", "machine learning", "dimensionality reduction"]
+classifiers = [
+"Intended Audience :: Science/Research",
+"Programming Language :: Python :: 3",
+"Programming Language :: Python :: 3.10",
+"Programming Language :: Python :: 3.11",
+"Programming Language :: Python :: 3.12",
+"Programming Language :: Python :: 3.13",
+"Topic :: Scientific/Engineering :: Artificial Intelligence",
+"Operating System :: OS Independent"
+]
+
+dependencies = [
+  "numpy >=1.25.2",
+  "scipy >=1.11.4",
+  "scikit-learn >=1.4.2,<1.8",
+  "imbalanced-learn >=0.14,<0.15",
+  "qpsolvers >=4,<5",
+]
+
+[dependency-groups]
+test = [
+  "pytest >=8.3",
+  "pytest-cov >=6",
+  "pytest-xdist >=3.6",
+  "pandas >=2.2.3",
+]
+lint = [
+  "ruff >=0.9",
+  "mypy >=1.14",
+]
+docs = [
+  "sphinx >=7.4,<8.2",
+  "sphinx-gallery >=0.18,<0.20",
+  "sphinx_rtd_theme >=2,<3",
+  "numpydoc >=1.8,<2",
+  "matplotlib >=3.8",
+]
+release = [
+  "build >=1.2",
+  "setuptools >=68",
+  "wheel >=0.45",
+]
+data = [
+  "dvc[ssh] >=3.61",
+  "dvc-gdrive",
+]
+dev = [
+  { include-group = "test" },
+  { include-group = "lint" },
+  { include-group = "docs" },
+  { include-group = "release" },
+  { include-group = "data" },
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[project.urls]
+Homepage = "https://github.com/ctlab/ITMO_FS"
+Source   = "https://github.com/ctlab/ITMO_FS"
+Changelog = "https://github.com/ctlab/ITMO_FS/releases"
+
+[tool.setuptools]
+packages = {find = {include = ["ITMO_FS*"], exclude = ["tests*", "docs*"]}}
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {file = ["ITMO_FS/VERSION"]}
+
+[tool.pytest.ini_options]
+testpaths = ["tests/synthetic", "tests/real_data"]
+python_files = ["test_*.py"]
+markers = [
+  "synthetic: fast tests on synthetic or tiny in-memory datasets",
+  "real_data: tests that run on bundled or local real datasets",
+]

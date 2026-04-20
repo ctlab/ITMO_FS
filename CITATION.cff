@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use ITMO_FS in your work, please cite it using the following metadata."
+title: "ITMO_FS: Feature Selection Library"
+version: "0.3.4.dev1"
+date-released: "2026-04-20"
+url: "https://pypi.org/project/itmo-fs/"
+repository-code: "https://github.com/ctlab/ITMO_FS"
+license: "BSD-3-Clause"
+type: software
+authors:
+  - family-names: "Pilnensky"
+    given-names: "Nikita"
+    affiliation: "Independent developer (ITMO University)"
+  - family-names: "Smetannikov"
+    given-names: "Ivan"
+    affiliation: "Independent researcher (PhD)"

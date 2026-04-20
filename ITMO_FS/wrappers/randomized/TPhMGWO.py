@@ -56,6 +56,10 @@ class TPhMGWO(BaseWrapper):
     ... measure='accuracy').fit(x, y)
     >>> tphmgwo.selected_features_
     array([0, 1, 2, 4], dtype=int64)
+    >>> tphmgwo = TPhMGWO(KNeighborsClassifier(n_neighbors=7),
+    ... measure='accuracy', binarize='tanh').fit(x, y)
+    >>> tphmgwo.selected_features_
+    array([0, 1, 4, 6, 8], dtype=int64)
     """
     def __init__(self, estimator, measure, wolf_number=10, seed=1, alpha=0.5,
                  cv=5, iteration_number=30, mp=0.5, binarize='sigmoid'):

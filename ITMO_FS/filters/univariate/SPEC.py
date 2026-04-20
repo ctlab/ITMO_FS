@@ -38,6 +38,12 @@ class SPEC(BaseTransformer):
     >>> model = SPEC(3).fit(X, y)
     >>> model.selected_features_
     array([0, 1, 4], dtype=int64)
+    >>> model = SPEC(3, phi_type=1).fit(X, y)
+    >>> model.selected_features_
+    array([0, 1, 4], dtype=int64)
+    >>> model = SPEC(3, phi_type=2).fit(X, y)
+    >>> model.selected_features_
+    array([0, 1, 4], dtype=int64)
     >>> model = SPEC(3).fit(X)
     >>> model.selected_features_
     array([3, 4, 1], dtype=int64)

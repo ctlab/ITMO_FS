@@ -7,7 +7,6 @@ from .measures import (MEASURE_NAMES, mutual_information,
                        matrix_mutual_information)
 from ...utils import BaseTransformer, generate_features
 
-
 class MultivariateFilter(BaseTransformer):
     """Provides basic functionality for multivariate filters.
 
@@ -41,11 +40,13 @@ class MultivariateFilter(BaseTransformer):
     >>> model.selected_features_
     array([4, 0, 1], dtype=int64)
     """
-    def __init__(self, measure, n_features, beta=None, gamma=None):
+
+    def __init__(self, measure, n_features, **kwargs):
+        super().__init__()
         self.measure = measure
         self.n_features = n_features
-        self.beta = beta
-        self.gamma = gamma
+        self.beta = kwargs.get('beta', None)
+        self.gamma = kwargs.get('gamma', None)
 
     def _fit(self, X, y, **kwargs):
         """Fit the filter.
@@ -68,6 +69,8 @@ class MultivariateFilter(BaseTransformer):
             except KeyError:
                 getLogger(__name__).error("No %r measure yet", self.measure)
                 raise KeyError("No %r measure yet" % self.measure)
+        else:
+            measure = self.measure
 
         getLogger(__name__).info(
             "Using MultivariateFilter with %s measure", measure)

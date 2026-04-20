@@ -1,64 +1,40 @@
 version: 2.1
 
-orbs:
-  python: circleci/python@1.2.0
-
 jobs:
   build-and-test:
-    executor: python/default
+    docker:
+      - image: cimg/python:3.12
+    working_directory: ~/project
     steps:
-      - checkout
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "requirements.txt" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+      - run:
+          name: Download repository archive
+          command: |
+            rm -rf /tmp/itmo-fs-src
+            mkdir -p /tmp/itmo-fs-src
+            curl -fsSL "https://github.com/ctlab/ITMO_FS/archive/${CIRCLE_SHA1}.tar.gz" -o /tmp/itmo-fs-src/source.tar.gz
+            tar -xzf /tmp/itmo-fs-src/source.tar.gz --strip-components=1 -C /tmp/itmo-fs-src
+            cp -R /tmp/itmo-fs-src/. ~/project/
+            test -f ~/project/pyproject.toml
 
       - run:
-          name: install dependencies
+          name: Install uv
           command: |
-            wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-            chmod +x miniconda.sh && ./miniconda.sh -b -p ~/miniconda
-            export PATH="~/miniconda/bin:$PATH"
-            conda update --yes --quiet conda
-            conda create -n testenv --yes --quiet python=3
-            source activate testenv
-            pip install -r requirements.txt
-            pip install pandas sphinx_rtd_theme dvc
-            pip install sphinx-gallery
-            pip install dvc
-            pip install pydrive2
-            pip install .
-            cd docs
-            make html
+            python -m pip install --upgrade pip
+            pip install uv
 
-      - save_cache:
-          paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
-
-      # run tests!
-      # this example uses Django's built-in test-runner
-      # other common Python testing frameworks include pytest and nose
-      # https://pytest.org
-      # https://nose.readthedocs.io
       - run:
-          name: run tests
-          paths:
-            - ./venv
+          name: Sync test environment
           command: |
-            pip install -r requirements.txt
-            pip install pandas sphinx_rtd_theme
-            pip install pandas pandas
-            pip install dvc
-            pip install pytest
-            pytest --cov=ITMO_FS test/
+            pwd
+            ls -la
+            test -f pyproject.toml
+            uv sync --no-default-groups --group test --group release
 
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
+      - run:
+          name: Run tests
+          command: |
+            test -f pyproject.toml
+            uv run --no-sync pytest -q
 
 workflows:
   main:
