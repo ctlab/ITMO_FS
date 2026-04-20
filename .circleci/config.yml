@@ -7,10 +7,14 @@ jobs:
     working_directory: ~/project
     steps:
       - run:
-          name: Checkout repository over HTTPS
+          name: Download repository archive
           command: |
-            rm -rf ~/project/*
-            git clone --depth 1 https://github.com/ctlab/ITMO_FS.git .
+            rm -rf /tmp/itmo-fs-src
+            mkdir -p /tmp/itmo-fs-src
+            curl -fsSL "https://github.com/ctlab/ITMO_FS/archive/${CIRCLE_SHA1}.tar.gz" -o /tmp/itmo-fs-src/source.tar.gz
+            tar -xzf /tmp/itmo-fs-src/source.tar.gz --strip-components=1 -C /tmp/itmo-fs-src
+            cp -R /tmp/itmo-fs-src/. ~/project/
+            test -f ~/project/pyproject.toml
 
       - run:
           name: Install uv
