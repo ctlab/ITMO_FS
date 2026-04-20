@@ -40,7 +40,7 @@ dependencies = [
 
 [dependency-groups]
 test = [
-  "pytest >=8.3",
+  "pytest>=9.0.3",
   "pytest-cov >=6",
   "pytest-xdist >=3.6",
   "pandas >=2.2.3",
