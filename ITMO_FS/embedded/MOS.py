@@ -4,7 +4,8 @@ import numpy as np
 from imblearn.over_sampling import SMOTE
 from sklearn.base import clone
 
-from ..utils import augmented_rvalue, BaseTransformer
+from ITMO_FS.base.base_transformer import BaseTransformer
+from ITMO_FS.utils import augmented_rvalue
 
 
 class MOS(BaseTransformer):

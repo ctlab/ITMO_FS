@@ -1,8 +1,10 @@
 .idea
 .venv
 ITMO_FS.egg-info
+*.egg-info
 dist
 build
 common
 .coverage
 coverage.xml
+__pycache__/

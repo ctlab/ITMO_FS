@@ -8,10 +8,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "itmo-fs"            # PyPI canonical (lowercase, dash)
 description = "Python Feature‑Selection toolbox from ITMO University."
-readme = {file = "README.rst", content-type = "text/x-rst"}
+readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.8"
-license = {text = "BSD-3-Clause"}
-version = "0.3.3"
+license = "BSD-3-Clause"
+dynamic = ["version"]
 
 authors = [
 {name = "Nikita Pilnensky", email = "somacruz@bk.ru"},
@@ -21,7 +21,6 @@ authors = [
 keywords = ["feature selection", "machine learning", "dimensionality reduction"]
 classifiers = [
 "Intended Audience :: Science/Research",
-"License :: OSI Approved :: BSD License",
 "Programming Language :: Python :: 3",
 "Topic :: Scientific/Engineering :: Artificial Intelligence",
 "Operating System :: OS Independent"
@@ -41,6 +40,7 @@ sci = ["scipy >=1.11"]
 imb = ["imbalanced-learn >=0.11"]
 qp  = ["qpsolvers"]
 dev = [
+  "build",
   "pytest",
   "pytest-cov",
   "pytest-xdist",
@@ -64,8 +64,16 @@ Source   = "https://github.com/ctlab/ITMO_FS"
 Changelog = "https://github.com/ctlab/ITMO_FS/releases"
 
 [tool.setuptools]
-
-
-packages = {find = {}}
+packages = {find = {include = ["ITMO_FS*"], exclude = ["tests*", "docs*"]}}
 include-package-data = true
 
+[tool.setuptools.dynamic]
+version = {file = ["ITMO_FS/VERSION"]}
+
+[tool.pytest.ini_options]
+testpaths = ["tests/synthetic", "tests/real_data"]
+python_files = ["test_*.py"]
+markers = [
+  "synthetic: fast tests on synthetic or tiny in-memory datasets",
+  "real_data: tests that run on bundled or local real datasets",
+]

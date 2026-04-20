@@ -22,16 +22,16 @@ install it via `pip`::
 
   pip install -U ITMO_FS
 
-If you prefer, you can clone it and run the setup.py file. Use the following
-commands to get a copy from Github and install all dependencies::
+If you prefer, you can clone the repository and install the package locally.
+Use the following commands to get a copy from GitHub and install it::
 
-  git clone https://github.com/LastShekel/ITMO_FS.git
+  git clone https://github.com/ctlab/ITMO_FS.git
   cd ITMO_FS
   pip install .
 
 Or install using pip and GitHub::
 
-  pip install -U git+https://github.com/LastShekel/ITMO_FS.git
+  pip install -U git+https://github.com/ctlab/ITMO_FS.git
 
 Test and coverage
 =================
@@ -55,4 +55,4 @@ You can contribute to this code through Pull Request on GitHub_. Please, make
 sure that your code is coming with unit tests to ensure full coverage and
 continuous integration in the API.
 
-.. _GitHub: https://github.com/LastShekel/ITMO_FS/pulls
+.. _GitHub: https://github.com/ctlab/ITMO_FS/pulls

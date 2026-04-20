@@ -1,0 +1,11 @@
+include README.md
+include LICENSE
+include ITMO_FS/VERSION
+
+prune docs
+prune tests
+prune .github
+prune .circleci
+
+global-exclude __pycache__/*
+global-exclude *.py[cod]
