@@ -4,17 +4,12 @@ jobs:
   build-and-test:
     docker:
       - image: cimg/python:3.12
-    working_directory: ~/project
     steps:
       - run:
           name: Checkout repository over HTTPS
           command: |
-            git clone --depth 1 https://github.com/ctlab/ITMO_FS.git .
-
-      - restore_cache:
-          keys:
-            - v2-python-3.12-{{ checksum "pyproject.toml" }}
-            - v2-python-3.12-
+            mkdir -p ~/project
+            git clone --depth 1 https://github.com/ctlab/ITMO_FS.git ~/project/ITMO_FS
 
       - run:
           name: Install uv
@@ -25,17 +20,14 @@ jobs:
       - run:
           name: Sync test environment
           command: |
+            cd ~/project/ITMO_FS
             uv sync --no-default-groups --group test --group release
-
-      - save_cache:
-          key: v2-python-3.12-{{ checksum "pyproject.toml" }}
-          paths:
-            - .venv
-            - uv.lock
 
       - run:
           name: Run tests
-          command: uv run --no-sync pytest -q
+          command: |
+            cd ~/project/ITMO_FS
+            uv run --no-sync pytest -q
 
 workflows:
   main:
