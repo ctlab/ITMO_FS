@@ -4,8 +4,12 @@ jobs:
   build-and-test:
     docker:
       - image: cimg/python:3.12
+    working_directory: ~/project
     steps:
-      - checkout
+      - run:
+          name: Checkout repository over HTTPS
+          command: |
+            git clone --depth 1 https://github.com/ctlab/ITMO_FS.git .
 
       - restore_cache:
           keys:
