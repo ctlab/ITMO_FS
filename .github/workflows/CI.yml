@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
 
@@ -16,20 +16,33 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
-      - name: Install uv + package
+      - name: Install uv
         run: |
           pip install uv
-          uv venv .venv
-          source .venv/bin/activate
-          uv pip install -e '.[dev,sci,imb,qp]'
+
+      - name: Sync test environment
+        run: uv sync --no-default-groups --group test --group release
 
       - name: Run tests
-        run: |
-          source .venv/bin/activate
-          pytest -n auto tests --continue-on-collection-errors --cov=ITMO_FS --cov-report=xml || true
+        run: uv run --no-sync pytest -n auto --cov=ITMO_FS --cov-report=xml
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
         with:
           files: coverage.xml
           fail_ci_if_error: false
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build distribution
+        run: |
+          python -m pip install --upgrade pip uv
+          uv sync --only-group release
+          uv run --no-sync python -m build

@@ -13,23 +13,25 @@ jobs:
             - v2-python-3.12-
 
       - run:
-          name: Install dependencies
+          name: Install uv
           command: |
-            python -m venv .venv
-            . .venv/bin/activate
             python -m pip install --upgrade pip
-            pip install -e '.[dev,sci,imb,qp]'
+            pip install uv
+
+      - run:
+          name: Sync test environment
+          command: |
+            uv sync --no-default-groups --group test --group release
 
       - save_cache:
           key: v2-python-3.12-{{ checksum "pyproject.toml" }}
           paths:
             - .venv
+            - uv.lock
 
       - run:
           name: Run tests
-          command: |
-            . .venv/bin/activate
-            pytest -q
+          command: uv run --no-sync pytest -q
 
 workflows:
   main:

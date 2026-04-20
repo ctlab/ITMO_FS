@@ -12,6 +12,7 @@
 #
 import os
 import sys
+from pathlib import Path
 import sphinx_rtd_theme
 sys.path.insert(0, os.path.abspath('../ITMO_FS'))
 sys.path.insert(1, os.path.abspath('..'))
@@ -24,7 +25,7 @@ copyright = '2020, ITMO University,Nikita Pilnenskiy'
 author = 'Nikita Pilnenskiy'
 
 # The full version, including alpha/beta/rc tags
-release = '0.3.2'
+release = (Path(__file__).resolve().parents[1] / "ITMO_FS" / "VERSION").read_text(encoding="utf-8").strip()
 
 
 # -- General configuration ---------------------------------------------------
