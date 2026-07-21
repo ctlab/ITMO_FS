@@ -45,6 +45,18 @@ class VDM(BaseTransformer):
         self.weighted = weighted
         self.q = q
 
+    def fit(self, X, y=None, **fit_params):
+        X = np.asarray(X, dtype=int)
+        if y is None:
+            raise ValueError("VDM requires class labels y")
+        y = np.asarray(y, dtype=int)
+
+        self.n_total_features_ = X.shape[1]
+        self.n_features_ = X.shape[1]
+        self.selected_features_ = np.arange(self.n_features_, dtype=int)
+        self.metric_ = self._fit(X, y, **fit_params)
+        return self
+
     def _fit(self, X, y=None, **kwargs):
         """
             Generates metric for the data
@@ -71,7 +83,7 @@ class VDM(BaseTransformer):
         #  to 2D array and this causes an error. It seems better to follow
         #  usual sklearn practice and to use check_X_y but np.asarray(y[0])
         #  is also possible
-        n_labels = np.max(y) + 1  # Number of different class labels
+        n_labels = int(np.max(y) + 1)  # Number of different class labels
         n_samples = X.shape[0]  # Number of samples
 
         vdm = np.zeros((n_samples, n_samples),
@@ -79,8 +91,8 @@ class VDM(BaseTransformer):
 
         for feature in X.T:  # For each attribute:
             # Initializing utility structures:
-            n_values = np.max(
-                feature) + 1  # Number of different values for the feature
+            n_values = int(np.max(
+                feature) + 1)  # Number of different values for the feature
 
             entries_x = np.empty(n_values,
                                  dtype=object)  # Array containing list of

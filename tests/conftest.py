@@ -30,6 +30,31 @@ def discrete_classification_data(classification_data):
 
 
 @pytest.fixture
+def informative_classification_data():
+    x, y = make_classification(
+        n_samples=160,
+        n_features=10,
+        n_informative=3,
+        n_redundant=0,
+        n_repeated=0,
+        n_classes=2,
+        n_clusters_per_class=1,
+        class_sep=3.0,
+        flip_y=0.0,
+        shuffle=False,
+        random_state=7,
+    )
+    return x, y
+
+
+@pytest.fixture
+def informative_discrete_classification_data(informative_classification_data):
+    x, y = informative_classification_data
+    discretizer = KBinsDiscretizer(n_bins=5, encode="ordinal", strategy="uniform")
+    return discretizer.fit_transform(x), y
+
+
+@pytest.fixture
 def tiny_filter_example():
     x = np.array(
         [

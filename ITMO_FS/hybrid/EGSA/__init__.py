@@ -1,1 +1,1 @@
-from . import EGSA
+from .EGSA import EGSA

@@ -1,3 +1,5 @@
+import numpy as np
+
 from ITMO_FS.filters.univariate.measures import pearson_corr
 from ITMO_FS.utils.qpfs_body import qpfs_body
 from ...utils import BaseWrapper
@@ -49,7 +51,7 @@ class QPFSWrapper(BaseWrapper):
         self.solv = solv
         self.fn = fn
 
-    def _fit(X, y):
+    def _fit(self, X, y):
         """
             Fits wrapper.
 
@@ -62,5 +64,10 @@ class QPFSWrapper(BaseWrapper):
             Returns
             ------
             None
-        """        
-        return qpfs_body(X, y, fn, alpha=alpha, r=r, sigma=sigma, solv=solv)
+        """
+        self.feature_scores_ = -qpfs_body(
+            X, y, self.fn, alpha=self.alpha, r=self.r, sigma=self.sigma,
+            solv=self.solv)
+        self.selected_features_ = np.argsort(self.feature_scores_)[::-1]
+        self.best_score_ = None
+        self._estimator.fit(X[:, self.selected_features_], y)

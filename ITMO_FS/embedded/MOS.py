@@ -116,8 +116,9 @@ class MOS(BaseTransformer):
         model = clone(self.model)
         for a in self.alphas:  # TODO: do a little more
             # research on the range of lambdas
+            sklearn_loss = 'log_loss' if self.loss == 'log' else self.loss
             model = model.set_params(
-                loss=self.loss, random_state=self.seed, penalty='elasticnet',
+                loss=sklearn_loss, random_state=self.seed, penalty='elasticnet',
                 alpha=a, l1_ratio=self.l1_ratio, max_iter=self.epochs)
             model.fit(X, y)
             b = self.weight_func(model)

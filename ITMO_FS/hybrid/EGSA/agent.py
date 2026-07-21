@@ -66,7 +66,8 @@ class Agent:
 
     def copy(self):
         new = Agent(self.size, transfer_function=self.transfer_function, estimator=self.estimator,
-                    seed=self.seed + self.random.integers(1000))
+                    seed=self.seed + self.random.integers(1000),
+                    smooth_coefficient=self.smooth_coefficient)
         new.bits = self.bits.copy()
         new.fitness = self.fitness
         return new

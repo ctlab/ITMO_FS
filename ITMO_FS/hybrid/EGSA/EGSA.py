@@ -103,6 +103,8 @@ class EGSA:
             Fitted instance of EGSA
         """
 
+        self._X = X
+        self._y = y
         n = len(X[0])
         agents = [self._make_agent(n) for _ in range(self.n_agents)]
 
@@ -199,7 +201,7 @@ class EGSA:
 
     def _update_fitness(self, agents):
         for agent in agents:
-            agent.update_fitness(X, y, self.alpha)
+            agent.update_fitness(self._X, self._y, self.alpha)
 
     def _make_agent(self, size):
         """
